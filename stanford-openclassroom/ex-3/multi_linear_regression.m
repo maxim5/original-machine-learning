@@ -1,4 +1,5 @@
 % Exercise 3: Multivariate Linear Regression
+# http://openclassroom.stanford.edu/MainFolder/DocumentPage.php?course=MachineLearning&doc=exercises/ex3/ex3.html
 
 clear all; close all; clc
 x = load('ex3x.dat'); y = load('ex3y.dat');
