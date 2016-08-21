@@ -8,6 +8,7 @@ __author__ = "maxim"
 #          2 hidden layers instead of 1
 # Hits the accuracy of 99%
 
+import datetime
 import theano
 from theano import tensor as T
 from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
@@ -62,6 +63,8 @@ def model(X, w_h, w_h2, w_o, p_drop_input, p_drop_hidden):
     py_x = softmax(T.dot(h2, w_o))
     return h, h2, py_x
 
+print str(datetime.datetime.now()), "Compile"
+
 trainX, testX, trainY, testY = load.mnist(onehot=True)
 
 X = T.fmatrix()
@@ -89,8 +92,8 @@ def mini_batch(total, size):
     return zip(range(0, total, size),
                range(size, total, size))
 
-print "Start"
+print str(datetime.datetime.now()), "Start train"
 for epoch in range(100):
     for start, end in mini_batch(len(trainX), 128):
         cost = train(trainX[start:end], trainY[start:end])
-    print epoch, np.mean(np.argmax(testY, axis=1) == predict(testX))
+    print str(datetime.datetime.now()), epoch, np.mean(np.argmax(testY, axis=1) == predict(testX))

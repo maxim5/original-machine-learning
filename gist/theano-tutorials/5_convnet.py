@@ -5,6 +5,7 @@ __author__ = "maxim"
 # A convolutional NN (2012+)
 # THEANO_FLAGS='floatX=float32'
 
+import datetime
 import theano
 from theano import tensor as T
 from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
@@ -70,6 +71,8 @@ def model(X, w, w2, w3, w4, w_o, p_drop_conv, p_drop_hidden):
     py_x = softmax(T.dot(l4, w_o))
     return l1, l2, l3, l4, py_x
 
+print str(datetime.datetime.now()), "Compile"
+
 trainX, testX, trainY, testY = load.mnist(onehot=True)
 
 trainX = trainX.reshape(-1, 1, 28, 28)  # reshape into conv 4 tensor (b, c, 0, 1) format
@@ -99,8 +102,8 @@ def mini_batch(total, size):
     return zip(range(0, total, size),
                range(size, total, size))
 
-print "Start"
+print str(datetime.datetime.now()), "Start train"
 for epoch in range(100):
     for start, end in mini_batch(len(trainX), 128):
         cost = train(trainX[start:end], trainY[start:end])
-    print epoch, np.mean(np.argmax(testY, axis=1) == predict(testX))
+    print str(datetime.datetime.now()), epoch, np.mean(np.argmax(testY, axis=1) == predict(testX))
