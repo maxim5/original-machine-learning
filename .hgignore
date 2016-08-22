@@ -3,4 +3,5 @@ syntax: glob
 *.dat
 *.pyc
 workspace.xml
+gist/nando-ubc-cs540-2013/*.png
 
