@@ -100,8 +100,8 @@ def cross_validate(X_train, y_train, num_folds=5):
 
     plot_cross_validation(k_choices, k_to_accuracies)
 
-    best_accuracy = sorted(k_to_accuracies, key=lambda k: np.mean(k_to_accuracies[k]))
-    return k_choices[best_accuracy[0]]
+    sort_by_accuracy = sorted(k_to_accuracies, key=lambda k: np.mean(k_to_accuracies[k]))
+    return sort_by_accuracy[-1]
 
 
 def plot_cross_validation(k_choices, k_to_accuracies):
