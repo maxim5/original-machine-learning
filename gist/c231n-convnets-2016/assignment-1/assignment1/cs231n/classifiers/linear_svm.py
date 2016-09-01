@@ -1,5 +1,4 @@
 import numpy as np
-from random import shuffle
 
 def svm_loss_naive(W, X, y, reg):
   """
@@ -22,8 +21,8 @@ def svm_loss_naive(W, X, y, reg):
   dW = np.zeros(W.shape) # initialize the gradient as zero
 
   # compute the loss and the gradient
-  num_classes = W.shape[1]
   num_train = X.shape[0]
+  num_classes = W.shape[1]
   loss = 0.0
   for i in xrange(num_train):
     scores = X[i].dot(W)
@@ -34,23 +33,17 @@ def svm_loss_naive(W, X, y, reg):
       margin = scores[j] - correct_class_score + 1 # note delta = 1
       if margin > 0:
         loss += margin
+        dW[:,j   ] += X[i,:].T  # the grad from class j
+        dW[:,y[i]] -= X[i,:].T  # the grad from class y[i]
 
   # Right now the loss is a sum over all training examples, but we want it
   # to be an average instead so we divide by num_train.
   loss /= num_train
+  dW /= num_train
 
-  # Add regularization to the loss.
+  # Add regularization.
   loss += 0.5 * reg * np.sum(W * W)
-
-  #############################################################################
-  # TODO:                                                                     #
-  # Compute the gradient of the loss function and store it dW.                #
-  # Rather that first computing the loss and then computing the derivative,   #
-  # it may be simpler to compute the derivative at the same time that the     #
-  # loss is being computed. As a result you may need to modify some of the    #
-  # code above to compute the gradient.                                       #
-  #############################################################################
-
+  dW += reg * W
 
   return loss, dW
 
@@ -61,32 +54,58 @@ def svm_loss_vectorized(W, X, y, reg):
 
   Inputs and outputs are the same as svm_loss_naive.
   """
-  loss = 0.0
-  dW = np.zeros(W.shape) # initialize the gradient as zero
+  num_train = X.shape[0]
 
-  #############################################################################
-  # TODO:                                                                     #
-  # Implement a vectorized version of the structured SVM loss, storing the    #
-  # result in loss.                                                           #
-  #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
+  # Here's a bit faster, yet still naive approach that we're going to vectorize:
+  #
+  # for i in xrange(num_train):
+  #   scores = X[i].dot(W)
+  #   correct_class_score = scores[y[i]]
+  #   loss_values = np.maximum(scores - correct_class_score + 1, 0)
+  #   loss_values[y[i]] = 0
+  #   loss += np.sum(loss_values)
 
+  # Compute the scores in one multiply.
+  scores = X.dot(W)
 
-  #############################################################################
-  # TODO:                                                                     #
-  # Implement a vectorized version of the gradient for the structured SVM     #
-  # loss, storing the result in dW.                                           #
-  #                                                                           #
-  # Hint: Instead of computing the gradient from scratch, it may be easier    #
-  # to reuse some of the intermediate values that you used to compute the     #
-  # loss.                                                                     #
-  #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
+  # Get the correct values in one select -> [np.arange(num_train), y].
+  # Note that `correct_scores` is an array of size num_train.
+  # See advanced indexing: http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
+  # The other option is sadly slow:
+  # correct_scores = np.diag(scores[y,:])
+  correct_scores = scores[np.arange(num_train), y]
+
+  # The broadcasting rules aren't trivial.
+  # Can't compute `scores - correct_scores`, but can if transpose `scores`.
+  # See http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html
+  loss_values = (scores.T - correct_scores + 1).T
+  loss_values[np.arange(num_train), y] = 0
+  hinge_values = np.maximum(loss_values, 0)
+
+  # Now it's pretty easy.
+  loss = np.sum(hinge_values) / num_train
+  loss += 0.5 * reg * np.sum(W * W)
+
+  # Compute the gradient.
+  # Idea: perform the two operations simultaneously
+  # (1) for all j: dW[j,:] = sum_{i, j produces positive margin with i} X[:,i].T
+  # (2) for all i: dW[y[i],:] = sum_{j != y_i, j produces positive margin with i} -X[:,i].T
+
+  # First transform `hinge_values` is a matrix of zeros and ones.
+  # The values of `X` should be added to `dW` where the coefficient is one (1).
+  grad_coeff = hinge_values
+  grad_coeff[hinge_values > 0] = 1
+
+  # Also the values of `X` should be subtracted from `dW` on the correct classes -> [np.arange(num_train), y] (2).
+  # The number of times it's subtracted corresponds to the number of positive margins, i.e. the sum per each row.
+  sums_per_row = np.sum(grad_coeff, axis=1)
+  grad_coeff[np.arange(num_train), y] = -sums_per_row[np.arange(num_train)]
+
+  # Finally add up all values of `X` with computed coefficients.
+  dW = np.dot(X.T, grad_coeff)
+
+  # Boilerplate stuff.
+  dW /= num_train
+  dW += reg * W
 
   return loss, dW
