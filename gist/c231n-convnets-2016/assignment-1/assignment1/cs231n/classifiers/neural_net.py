@@ -1,13 +1,11 @@
 import numpy as np
-import matplotlib.pyplot as plt
-
 
 class TwoLayerNet(object):
   """
   A two-layer fully-connected neural network. The net has an input dimension of
   N, a hidden layer dimension of H, and performs classification over C classes.
   We train the network with a softmax loss function and L2 regularization on the
-  weight matrices. The network uses a ReLU nonlinearity after the first fully
+  weight matrices. The network uses a ReLU non-linearity after the first fully
   connected layer.
 
   In other words, the network has the following architecture:
@@ -68,46 +66,32 @@ class TwoLayerNet(object):
     N, D = X.shape
 
     # Compute the forward pass
-    scores = None
-    #############################################################################
-    # TODO: Perform the forward pass, computing the class scores for the input. #
-    # Store the result in the scores variable, which should be an array of      #
-    # shape (N, C).                                                             #
-    #############################################################################
-    pass
-    #############################################################################
-    #                              END OF YOUR CODE                             #
-    #############################################################################
+    h1 = np.maximum(X.dot(W1) + b1, 0)
+    h2_in = h1.dot(W2) + b2
+    scores = h2_in
     
     # If the targets are not given then jump out, we're done
     if y is None:
       return scores
 
-    # Compute the loss
-    loss = None
-    #############################################################################
-    # TODO: Finish the forward pass, and compute the loss. This should include  #
-    # both the data loss and L2 regularization for W1 and W2. Store the result  #
-    # in the variable loss, which should be a scalar. Use the Softmax           #
-    # classifier loss. So that your results match ours, multiply the            #
-    # regularization loss by 0.5                                                #
-    #############################################################################
-    pass
-    #############################################################################
-    #                              END OF YOUR CODE                             #
-    #############################################################################
+    # Compute the softmax loss
+    scores -= np.max(scores)
+    correct_scores = scores[np.arange(N), y]
+    exponents = np.exp(scores)
+    sums_per_row = np.sum(exponents, axis=1)
+    softmax_array = np.exp(correct_scores) / sums_per_row
+    information_array = -np.log(softmax_array)
+    loss = np.mean(information_array)
+    loss += 0.5 * reg * np.sum(W1 * W1) + 0.5 * reg * np.sum(W2 * W2)
 
     # Backward pass: compute gradients
+    all_softmax_matrix = (exponents.T / sums_per_row).T
+    grad_coeff = np.zeros_like(scores)
+    grad_coeff[np.arange(N), y] = -1
+    grad_coeff += all_softmax_matrix
+    grad_softmax = np.dot(h1.T, grad_coeff) / N
+
     grads = {}
-    #############################################################################
-    # TODO: Compute the backward pass, computing the derivatives of the weights #
-    # and biases. Store the results in the grads dictionary. For example,       #
-    # grads['W1'] should store the gradient on W1, and be a matrix of same size #
-    #############################################################################
-    pass
-    #############################################################################
-    #                              END OF YOUR CODE                             #
-    #############################################################################
 
     return loss, grads
 
