@@ -65,7 +65,8 @@ def softmax_loss_vectorized(W, X, y, reg):
   information_array = -np.log(softmax_array)
   loss = np.mean(information_array)
 
-  # Compute the softmax per whole scores matrix and dot product with X.
+  # Compute the softmax per whole scores matrix, which gives the matrix for X rows coefficients.
+  # Their linear combination is algebraically dot product X transpose.
   all_softmax_matrix = (exponents.T / sums_per_row).T
   grad_coeff = np.zeros_like(scores)
   grad_coeff[np.arange(num_train), y] = -1
