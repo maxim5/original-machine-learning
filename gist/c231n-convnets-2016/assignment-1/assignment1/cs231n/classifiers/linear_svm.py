@@ -68,15 +68,15 @@ def svm_loss_vectorized(W, X, y, reg):
   # Compute the scores in one multiply.
   scores = X.dot(W)
 
-  # Get the correct values in one select -> [np.arange(num_train), y].
-  # Note that `correct_scores` is an array of size num_train.
+  # Get the correct values in one slicing operation -> [np.arange(num_train), y].
+  # Note that `correct_scores` is an array of shape `(num_train)`.
   # See advanced indexing: http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
   # The other option is sadly slow:
   # correct_scores = np.diag(scores[y,:])
   correct_scores = scores[np.arange(num_train), y]
 
   # The broadcasting rules aren't trivial.
-  # Can't compute `scores - correct_scores`, but can if transpose `scores`.
+  # Can't compute `scores - correct_scores`, but can if transpose `scores` first.
   # See http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html
   loss_values = (scores.T - correct_scores + 1).T
   loss_values[np.arange(num_train), y] = 0
