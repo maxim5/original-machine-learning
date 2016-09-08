@@ -65,33 +65,40 @@ class TwoLayerNet(object):
     W2, b2 = self.params['W2'], self.params['b2']
     N, D = X.shape
 
-    # Compute the forward pass
-    h1 = np.maximum(X.dot(W1) + b1, 0)
-    h2_in = h1.dot(W2) + b2
-    scores = h2_in
-    
+    # Forward pass
+
+    layer1 = X.dot(W1) + b1
+    layer2 = np.maximum(layer1, 0)
+    layer3 = layer2.dot(W2) + b2
+    # The log(softmax). Simple formula: -log(e^correct/sum_of_exp) = -correct + log(sum_of_exp)
+    layer4 = -layer3[np.arange(N), y] + np.log(np.sum(np.exp(layer3), axis=1))
+
     # If the targets are not given then jump out, we're done
-    if y is None:
-      return scores
+    if y is None: return layer3
 
-    # Compute the softmax loss
-    scores -= np.max(scores)
-    correct_scores = scores[np.arange(N), y]
-    exponents = np.exp(scores)
-    sums_per_row = np.sum(exponents, axis=1)
-    softmax_array = np.exp(correct_scores) / sums_per_row
-    information_array = -np.log(softmax_array)
-    loss = np.mean(information_array)
-    loss += 0.5 * reg * np.sum(W1 * W1) + 0.5 * reg * np.sum(W2 * W2)
+    loss = np.mean(layer4) + 0.5 * reg * np.sum(W1 * W1) + 0.5 * reg * np.sum(W2 * W2)
 
-    # Backward pass: compute gradients
-    all_softmax_matrix = (exponents.T / sums_per_row).T
-    grad_coeff = np.zeros_like(scores)
-    grad_coeff[np.arange(N), y] = -1
-    grad_coeff += all_softmax_matrix
-    grad_softmax = np.dot(h1.T, grad_coeff) / N
+    # Backward pass
 
-    grads = {}
+    # The gradient of `layer4` consists of two gradients:
+    #   -layer3[np.arange(N), y]:
+    #    np.log(np.sum(np.exp(layer3), axis=1))
+    d_norm_const = (np.exp(layer3).T / np.sum(np.exp(layer3), axis=1)).T
+    d_correct = np.zeros(d_norm_const.shape)
+    d_correct[range(N), y] = 1
+    d_layer4 = -d_correct + d_norm_const
+    d_layer4 = (d_layer4 / N) * 1.0
+
+    d_layer3 = d_layer4.dot(W2.T)
+
+    d_layer2 = d_layer3 * (layer1 > 0)
+
+    grads = {
+      'W1': X.T.dot(d_layer2) + reg * W1,
+      'W2': layer2.T.dot(d_layer4) + reg * W2,
+      'b1': np.sum(d_layer2, axis=0),
+      'b2': np.sum(d_layer4, axis=0)
+    }
 
     return loss, grads
 
