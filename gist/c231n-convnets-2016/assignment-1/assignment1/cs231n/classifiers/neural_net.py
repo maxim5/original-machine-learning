@@ -83,14 +83,19 @@ class TwoLayerNet(object):
     # The gradient of `layer4` consists of two gradients:
     #   -layer3[np.arange(N), y]:
     #    np.log(np.sum(np.exp(layer3), axis=1))
+    # 1.0 is the propagated gradient from the output layer
     d_norm_const = (np.exp(layer3).T / np.sum(np.exp(layer3), axis=1)).T
     d_correct = np.zeros(d_norm_const.shape)
     d_correct[range(N), y] = 1
     d_layer4 = -d_correct + d_norm_const
     d_layer4 = (d_layer4 / N) * 1.0
 
+    # The gradient of `layer3` is W2 transpose.
+    # `d_layer4` is the propagated gradient from the following layer
     d_layer3 = d_layer4.dot(W2.T)
 
+    # The gradient of `layer2` is indicator array `layer1 > 0`.
+    # `d_layer3` is the propagated gradient from the following layer
     d_layer2 = d_layer3 * (layer1 > 0)
 
     grads = {
