@@ -6,4 +6,5 @@ syntax: glob
 workspace.xml
 
 gist/nando-ubc-cs540-2013/*.png
-gist/c231n-convnets-2016/assignment-1/assignment1/cs231n/datasets/cifar-10-batches-py
+gist/cs231n-convnets-2016/assignment-1/assignment1/cs231n/datasets/cifar-10-batches-py
+
