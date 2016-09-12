@@ -34,21 +34,13 @@ class TwoLayerNet(object):
       initialization of the weights.
     - reg: Scalar giving L2 regularization strength.
     """
-    self.params = {}
+    self.params = {
+      "W1": np.random.randn(input_dim, hidden_dim) * weight_scale,
+      "b1": np.zeros(hidden_dim),
+      "W2": np.random.randn(hidden_dim, num_classes) * weight_scale,
+      "b2": np.zeros(num_classes),
+    }
     self.reg = reg
-    
-    ############################################################################
-    # TODO: Initialize the weights and biases of the two-layer net. Weights    #
-    # should be initialized from a Gaussian with standard deviation equal to   #
-    # weight_scale, and biases should be initialized to zero. All weights and  #
-    # biases should be stored in the dictionary self.params, with first layer  #
-    # weights and biases using the keys 'W1' and 'b1' and second layer weights #
-    # and biases using the keys 'W2' and 'b2'.                                 #
-    ############################################################################
-    pass
-    ############################################################################
-    #                             END OF YOUR CODE                             #
-    ############################################################################
 
 
   def loss(self, X, y=None):
@@ -69,36 +61,30 @@ class TwoLayerNet(object):
     - loss: Scalar value giving the loss
     - grads: Dictionary with the same keys as self.params, mapping parameter
       names to gradients of the loss with respect to those parameters.
-    """  
-    scores = None
-    ############################################################################
-    # TODO: Implement the forward pass for the two-layer net, computing the    #
-    # class scores for X and storing them in the scores variable.              #
-    ############################################################################
-    pass
-    ############################################################################
-    #                             END OF YOUR CODE                             #
-    ############################################################################
+    """
 
-    # If y is None then we are in test mode so just return scores
-    if y is None:
-      return scores
+    W1, b1 = self.params["W1"], self.params["b1"]
+    W2, b2 = self.params["W2"], self.params["b2"]
+
+    layer1, cache1 = affine_forward(X, W1, b1)
+    layer2, cache2 = relu_forward(layer1)
+    layer3, cache3 = affine_forward(layer2, W2, b2)
+    if y is None: return layer3
+    layer4, cache4 = softmax_loss(layer3, y)
+
+    loss = layer4 + 0.5 * self.reg * np.sum(W1 * W1) + 0.5 * self.reg * np.sum(W2 * W2)
+
+    gradient4 = cache4
+    gradient3, dW2, db2 = affine_backward(gradient4, cache3)
+    gradient2 = relu_backward(gradient3, cache2)
+    gradient1, dW1, db1 = affine_backward(gradient2, cache1)
     
-    loss, grads = 0, {}
-    ############################################################################
-    # TODO: Implement the backward pass for the two-layer net. Store the loss  #
-    # in the loss variable and gradients in the grads dictionary. Compute data #
-    # loss using softmax, and make sure that grads[k] holds the gradients for  #
-    # self.params[k]. Don't forget to add L2 regularization!                   #
-    #                                                                          #
-    # NOTE: To ensure that your implementation matches ours and you pass the   #
-    # automated tests, make sure that your L2 regularization includes a factor #
-    # of 0.5 to simplify the expression for the gradient.                      #
-    ############################################################################
-    pass
-    ############################################################################
-    #                             END OF YOUR CODE                             #
-    ############################################################################
+    grads = {
+      "W1": dW1 + self.reg * W1,
+      "b1": db1,
+      "W2": dW2 + self.reg * W2,
+      "b2": db2,
+    }
 
     return loss, grads
 
