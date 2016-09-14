@@ -83,7 +83,7 @@ def batchnorm_forward(x, gamma, beta, bn_param):
   Forward pass for batch normalization.
   
   During training the sample mean and (uncorrected) sample variance are
-  computed from minibatch statistics and used to normalize the incoming data.
+  computed from mini-batch statistics and used to normalize the incoming data.
   During training we also keep an exponentially decaying running mean of the mean
   and variance of each feature, and these averages are used to normalize data
   at test-time.
@@ -126,34 +126,24 @@ def batchnorm_forward(x, gamma, beta, bn_param):
 
   out, cache = None, None
   if mode == 'train':
-    #############################################################################
-    # TODO: Implement the training-time forward pass for batch normalization.   #
-    # Use minibatch statistics to compute the mean and variance, use these      #
-    # statistics to normalize the incoming data, and scale and shift the        #
-    # normalized data using gamma and beta.                                     #
-    #                                                                           #
-    # You should store the output in the variable out. Any intermediates that   #
-    # you need for the backward pass should be stored in the cache variable.    #
-    #                                                                           #
-    # You should also use your computed sample mean and variance together with  #
-    # the momentum variable to update the running mean and running variance,    #
-    # storing your result in the running_mean and running_var variables.        #
-    #############################################################################
-    pass
-    #############################################################################
-    #                             END OF YOUR CODE                              #
-    #############################################################################
+    mean = np.sum(x, axis=0) / N          # np.mean(x)
+    centered = x - mean
+    centered2 = centered ** 2
+    var = np.sum(centered2, axis=0) / N   # np.var(x)
+    stdev = np.sqrt(var + eps)
+    stdev_inv = 1.0 / stdev
+    normed = centered * stdev_inv
+    scaled = gamma * normed
+    shifted = scaled + beta
+    out = shifted
+
+    running_mean = momentum * running_mean + (1 - momentum) * mean
+    running_var = momentum * running_var + (1 - momentum) * var
+
+    cache = (mean, centered, centered2, var, stdev, stdev_inv, normed, scaled, shifted, beta, gamma, eps)
   elif mode == 'test':
-    #############################################################################
-    # TODO: Implement the test-time forward pass for batch normalization. Use   #
-    # the running mean and variance to normalize the incoming data, then scale  #
-    # and shift the normalized data using gamma and beta. Store the result in   #
-    # the out variable.                                                         #
-    #############################################################################
-    pass
-    #############################################################################
-    #                             END OF YOUR CODE                              #
-    #############################################################################
+    normalized = (x - running_mean) / np.sqrt(running_var)
+    out = (normalized + beta) * gamma
   else:
     raise ValueError('Invalid forward batchnorm mode "%s"' % mode)
 
@@ -164,7 +154,8 @@ def batchnorm_forward(x, gamma, beta, bn_param):
   return out, cache
 
 
-def batchnorm_backward(dout, cache):
+# See https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
+def batchnorm_backward(d_out, cache):
   """
   Backward pass for batch normalization.
   
@@ -181,19 +172,46 @@ def batchnorm_backward(dout, cache):
   - dgamma: Gradient with respect to scale parameter gamma, of shape (D,)
   - dbeta: Gradient with respect to shift parameter beta, of shape (D,)
   """
-  dx, dgamma, dbeta = None, None, None
-  #############################################################################
-  # TODO: Implement the backward pass for batch normalization. Store the      #
-  # results in the dx, dgamma, and dbeta variables.                           #
-  #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
+  mean, centered, centered2, var, stdev, stdev_inv, normed, scaled, shifted, beta, gamma, eps = cache
+  N, D = d_out.shape
+  ones = np.ones(d_out.shape)
 
-  return dx, dgamma, dbeta
+  # shifted = scaled + beta
+  d_shifted = 1.0 * d_out
+  d_beta = 1.0 * np.sum(d_out, axis=0)
 
+  # scaled = gamma * normed
+  d_scaled = d_shifted * gamma
+  d_gamma = np.sum(d_shifted * normed, axis=0)
 
+  # normed = centered * stdev_inv
+  d_normed_d_centered = stdev_inv * d_scaled
+  d_normed_d_stdev_inv = np.sum(centered * d_scaled, axis=0)
+
+  # stdev_inv = 1.0 / stdev
+  d_stdev_inv = -1.0 / (stdev**2) * d_normed_d_stdev_inv
+
+  # stdev = np.sqrt(var + eps)
+  d_stdev = 0.5 / stdev * d_stdev_inv
+
+  # var = np.sum(centered2, axis=0) / N
+  d_var = 1.0 / N * ones * d_stdev
+
+  # centered2 = centered ** 2
+  d_centered2 = 2 * centered * d_var
+
+  # centered = x - mean
+  d_centered_d_x = d_normed_d_centered + d_centered2
+  d_centered_d_mean = -np.sum(d_centered_d_x, axis=0)
+
+  # mean = np.sum(x, axis=0) / N
+  d_mean = 1.0 / N * ones * d_centered_d_mean
+
+  dx = d_centered_d_x + d_mean
+
+  return dx, d_gamma, d_beta
+
+# See http://cthorey.github.io/backpropagation/
 def batchnorm_backward_alt(dout, cache):
   """
   Alternative backward pass for batch normalization.
