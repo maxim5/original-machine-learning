@@ -140,15 +140,11 @@ class FullyConnectedNet(object):
     for idx, (dim1, dim2) in enumerate(zip(dims1, dims2)):
       self.params["W%d" % (idx + 1)] = np.random.randn(dim1, dim2) * weight_scale
       self.params["b%d" % (idx + 1)] = np.zeros(dim2)
+      if use_batchnorm and idx < self.num_layers - 1:
+        self.params["beta%d" % (idx + 1)] = np.zeros(dim2)
+        self.params["gamma%d" % (idx + 1)] = np.ones(dim2)
 
     self.reg = reg
-
-    ############################################################################
-    # When using batch normalization, store scale and shift parameters for the #
-    # first layer in gamma1 and beta1; for the second layer use gamma2 and     #
-    # beta2, etc. Scale parameters should be initialized to one and shift      #
-    # parameters should be initialized to zero.                                #
-    ############################################################################
 
     # When using dropout we need to pass a dropout_param dictionary to each
     # dropout layer so that the layer knows the dropout probability and the mode
@@ -193,15 +189,11 @@ class FullyConnectedNet(object):
     ############################################################################
     # When using dropout, you'll need to pass self.dropout_param to each       #
     # dropout forward pass.                                                    #
-    #                                                                          #
-    # When using batch normalization, you'll need to pass self.bn_params[0] to #
-    # the forward pass for the first batch normalization layer, pass           #
-    # self.bn_params[1] to the forward pass for the second batch normalization #
-    # layer, etc.                                                              #
     ############################################################################
 
     forward_msg = X
-    caches = []
+    affine_caches = []
+    batchnorm_caches = []
     for i in xrange(1, self.num_layers + 1):
       W = self.params["W%d" % i]
       b = self.params["b%d" % i]
@@ -209,7 +201,13 @@ class FullyConnectedNet(object):
         forward_msg, cache = affine_relu_forward(forward_msg, W, b)
       else:
         forward_msg, cache = affine_forward(forward_msg, W, b)
-      caches.append(cache)
+      affine_caches.append(cache)
+
+      if i != self.num_layers and self.use_batchnorm:
+        beta = self.params["beta%d" % i]
+        gamma = self.params["gamma%d" % i]
+        forward_msg, cache = batchnorm_forward(forward_msg, gamma, beta, self.bn_params[i - 1])
+        batchnorm_caches.append(cache)
 
     if mode == 'test':
       return forward_msg
@@ -221,21 +219,18 @@ class FullyConnectedNet(object):
 
     grads = {}
     for i in xrange(self.num_layers, 0, -1):
-      cache = caches[i - 1]
+      if i != self.num_layers and self.use_batchnorm:
+        cache = batchnorm_caches[i - 1]
+        backward_msg, dgamma, dbeta = batchnorm_backward(backward_msg, cache)
+        grads["beta%d" % i] = dbeta
+        grads["gamma%d" % i] = dgamma
+
+      cache = affine_caches[i - 1]
       if i != self.num_layers:
         backward_msg, dW, db = affine_relu_backward(backward_msg, cache)
       else:
         backward_msg, dW, db = affine_backward(backward_msg, cache)
       grads["W%d" % i] = dW + self.reg * self.params["W%d" % i]
       grads["b%d" % i] = db
-
-    ############################################################################
-    # When using batch normalization, you don't need to regularize the scale   #
-    # and shift parameters.                                                    #
-    #                                                                          #
-    # NOTE: To ensure that your implementation matches ours and you pass the   #
-    # automated tests, make sure that your L2 regularization includes a factor #
-    # of 0.5 to simplify the expression for the gradient.                      #
-    ############################################################################
 
     return loss, grads
