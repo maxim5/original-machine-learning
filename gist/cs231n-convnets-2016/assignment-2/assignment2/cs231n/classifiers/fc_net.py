@@ -186,11 +186,6 @@ class FullyConnectedNet(object):
       for bn_param in self.bn_params:
         bn_param[mode] = mode
 
-    ############################################################################
-    # When using dropout, you'll need to pass self.dropout_param to each       #
-    # dropout forward pass.                                                    #
-    ############################################################################
-
     forward_msg = X
     affine_caches = []
     dropout_caches = []
