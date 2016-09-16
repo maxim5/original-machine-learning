@@ -193,6 +193,7 @@ class FullyConnectedNet(object):
 
     forward_msg = X
     affine_caches = []
+    dropout_caches = []
     batchnorm_caches = []
     for i in xrange(1, self.num_layers + 1):
       W = self.params["W%d" % i]
@@ -202,6 +203,10 @@ class FullyConnectedNet(object):
       else:
         forward_msg, cache = affine_forward(forward_msg, W, b)
       affine_caches.append(cache)
+
+      if self.use_dropout:
+        forward_msg, cache = dropout_forward(forward_msg, self.dropout_param)
+        dropout_caches.append(cache)
 
       if i != self.num_layers and self.use_batchnorm:
         beta = self.params["beta%d" % i]
@@ -224,6 +229,10 @@ class FullyConnectedNet(object):
         backward_msg, dgamma, dbeta = batchnorm_backward(backward_msg, cache)
         grads["beta%d" % i] = dbeta
         grads["gamma%d" % i] = dgamma
+
+      if self.use_dropout:
+        cache = dropout_caches[i - 1]
+        backward_msg = dropout_backward(backward_msg, cache)
 
       cache = affine_caches[i - 1]
       if i != self.num_layers:
