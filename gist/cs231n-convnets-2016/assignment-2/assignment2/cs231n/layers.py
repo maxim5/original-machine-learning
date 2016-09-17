@@ -216,7 +216,7 @@ def batchnorm_backward(d_out, cache):
   return d_x, d_gamma, d_beta
 
 # See http://cthorey.github.io/backpropagation/
-def batchnorm_backward_alt(dout, cache):
+def batchnorm_backward_alt(d_out, cache):
   """
   Alternative backward pass for batch normalization.
   
@@ -229,21 +229,14 @@ def batchnorm_backward_alt(dout, cache):
   
   Inputs / outputs: Same as batchnorm_backward
   """
-  dx, dgamma, dbeta = None, None, None
-  #############################################################################
-  # TODO: Implement the backward pass for batch normalization. Store the      #
-  # results in the dx, dgamma, and dbeta variables.                           #
-  #                                                                           #
-  # After computing the gradient with respect to the centered inputs, you     #
-  # should be able to compute gradients with respect to the inputs in a       #
-  # single statement; our implementation fits on a single 80-character line.  #
-  #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
+  mu, x_mu, x_mu_sq, var, stdev, stdev_inv, x_hat, gamma_x_hat, x_bar, beta, gamma, eps = cache
+  N, D = d_out.shape
+
+  d_beta = np.sum(d_out, axis=0)
+  d_gamma = np.sum(x_hat * d_out, axis=0)
+  d_x = (1.0 / N) * gamma * stdev_inv * (N * d_out - np.sum(d_out, axis=0) - x_mu * (stdev_inv**2) * np.sum(d_out * x_mu, axis=0))
   
-  return dx, dgamma, dbeta
+  return d_x, d_gamma, d_beta
 
 
 def dropout_forward(x, dropout_param):
