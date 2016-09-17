@@ -221,7 +221,7 @@ class FullyConnectedNet(object):
     for i in xrange(self.num_layers, 0, -1):
       if i != self.num_layers and self.use_batchnorm:
         cache = batchnorm_caches[i - 1]
-        backward_msg, dgamma, dbeta = batchnorm_backward(backward_msg, cache)
+        backward_msg, dgamma, dbeta = batchnorm_backward_alt(backward_msg, cache)
         grads["beta%d" % i] = dbeta
         grads["gamma%d" % i] = dgamma
 
