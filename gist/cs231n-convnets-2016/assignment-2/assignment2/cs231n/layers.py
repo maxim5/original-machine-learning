@@ -126,21 +126,21 @@ def batchnorm_forward(x, gamma, beta, bn_param):
 
   out, cache = None, None
   if mode == 'train':
-    mean = np.sum(x, axis=0) / N          # np.mean(x)
-    centered = x - mean
-    centered2 = centered ** 2
-    var = np.sum(centered2, axis=0) / N   # np.var(x)
+    mu = np.sum(x, axis=0) / N           # np.mean(x)
+    x_mu = x - mu
+    x_mu_sq = x_mu ** 2
+    var = np.sum(x_mu_sq, axis=0) / N    # np.var(x)
     stdev = np.sqrt(var + eps)
     stdev_inv = 1.0 / stdev
-    normed = centered * stdev_inv
-    scaled = gamma * normed
-    shifted = scaled + beta
-    out = shifted
+    x_hat = x_mu * stdev_inv
+    gamma_x_hat = gamma * x_hat
+    x_bar = gamma_x_hat + beta
+    out = x_bar
 
-    running_mean = momentum * running_mean + (1 - momentum) * mean
+    running_mean = momentum * running_mean + (1 - momentum) * mu
     running_var = momentum * running_var + (1 - momentum) * var
 
-    cache = (mean, centered, centered2, var, stdev, stdev_inv, normed, scaled, shifted, beta, gamma, eps)
+    cache = (mu, x_mu, x_mu_sq, var, stdev, stdev_inv, x_hat, gamma_x_hat, x_bar, beta, gamma, eps)
   elif mode == 'test':
     normalized = (x - running_mean) / np.sqrt(running_var)
     out = (normalized + beta) * gamma
@@ -164,52 +164,56 @@ def batchnorm_backward(d_out, cache):
   intermediate nodes.
   
   Inputs:
-  - dout: Upstream derivatives, of shape (N, D)
+  - d_out: Upstream derivatives, of shape (N, D)
   - cache: Variable of intermediates from batchnorm_forward.
   
   Returns a tuple of:
-  - dx: Gradient with respect to inputs x, of shape (N, D)
-  - dgamma: Gradient with respect to scale parameter gamma, of shape (D,)
-  - dbeta: Gradient with respect to shift parameter beta, of shape (D,)
+  - d_x: Gradient with respect to inputs x, of shape (N, D)
+  - d_gamma: Gradient with respect to scale parameter gamma, of shape (D,)
+  - d_beta: Gradient with respect to shift parameter beta, of shape (D,)
   """
-  mean, centered, centered2, var, stdev, stdev_inv, normed, scaled, shifted, beta, gamma, eps = cache
+  mu, x_mu, x_mu_sq, var, stdev, stdev_inv, x_hat, gamma_x_hat, x_bar, beta, gamma, eps = cache
   N, D = d_out.shape
   ones = np.ones(d_out.shape)
 
-  # shifted = scaled + beta
-  d_shifted = 1.0 * d_out
+  # x_bar = gamma_x_hat + beta (broadcasting, beta is like a bias)
+  d_gamma_x_hat = 1.0 * d_out
   d_beta = 1.0 * np.sum(d_out, axis=0)
 
-  # scaled = gamma * normed
-  d_scaled = d_shifted * gamma
-  d_gamma = np.sum(d_shifted * normed, axis=0)
+  # gamma_x_hat = gamma * x_hat (broadcasting, not a dot product)
+  d_x_hat = gamma * d_gamma_x_hat
+  d_gamma = np.sum(x_hat * d_gamma_x_hat, axis=0)
 
-  # normed = centered * stdev_inv
-  d_normed_d_centered = stdev_inv * d_scaled
-  d_normed_d_stdev_inv = np.sum(centered * d_scaled, axis=0)
+  # x_hat = x_mu * stdev_inv (the same: broadcasting, not a dot product)
+  d1_x_mu = stdev_inv * d_x_hat
+  d_stdev_inv = np.sum(x_mu * d_x_hat, axis=0)
 
-  # stdev_inv = 1.0 / stdev
-  d_stdev_inv = -1.0 / (stdev**2) * d_normed_d_stdev_inv
+  # stdev_inv = 1.0 / stdev (per-element)
+  d_stdev = -1.0 / (stdev**2) * d_stdev_inv
 
-  # stdev = np.sqrt(var + eps)
-  d_stdev = 0.5 / stdev * d_stdev_inv
+  # stdev = np.sqrt(var + eps) (per-element)
+  d_var = 0.5 / stdev * d_stdev
 
-  # var = np.sum(centered2, axis=0) / N
-  d_var = 1.0 / N * ones * d_stdev
+  # var = np.sum(x_mu_sq, axis=0) / N
+  d_x_mu_sq = 1.0 / N * ones * d_var
 
-  # centered2 = centered ** 2
-  d_centered2 = 2 * centered * d_var
+  # x_mu_sq = x_mu ** 2
+  d2_x_mu = 2 * x_mu * d_x_mu_sq
 
-  # centered = x - mean
-  d_centered_d_x = d_normed_d_centered + d_centered2
-  d_centered_d_mean = -np.sum(d_centered_d_x, axis=0)
+  # gradients of (x-mu) from different paths join together
+  d_x_mu = d1_x_mu + d2_x_mu
+
+  # x_mu = x - mu
+  d1_x = d_x_mu
+  d_mu = -np.sum(d_x_mu, axis=0)
 
   # mean = np.sum(x, axis=0) / N
-  d_mean = 1.0 / N * ones * d_centered_d_mean
+  d2_x = 1.0 / N * ones * d_mu
 
-  dx = d_centered_d_x + d_mean
+  # gradients of x from different paths join together
+  d_x = d1_x + d2_x
 
-  return dx, d_gamma, d_beta
+  return d_x, d_gamma, d_beta
 
 # See http://cthorey.github.io/backpropagation/
 def batchnorm_backward_alt(dout, cache):
