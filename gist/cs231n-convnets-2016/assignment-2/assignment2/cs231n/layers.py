@@ -464,29 +464,19 @@ def spatial_batchnorm_forward(x, gamma, beta, bn_param):
       default of momentum=0.9 should work well in most situations.
     - running_mean: Array of shape (D,) giving running mean of features
     - running_var Array of shape (D,) giving running variance of features
-    
+
   Returns a tuple of:
   - out: Output data, of shape (N, C, H, W)
   - cache: Values needed for the backward pass
   """
-  out, cache = None, None
-
-  #############################################################################
-  # TODO: Implement the forward pass for spatial batch normalization.         #
-  #                                                                           #
-  # HINT: You can implement spatial batch normalization using the vanilla     #
-  # version of batch normalization defined above. Your implementation should  #
-  # be very short; ours is less than five lines.                              #
-  #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
-
+  N, C, H, W = x.shape
+  x = x.transpose(0, 2, 3, 1).reshape((N * H * W, C))
+  out, cache = batchnorm_forward(x, gamma, beta, bn_param)
+  out = out.reshape((N, H, W, C)).transpose(0, 3, 1, 2)
   return out, cache
 
 
-def spatial_batchnorm_backward(dout, cache):
+def spatial_batchnorm_backward(d_out, cache):
   """
   Computes the backward pass for spatial batch normalization.
   
@@ -499,21 +489,11 @@ def spatial_batchnorm_backward(dout, cache):
   - dgamma: Gradient with respect to scale parameter, of shape (C,)
   - dbeta: Gradient with respect to shift parameter, of shape (C,)
   """
-  dx, dgamma, dbeta = None, None, None
-
-  #############################################################################
-  # TODO: Implement the backward pass for spatial batch normalization.        #
-  #                                                                           #
-  # HINT: You can implement spatial batch normalization using the vanilla     #
-  # version of batch normalization defined above. Your implementation should  #
-  # be very short; ours is less than five lines.                              #
-  #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
-
-  return dx, dgamma, dbeta
+  N, C, H, W = d_out.shape
+  d_out = d_out.transpose(0, 2, 3, 1).reshape((N * H * W, C))
+  d_x, d_gamma, d_beta = batchnorm_backward_alt(d_out, cache)
+  d_x = d_x.reshape((N, H, W, C)).transpose(0, 3, 1, 2)
+  return d_x, d_gamma, d_beta
   
 
 def svm_loss(x, y):
