@@ -91,3 +91,136 @@ class ThreeLayerConvNet(object):
     }
 
     return loss, grads
+
+
+class MultiLayerConvNet(object):
+  """
+  A three-layer convolutional network with the following architecture:
+
+  [conv - relu - max-pooling - batch-norm]* - affine - relu - batch-norm - affine - softmax
+
+  The network operates on minibatches of data that have shape (N, C, H, W)
+  consisting of N images, each with height H and width W and with C input
+  channels.
+  """
+  def __init__(self, input_dim=(3, 32, 32), num_classes=10,
+               conv_layers=((32, (3, 3, 1, 1), (2, 2, 2)), (32, (3, 3, 1, 1), (2, 2, 2))), hidden_dim=100,
+               weight_scale=1e-3, reg=0.0, bn_params={'eps': 1e-5, 'momentum': 0.9}, dtype=np.float32):
+    self.reg = reg
+    self.dtype = dtype
+
+    C, H, W = input_dim
+    height = H
+    width = W
+    channels = C
+
+    self.params = {}
+    self.extras = {}
+    for i, conv_param in enumerate(conv_layers):
+      num_filters, (filter_size_h, filter_size_w, stride, padding), (pool_height, pool_width, pool_stride) = conv_param
+
+      self.extras["conv%d" % (i + 1)] = {'stride': stride, 'pad': padding}
+      self.extras["pool%d" % (i + 1)] = {'pool_height': pool_height, 'pool_width': pool_width, 'stride': pool_stride}
+      self.extras["bn%d" % (i + 1)] = bn_params.copy()
+
+      self.params["W%d" % (i + 1)] = np.random.randn(num_filters, channels, filter_size_h, filter_size_w) * weight_scale
+      self.params["b%d" % (i + 1)] = np.zeros(num_filters)
+      self.params["beta%d" % (i + 1)] = np.zeros(num_filters)
+      self.params["gamma%d" % (i + 1)] = np.ones(num_filters)
+
+      # convolution
+      height = 1 + (height - filter_size_h + 2 * padding) / stride
+      width = 1 + (width - filter_size_w + 2 * padding) / stride
+      # pooling
+      height = 1 + (height - pool_height) / pool_stride
+      width = 1 + (width - pool_width) / pool_stride
+
+      channels = num_filters
+
+    # Extra hidden "affine - relu - batch-norm"
+    num_conv_layers = len(conv_layers)
+    self.num_conv_layers = num_conv_layers
+    self.extras["bn%d" % (num_conv_layers + 1)] = bn_params.copy()
+    self.params["W%d" % (num_conv_layers + 1)] = np.random.randn(channels * height * width, hidden_dim) * weight_scale
+    self.params["b%d" % (num_conv_layers + 1)] = np.zeros(hidden_dim)
+    self.params["beta%d" % (num_conv_layers + 1)] = np.zeros(hidden_dim)
+    self.params["gamma%d" % (num_conv_layers + 1)] = np.ones(hidden_dim)
+
+    # Output fully-connected layer
+    self.params["W%d" % (num_conv_layers + 2)] = np.random.randn(hidden_dim, num_classes) * weight_scale
+    self.params["b%d" % (num_conv_layers + 2)] = np.zeros(num_classes)
+
+
+  def loss(self, X, y=None):
+    X = X.astype(self.dtype)
+    mode = 'test' if y is None else 'train'
+
+    forward_msg = X
+    conv_layers_caches = []
+    for i in xrange(1, self.num_conv_layers + 1):
+      W = self.params["W%d" % i]
+      b = self.params["b%d" % i]
+      conv_param = self.extras["conv%d" % i]
+      pool_param = self.extras["pool%d" % i]
+      beta = self.params["beta%d" % i]
+      gamma = self.params["gamma%d" % i]
+      bn_params = self.extras["bn%d" % i]
+      bn_params['mode'] = mode
+
+      forward_msg, conv_relu_cache = conv_relu_forward(forward_msg, W, b, conv_param)
+      forward_msg, max_pool_cache = max_pool_forward_fast(forward_msg, pool_param)
+      forward_msg, bn_cache = spatial_batchnorm_forward(forward_msg, gamma, beta, bn_params)
+
+      cache = (conv_relu_cache, max_pool_cache, bn_cache)
+      conv_layers_caches.append(cache)
+
+    # Extra "affine - relu - batch-norm"
+    W = self.params["W%d" % (self.num_conv_layers + 1)]
+    b = self.params["b%d" % (self.num_conv_layers + 1)]
+    beta = self.params["beta%d" % (self.num_conv_layers + 1)]
+    gamma = self.params["gamma%d" % (self.num_conv_layers + 1)]
+    bn_params = self.extras["bn%d" % (self.num_conv_layers + 1)]
+    bn_params['mode'] = mode
+
+    forward_msg, affine_relu_cache = affine_relu_forward(forward_msg, W, b)
+    forward_msg, bn_cache = batchnorm_forward(forward_msg, gamma, beta, bn_params)
+
+    W = self.params["W%d" % (self.num_conv_layers + 2)]
+    b = self.params["b%d" % (self.num_conv_layers + 2)]
+    forward_msg, fc_cache = affine_forward(forward_msg, W, b)
+
+    if mode == 'test':
+      return forward_msg
+
+    loss, backward_msg = softmax_loss(forward_msg, y)
+    for i in xrange(1, self.num_conv_layers + 3):
+      W = self.params["W%d" % i]
+      loss += 0.5 * self.reg * np.sum(W * W)
+
+    # Backward
+    grads = {}
+    backward_msg, dW, db = affine_backward(backward_msg, fc_cache)
+    grads["W%d" % (self.num_conv_layers + 2)] = dW + self.reg * self.params["W%d" % (self.num_conv_layers + 2)]
+    grads["b%d" % (self.num_conv_layers + 2)] = db
+
+    backward_msg, dgamma, dbeta = batchnorm_backward_alt(backward_msg, bn_cache)
+    grads["beta%d" % (self.num_conv_layers + 1)] = dbeta
+    grads["gamma%d" % (self.num_conv_layers + 1)] = dgamma
+
+    backward_msg, dW, db = affine_relu_backward(backward_msg, affine_relu_cache)
+    grads["W%d" % (self.num_conv_layers + 1)] = dW + self.reg * self.params["W%d" % (self.num_conv_layers + 1)]
+    grads["b%d" % (self.num_conv_layers + 1)] = db
+
+    for i in xrange(self.num_conv_layers, 0, -1):
+      conv_relu_cache, max_pool_cache, bn_cache = conv_layers_caches[i - 1]
+
+      backward_msg, dgamma, dbeta = spatial_batchnorm_backward(backward_msg, bn_cache)
+      grads["beta%d" % i] = dbeta
+      grads["gamma%d" % i] = dgamma
+
+      backward_msg = max_pool_backward_fast(backward_msg, max_pool_cache)
+      backward_msg, dW, db = conv_relu_backward(backward_msg, conv_relu_cache)
+      grads["W%d" % i] = dW + self.reg * self.params["W%d" % i]
+      grads["b%d" % i] = db
+
+    return loss, grads
