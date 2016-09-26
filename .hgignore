@@ -3,6 +3,7 @@ syntax: glob
 .env
 *.dat
 *.pyc
+*.h5
 workspace.xml
 
 gist/nando-ubc-cs540-2013/*.png
@@ -10,4 +11,5 @@ gist/cs231n-convnets-2016/**/cifar-10-batches-py
 gist/cs231n-convnets-2016/**/*.c
 gist/cs231n-convnets-2016/**/*.o
 gist/cs231n-convnets-2016/**/*.so
-
+gist/cs231n-convnets-2016/**/coco_captioning/*
+gist/cs231n-convnets-2016/**/tiny-imagenet-100-A
