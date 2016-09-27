@@ -145,6 +145,21 @@ def word_embedding_forward(x, W):
   - out: Array of shape (N, T, D) giving word vectors for all input words.
   - cache: Values needed for the backward pass
   """
+  # The long version:
+  #
+  # for n in xrange(N):
+  #   for t in xrange(T):
+  #     v = x[n, t]
+  #     for d in xrange(D):
+  #       out[n, t, d] = W[v, d]
+  #
+  # <alternative version>
+  #
+  # for n in xrange(N):
+  #   for t in xrange(T):
+  #     v = x[n, t]
+  #     out[n, t, :] = W[v, :]
+  #
   out = W[x,:]
   cache = (x, W)
   return out, cache
@@ -167,6 +182,22 @@ def word_embedding_backward(dout, cache):
   """
   x, W = cache
   dW = np.zeros_like(W)
+
+  # The long version:
+  #
+  # for n in xrange(N):
+  #   for t in xrange(T):
+  #     v = x[n, t]
+  #     for d in xrange(D):
+  #       dW[v, d] += dout[n, t, d]
+  #
+  # <alternative version>
+  #
+  # for n in xrange(N):
+  #   for t in xrange(T):
+  #     v = x[n, t]
+  #     dW[v, :] += dout[n, t, :]
+  #
   np.add.at(dW, x, dout)
   return dW
 
