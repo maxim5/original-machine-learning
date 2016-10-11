@@ -43,17 +43,17 @@ def conv_net(x, weights, biases, dropout_conv, dropout_fc):
 
   # Conv + pool + dropout
   conv1 = conv2d_relu(x, weights['wc1'], biases['bc1'])
-  pool1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
+  pool1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
   dropout1 = tf.nn.dropout(pool1, dropout_conv)
 
   # Conv + pool + dropout
   conv2 = conv2d_relu(dropout1, weights['wc2'], biases['bc2'])
-  pool2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
+  pool2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
   dropout2 = tf.nn.dropout(pool2, dropout_conv)
 
   # Conv + pool + dropout
   conv3 = conv2d_relu(dropout2, weights['wc3'], biases['bc3'])
-  pool3 = tf.nn.max_pool(conv3, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
+  pool3 = tf.nn.max_pool(conv3, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
   dropout3 = tf.nn.dropout(pool3, dropout_conv)
 
   # Fully connected layer
@@ -63,7 +63,6 @@ def conv_net(x, weights, biases, dropout_conv, dropout_fc):
   fc1 = tf.nn.relu(fc1)
   fc1 = tf.nn.dropout(fc1, dropout_fc)
 
-  # Output, class prediction
   out = tf.add(tf.matmul(fc1, weights['out']), biases['out'])
   return out
 
@@ -73,15 +72,15 @@ weights = {
   'wc1': tf.Variable(tf.random_normal([3, 3, 1, 32])),
   'wc2': tf.Variable(tf.random_normal([3, 3, 32, 64])),
   'wc3': tf.Variable(tf.random_normal([3, 3, 64, 128])),
-  'wd1': tf.Variable(tf.random_normal([3 * 3 * 128, 512])),
-  'out': tf.Variable(tf.random_normal([512, n_classes]))
+  'wd1': tf.Variable(tf.random_normal([4 * 4 * 128, 1024])),
+  'out': tf.Variable(tf.random_normal([1024, n_classes]))
 }
 
 biases = {
   'bc1': tf.Variable(tf.random_normal([32])),
   'bc2': tf.Variable(tf.random_normal([64])),
   'bc3': tf.Variable(tf.random_normal([128])),
-  'bd1': tf.Variable(tf.random_normal([512])),
+  'bd1': tf.Variable(tf.random_normal([1024])),
   'out': tf.Variable(tf.random_normal([n_classes]))
 }
 
@@ -102,10 +101,10 @@ with tf.Session() as session:
   session.run(init)
   step = 1
   # Keep training until reach max iterations
-  while mnist.train.epochs_completed < 20:
+  while mnist.train.epochs_completed < 10:
     batch_x, batch_y = mnist.train.next_batch(batch_size)
     # Run optimization op (backprop)
-    session.run(optimizer, feed_dict={x: batch_x, y: batch_y, dropout_conv: 0.5, dropout_fc: 0.5})
+    session.run(optimizer, feed_dict={x: batch_x, y: batch_y, dropout_conv: 0.8, dropout_fc: 0.8})
     if step % display_step == 0:
       # Calculate batch loss and accuracy
       loss, acc = session.run([cost, accuracy], feed_dict={x: batch_x, y: batch_y, dropout_conv: 1.0, dropout_fc: 1.0})
