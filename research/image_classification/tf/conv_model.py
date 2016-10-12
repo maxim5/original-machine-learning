@@ -4,6 +4,7 @@ __author__ = "maxim"
 
 
 import tensorflow as tf
+from common import zip_longest
 
 
 class ConvModel:
@@ -54,19 +55,36 @@ class ConvModel:
     return layer
 
 
+  def adapt_shapes(self, filters, pools):
+    channels = self.input_shape[-1]
+    result_filters, result_pools = [], []
+    for filter_layer, pool in zip_longest(filters, pools):
+      adapted_filters = []
+      for filter in filter_layer:
+        adapted_filters.append([filter[0], filter[1], channels, filter[2]])
+        channels = filter[2]
+      result_filters.append(adapted_filters)
+      result_pools.append(pool)
+    return result_filters, result_pools, channels
+
+
   def conv_net(self, **hyper_params):
     self.dropout_conv = tf.placeholder(tf.float32)
     self.dropout_fc = tf.placeholder(tf.float32)
 
-    ch = self.input_shape[-1]
-    layer0 = tf.reshape(self.x, shape=(-1,)+self.input_shape)
-    layer1 = self.conv_layer(layer0, filter_size=[[3, 3, ch,  32]], pool_size=[1, 2, 2, 1], dropout=self.dropout_conv)
-    layer2 = self.conv_layer(layer1, filter_size=[[3, 3, 32,  64]], pool_size=[1, 2, 2, 1], dropout=self.dropout_conv)
-    layer3 = self.conv_layer(layer2, filter_size=[[3, 3, 64, 128]], pool_size=[1, 2, 2, 1], dropout=self.dropout_conv)
+    image_shape = (-1,) + self.input_shape
+    conv_layer = tf.reshape(self.x, shape=image_shape)
 
-    reduced_size = 3
-    layer_fc = self.fully_connected_layer(layer3, shape=[reduced_size * reduced_size * 128, 1024], dropout=self.dropout_fc)
-    layer_out = self.output_layer(layer_fc, shape=[1024, self.num_classes])
+    reduced_width, reduced_height, _ = self.input_shape
+    filters, pools, channels = self.adapt_shapes(hyper_params['conv_filters'], hyper_params['conv_pools'])
+    for filter, pool in zip(filters, pools):
+      conv_layer = self.conv_layer(conv_layer, filter_size=filter, pool_size=pool, dropout=self.dropout_conv)
+      reduced_width /= 2
+      reduced_height /= 2
+
+    fc_shape = [reduced_width * reduced_height * channels, hyper_params['fc_size']]
+    layer_fc = self.fully_connected_layer(conv_layer, shape=fc_shape, dropout=self.dropout_fc)
+    layer_out = self.output_layer(layer_fc, shape=[fc_shape[-1], self.num_classes])
 
     return layer_out
 
