@@ -7,66 +7,64 @@ import tensorflow as tf
 
 
 class ConvModel:
-  def __init__(self):
-    self.num_input = 28 * 28
-    self.num_classes = 10
+  def __init__(self, input_shape, num_classes):
+    self.input_shape = input_shape
+    self.num_classes = num_classes
+    self.x = tf.placeholder(tf.float32, [None, input_shape[0] * input_shape[1] * input_shape[2]])
+    self.y = tf.placeholder(tf.float32, [None, num_classes])
 
-    self.x = tf.placeholder(tf.float32, [None, self.num_input])
-    self.y = tf.placeholder(tf.float32, [None, self.num_classes])
+
+  def conv2d_relu(self, image, W, b, strides):
+    layer = tf.nn.conv2d(image, W, strides=[1, strides, strides, 1], padding='SAME')
+    layer = tf.nn.bias_add(layer, b)
+    layer = tf.nn.relu(layer)
+    return layer
 
 
-  def conv2d_relu(self, image, W, b, strides=1):
-    image = tf.nn.conv2d(image, W, strides=[1, strides, strides, 1], padding='SAME')
-    image = tf.nn.bias_add(image, b)
-    return tf.nn.relu(image)
+  def conv_layer(self, image, filter_size, pool_size, dropout):
+    conv = image
+    for filter in filter_size:
+      W = tf.Variable(tf.random_normal(filter))
+      b = tf.Variable(tf.random_normal(filter[-1:]))
+      conv = self.conv2d_relu(conv, W, b, strides=1)
+
+    layer = tf.nn.max_pool(conv, ksize=pool_size, strides=pool_size, padding='SAME')
+    layer = tf.nn.dropout(layer, keep_prob=dropout)
+    return layer
+
+
+  def fully_connected_layer(self, features, shape, dropout):
+    W = tf.Variable(tf.random_normal(shape))
+    b = tf.Variable(tf.random_normal(shape[-1:]))
+    layer = tf.reshape(features, [-1, W.get_shape().as_list()[0]])
+    layer = tf.add(tf.matmul(layer, W), b)
+    layer = tf.nn.relu(layer)
+    layer = tf.nn.dropout(layer, dropout)
+    return layer
+
+
+  def output_layer(self, input, shape):
+    W_out = tf.Variable(tf.random_normal(shape))
+    b_out = tf.Variable(tf.random_normal(shape[-1:]))
+    layer = tf.add(tf.matmul(input, W_out), b_out)
+    return layer
 
 
   def conv_net(self, **hyper_params):
-    dropout_conv = self.dropout_conv = tf.placeholder(tf.float32)
-    dropout_fc = self.dropout_fc = tf.placeholder(tf.float32)
+    self.dropout_conv = tf.placeholder(tf.float32)
+    self.dropout_fc = tf.placeholder(tf.float32)
 
-    weights = {
-      'wc1': tf.Variable(tf.random_normal([3, 3, 1, 32])),
-      'wc2': tf.Variable(tf.random_normal([3, 3, 32, 64])),
-      'wc3': tf.Variable(tf.random_normal([3, 3, 64, 128])),
-      'wd1': tf.Variable(tf.random_normal([4 * 4 * 128, 1024])),
-      'out': tf.Variable(tf.random_normal([1024, self.num_classes]))
-    }
+    ch = self.input_shape[-1]
+    layer0 = tf.reshape(self.x, shape=(-1,)+self.input_shape)
+    layer1 = self.conv_layer(layer0, filter_size=([3, 3, ch,  16], [3, 3, 16,  32]), pool_size=[1, 2, 2, 1], dropout=self.dropout_conv)
+    layer2 = self.conv_layer(layer1, filter_size=([3, 3, 32,  32], [3, 3, 32,  64]), pool_size=[1, 2, 2, 1], dropout=self.dropout_conv)
+    layer3 = self.conv_layer(layer2, filter_size=([3, 3, 64,  64], [3, 3, 64, 128]), pool_size=[1, 2, 2, 1], dropout=self.dropout_conv)
 
-    biases = {
-      'bc1': tf.Variable(tf.random_normal([32])),
-      'bc2': tf.Variable(tf.random_normal([64])),
-      'bc3': tf.Variable(tf.random_normal([128])),
-      'bd1': tf.Variable(tf.random_normal([1024])),
-      'out': tf.Variable(tf.random_normal([self.num_classes]))
-    }
+    reduced_size = 4  # 28 / 8
+    layer_fc = self.fully_connected_layer(layer3, shape=[reduced_size * reduced_size * 128, 1024], dropout=self.dropout_fc)
+    layer_out = self.output_layer(layer_fc, shape=[1024, self.num_classes])
 
-    x = tf.reshape(self.x, shape=[-1, 28, 28, 1])
-
-    # Conv + pool + dropout
-    conv1 = self.conv2d_relu(x, weights['wc1'], biases['bc1'])
-    pool1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
-    dropout1 = tf.nn.dropout(pool1, dropout_conv)
-
-    # Conv + pool + dropout
-    conv2 = self.conv2d_relu(dropout1, weights['wc2'], biases['bc2'])
-    pool2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
-    dropout2 = tf.nn.dropout(pool2, dropout_conv)
-
-    # Conv + pool + dropout
-    conv3 = self.conv2d_relu(dropout2, weights['wc3'], biases['bc3'])
-    pool3 = tf.nn.max_pool(conv3, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
-    dropout3 = tf.nn.dropout(pool3, dropout_conv)
-
-    # Fully connected layer
-    # Reshape conv2 output to fit fully connected layer input
-    fc1 = tf.reshape(dropout3, [-1, weights['wd1'].get_shape().as_list()[0]])
-    fc1 = tf.add(tf.matmul(fc1, weights['wd1']), biases['bd1'])
-    fc1 = tf.nn.relu(fc1)
-    fc1 = tf.nn.dropout(fc1, dropout_fc)
-
-    out = tf.add(tf.matmul(fc1, weights['out']), biases['out'])
-    return out
+    return layer_out
 
 
   def build_graph(self, **hyper_params):
