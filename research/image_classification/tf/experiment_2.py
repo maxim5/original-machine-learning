@@ -16,38 +16,43 @@ default_hyper_params = {
   'epochs': 10,
   'learning_rate': 0.001,
   'conv_filters': [
-    [[3, 1,  32], [1, 3,  32]],
-    [[3, 1,  64], [1, 3,  64]],
-    [[3, 1, 128], [1, 3, 128]],
+    # [[7, 1,  32], [1, 7,  32]],
+    # [[7, 1,  64], [1, 7,  64]],
+    # [[3, 1, 96], [1, 3, 96]],
+
+    [[3, 3, 32]],
+    [[3, 3, 64]],
+    [[3, 3, 128]],
   ],
   'conv_pools': [
     [1, 2, 2, 1]
   ],
-  'dropout_conv': 0.95,
-  'dropout_fc': 0.9,
+  'fc_size': 625,
+  'dropout_conv': 0.8,
+  'dropout_fc': 0.5,
 }
 
 
 def hyper_tune(data_sets, model):
   best_accuracy = 0
   while True:
-    tf.reset_default_graph()
-
     hyper_params = default_hyper_params.copy()
-    hyper_params['learning_rate'] = 10**np.random.uniform(-3, -5)
+    hyper_params['learning_rate'] = 10**np.random.uniform(-3, -4)
     hyper_params['dropout_conv'] = np.random.uniform(0.8, 1.0)
-    hyper_params['dropout_fc'] = np.random.uniform(0.8, 1.0)
+    hyper_params['dropout_fc'] = np.random.uniform(0.5, 1.0)
 
+    tf.reset_default_graph()
     accuracy = train(data_sets=data_sets, model=model, **hyper_params)
+
     if accuracy > best_accuracy:
       best_accuracy = accuracy
       log("!!! new best_acc=%.4f" %  best_accuracy)
 
 
-# def run(data_sets):
-#   model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
-#   hyper = {'epochs': 20, 'learning_rate': 0.000849798099730975, 'dropout_fc': 0.8962278592597537, 'dropout_conv': 0.9673306165168953, 'batch_size': 128}
-#   train(data_sets=data_sets, model=model, **hyper)
+def train_best_candidate(data_sets, model):
+  hyper_params = default_hyper_params.copy()
+  hyper_params.update({'epochs': 20, 'learning_rate': 0.000849, 'dropout_fc': 0.896, 'dropout_conv': 0.967})
+  train(data_sets=data_sets, model=model, **hyper_params)
 
 
 def experiment(data_sets, model):
