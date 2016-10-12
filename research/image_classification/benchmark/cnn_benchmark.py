@@ -8,6 +8,7 @@ __author__ = "maxim"
 # Max accuracy: 0.9949
 
 import datetime
+
 import theano
 from theano import tensor as T
 from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
