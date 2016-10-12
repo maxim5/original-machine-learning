@@ -108,14 +108,18 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 init = tf.initialize_all_variables()
 
 with tf.Session() as session:
+  log("Init")
   session.run(init)
+
+  log("Start training")
   step = 1
+  is_gpu_used = is_gpu()
   while train_set.epochs_completed < 10:
     batch_x, batch_y = train_set.next_batch(batch_size)
     session.run(optimizer, feed_dict={x: batch_x, y: batch_y, dropout_conv: 0.8, dropout_fc: 0.8})
 
     loss, acc, name = None, None, None
-    if is_gpu():
+    if is_gpu_used:
       if step % 500 == 0:
         loss, acc = eval_accuracy(session, data_set=val_set)
         name = "validation_accuracy"
@@ -125,8 +129,8 @@ with tf.Session() as session:
     elif step % 10 == 0:
       loss, acc = eval_accuracy(session, images=batch_x, labels=batch_y)
       name = "train_accuracy"
-      if loss is not None and acc is not None and name is not None:
-        log("epoch %d, iteration %6d: loss=%10.4f, %s=%.4f" % (train_set.epochs_completed, step * batch_size, loss, name, acc))
+    if loss is not None and acc is not None and name is not None:
+      log("epoch %d, iteration %6d: loss=%10.4f, %s=%.4f" % (train_set.epochs_completed, step * batch_size, loss, name, acc))
     step += 1
 
   _, test_acc = eval_accuracy(session, data_set=test_set)
