@@ -29,8 +29,14 @@ def total_params():
   return total_parameters
 
 
+def reset_data_set(data_set):
+  data_set._epochs_completed = 0
+  data_set._index_in_epoch = 0
+  return data_set
+
+
 def train(data_sets, model, **hyper_params):
-  train_set = data_sets.train
+  train_set = reset_data_set(data_sets.train)
   val_set = data_sets.validation
   test_set = data_sets.test
 
@@ -52,7 +58,7 @@ def train(data_sets, model, **hyper_params):
 
       loss, acc, name = None, None, None
       if is_gpu_used:
-        if step % 500 == 0:
+        if (step * batch_size) % train_set.num_examples < batch_size:
           loss, acc = session.run([cost, accuracy], feed_dict=model.feed_dict(data_set=val_set))
           name = "validation_accuracy"
       elif step % 100 == 0:

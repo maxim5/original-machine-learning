@@ -3,8 +3,8 @@
     <option name="INTERPRETER_OPTIONS" value="-W ignore" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
-      <env name="" value="" />
       <env name="PYTHONUNBUFFERED" value="1" />
+      <env name="" value="" />
       <env name="THEANO_FLAGS" value="floatX=float32,device=gpu0,lib.cnmem=1" />
     </envs>
     <option name="SDK_HOME" value="" />
