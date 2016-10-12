@@ -8,17 +8,14 @@ from tensorflow.examples.tutorials.mnist import input_data
 
 def log(*msg):
   import datetime
-  all = (datetime.datetime.now(),) + msg
-  print ' '.join([str(it) for it in all])
+  print '[%s]' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ' '.join([str(it) for it in msg])
 
 
 # Import MNIST data
 mnist = input_data.read_data_sets("../../../dat/mnist-tf", one_hot=True)
-
-# Parameters
-learning_rate = 0.001
-batch_size = 128
-display_step = 10
+train_set = mnist.train
+val_set = mnist.validation
+test_set = mnist.test
 
 # Network Parameters
 n_input = 784   # MNIST data input (img shape: 28*28)
@@ -37,7 +34,6 @@ def conv2d_relu(x, W, b, strides=1):
   return tf.nn.relu(x)
 
 
-# Create model
 def conv_net(x, weights, biases, dropout_conv, dropout_fc):
   x = tf.reshape(x, shape=[-1, 28, 28, 1])
 
@@ -84,38 +80,35 @@ biases = {
   'out': tf.Variable(tf.random_normal([n_classes]))
 }
 
-# Define loss and optimizer
+# Parameters
+learning_rate = 0.001
+batch_size = 128
+
 prediction = conv_net(x, weights, biases, dropout_conv, dropout_fc)
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction, y))
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
-# Evaluate model
-correct_pred = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
-accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+correct_prediction = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 # Initializing the variables
 init = tf.initialize_all_variables()
 
-# Launch the graph
 with tf.Session() as session:
   session.run(init)
   step = 1
-  # Keep training until reach max iterations
-  while mnist.train.epochs_completed < 10:
-    batch_x, batch_y = mnist.train.next_batch(batch_size)
-    # Run optimization op (backprop)
+  while train_set.epochs_completed < 10:
+    batch_x, batch_y = train_set.next_batch(batch_size)
     session.run(optimizer, feed_dict={x: batch_x, y: batch_y, dropout_conv: 0.8, dropout_fc: 0.8})
-    if step % display_step == 0:
-      # Calculate batch loss and accuracy
-      loss, acc = session.run([cost, accuracy], feed_dict={x: batch_x, y: batch_y, dropout_conv: 1.0, dropout_fc: 1.0})
-      log("%d iteration %6d: loss=%11.4f, accuracy=%.3f" % (mnist.train.epochs_completed, step * batch_size, loss, acc))
-    step += 1
-  log("Optimization Finished!")
 
-  # Calculate accuracy for 256 mnist test images
-  log("Testing Accuracy:", session.run(accuracy, feed_dict={
-    x: mnist.test.images[:256],
-    y: mnist.test.labels[:256],
-    dropout_conv: 1.0,
-    dropout_fc: 1.0
-  }))
+    if step % 10 == 0:
+      loss, acc = session.run([cost, accuracy], feed_dict={x: batch_x, y: batch_y, dropout_conv: 1.0, dropout_fc: 1.0})
+      log("%d iteration %6d: loss=%10.4f, accuracy=%.4f" % (train_set.epochs_completed, step * batch_size, loss, acc))
+
+    if step % 100 == 0:
+      val_acc = session.run(accuracy, feed_dict={x: val_set.images, y: val_set.labels, dropout_conv: 1.0, dropout_fc: 1.0})
+      log("val_acc=%.4f" % val_acc)
+    step += 1
+
+  test_acc = session.run(accuracy, feed_dict={x: test_set.images, y: test_set.labels, dropout_conv: 1.0, dropout_fc: 1.0})
+  log("test_acc=%.4f" % test_acc)
