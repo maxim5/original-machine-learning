@@ -32,7 +32,7 @@ class ConvModel:
       b = tf.Variable(self.init(filter[-1:]))
       conv = self.conv2d_relu(conv, W, b, strides=1)
 
-    layer = tf.nn.max_pool(conv, ksize=pool_size, strides=pool_size, padding='SAME')
+    layer = tf.nn.max_pool(conv, ksize=pool_size, strides=pool_size, padding='VALID')
     layer = tf.nn.dropout(layer, keep_prob=dropout)
     return layer
 
@@ -60,11 +60,11 @@ class ConvModel:
 
     ch = self.input_shape[-1]
     layer0 = tf.reshape(self.x, shape=(-1,)+self.input_shape)
-    layer1 = self.conv_layer(layer0, filter_size=([3, 3, ch,  16], [3, 3, 16,  32]), pool_size=[1, 2, 2, 1], dropout=self.dropout_conv)
-    layer2 = self.conv_layer(layer1, filter_size=([3, 3, 32,  32], [3, 3, 32,  64]), pool_size=[1, 2, 2, 1], dropout=self.dropout_conv)
-    layer3 = self.conv_layer(layer2, filter_size=([3, 3, 64,  64], [3, 3, 64, 128]), pool_size=[1, 2, 2, 1], dropout=self.dropout_conv)
+    layer1 = self.conv_layer(layer0, filter_size=[[3, 3, ch,  32]], pool_size=[1, 2, 2, 1], dropout=self.dropout_conv)
+    layer2 = self.conv_layer(layer1, filter_size=[[3, 3, 32,  64]], pool_size=[1, 2, 2, 1], dropout=self.dropout_conv)
+    layer3 = self.conv_layer(layer2, filter_size=[[3, 3, 64, 128]], pool_size=[1, 2, 2, 1], dropout=self.dropout_conv)
 
-    reduced_size = 4  # 28 / 8
+    reduced_size = 3
     layer_fc = self.fully_connected_layer(layer3, shape=[reduced_size * reduced_size * 128, 1024], dropout=self.dropout_fc)
     layer_out = self.output_layer(layer_fc, shape=[1024, self.num_classes])
 

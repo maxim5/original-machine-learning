@@ -13,7 +13,8 @@ from conv_model import ConvModel
 
 def run(data_sets):
   model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
-  train(data_sets=data_sets, model=model, epochs=10, batch_size=128, learning_rate=0.001, dropout_conv=0.8, dropout_fc=0.8)
+  hyper = {'epochs': 20, 'learning_rate': 0.000849798099730975, 'dropout_fc': 0.8962278592597537, 'dropout_conv': 0.9673306165168953, 'batch_size': 128}
+  train(data_sets=data_sets, model=model, **hyper)
 
 
 def hyper_tune(data_sets):
@@ -22,9 +23,9 @@ def hyper_tune(data_sets):
     tf.reset_default_graph()
     model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
     learning_rate = 10**np.random.uniform(-3, -5)
-    dropout_conv = np.random.uniform(0.7, 1.0)
-    dropout_fc = np.random.uniform(0.7, 1.0)
-    accuracy = train(data_sets=data_sets, model=model, epochs=0, batch_size=128, learning_rate=learning_rate, dropout_conv=dropout_conv, dropout_fc=dropout_fc)
+    dropout_conv = np.random.uniform(0.8, 1.0)
+    dropout_fc = np.random.uniform(0.8, 1.0)
+    accuracy = train(data_sets=data_sets, model=model, epochs=10, batch_size=128, learning_rate=learning_rate, dropout_conv=dropout_conv, dropout_fc=dropout_fc)
     if accuracy > best_accuracy:
       best_accuracy = accuracy
       log("! new best_acc=%.4f" %  best_accuracy)
@@ -32,4 +33,4 @@ def hyper_tune(data_sets):
 
 if __name__ == "__main__":
   mnist = input_data.read_data_sets("../../../dat/mnist-tf", one_hot=True)
-  hyper_tune(mnist)
+  run(mnist)
