@@ -11,15 +11,28 @@ def log(*msg):
   print '[%s]' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ' '.join([str(it) for it in msg])
 
 
+def is_gpu():
+  from tensorflow.python.client import device_lib
+  local_devices = device_lib.list_local_devices()
+  return len([x for x in local_devices if x.device_type == 'GPU']) > 0
+
+
+def eval_accuracy(session, data_set=None, images=None, labels=None):
+  if images is None and data_set is not None:
+    images = data_set.images
+  if labels is None and data_set is not None:
+    labels = data_set.labels
+  return session.run([cost, accuracy], feed_dict={x: images, y: labels, dropout_conv: 1.0, dropout_fc: 1.0})
+
+
 # Import MNIST data
 mnist = input_data.read_data_sets("../../../dat/mnist-tf", one_hot=True)
 train_set = mnist.train
 val_set = mnist.validation
 test_set = mnist.test
 
-# Network Parameters
-n_input = 784   # MNIST data input (img shape: 28*28)
-n_classes = 10  # MNIST total classes (0-9 digits)
+n_input = 28 * 28
+n_classes = 10
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input])
@@ -28,10 +41,10 @@ dropout_conv = tf.placeholder(tf.float32)
 dropout_fc = tf.placeholder(tf.float32)
 
 
-def conv2d_relu(x, W, b, strides=1):
-  x = tf.nn.conv2d(x, W, strides=[1, strides, strides, 1], padding='SAME')
-  x = tf.nn.bias_add(x, b)
-  return tf.nn.relu(x)
+def conv2d_relu(image, W, b, strides=1):
+  image = tf.nn.conv2d(image, W, strides=[1, strides, strides, 1], padding='SAME')
+  image = tf.nn.bias_add(image, b)
+  return tf.nn.relu(image)
 
 
 def conv_net(x, weights, biases, dropout_conv, dropout_fc):
@@ -101,14 +114,20 @@ with tf.Session() as session:
     batch_x, batch_y = train_set.next_batch(batch_size)
     session.run(optimizer, feed_dict={x: batch_x, y: batch_y, dropout_conv: 0.8, dropout_fc: 0.8})
 
-    if step % 10 == 0:
-      loss, acc = session.run([cost, accuracy], feed_dict={x: batch_x, y: batch_y, dropout_conv: 1.0, dropout_fc: 1.0})
-      log("%d iteration %6d: loss=%10.4f, accuracy=%.4f" % (train_set.epochs_completed, step * batch_size, loss, acc))
-
-    if step % 100 == 0:
-      val_acc = session.run(accuracy, feed_dict={x: val_set.images, y: val_set.labels, dropout_conv: 1.0, dropout_fc: 1.0})
-      log("val_acc=%.4f" % val_acc)
+    loss, acc, name = None, None, None
+    if is_gpu():
+      if step % 500 == 0:
+        loss, acc = eval_accuracy(session, data_set=val_set)
+        name = "validation_accuracy"
+    elif step % 100 == 0:
+      loss, acc = eval_accuracy(session, data_set=val_set)
+      name = "validation_accuracy"
+    elif step % 10 == 0:
+      loss, acc = eval_accuracy(session, images=batch_x, labels=batch_y)
+      name = "train_accuracy"
+      if loss is not None and acc is not None and name is not None:
+        log("epoch %d, iteration %6d: loss=%10.4f, %s=%.4f" % (train_set.epochs_completed, step * batch_size, loss, name, acc))
     step += 1
 
-  test_acc = session.run(accuracy, feed_dict={x: test_set.images, y: test_set.labels, dropout_conv: 1.0, dropout_fc: 1.0})
-  log("test_acc=%.4f" % test_acc)
+  _, test_acc = eval_accuracy(session, data_set=test_set)
+  log("Final test_accuracy=%.4f" % test_acc)
