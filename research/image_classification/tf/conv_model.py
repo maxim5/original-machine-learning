@@ -11,12 +11,10 @@ class ConvModel:
   def __init__(self, input_shape, num_classes):
     self.input_shape = input_shape
     self.num_classes = num_classes
-    self.x = tf.placeholder(tf.float32, [None, input_shape[0] * input_shape[1] * input_shape[2]])
-    self.y = tf.placeholder(tf.float32, [None, num_classes])
 
 
   def init(self, shape):
-    return tf.random_normal(shape)
+    return tf.random_normal(shape) * 0.01   # TODO: make it a param
 
 
   def conv2d_relu(self, image, W, b, strides):
@@ -90,6 +88,9 @@ class ConvModel:
 
 
   def build_graph(self, **hyper_params):
+    self.x = tf.placeholder(tf.float32, [None, self.input_shape[0] * self.input_shape[1] * self.input_shape[2]])
+    self.y = tf.placeholder(tf.float32, [None, self.num_classes])
+
     prediction = self.conv_net(**hyper_params)
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction, self.y))
     optimizer = tf.train.AdamOptimizer(learning_rate=hyper_params['learning_rate']).minimize(cost)

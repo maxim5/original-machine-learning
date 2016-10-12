@@ -75,10 +75,10 @@ def train(data_sets, model, **hyper_params):
         loss, acc = session.run([cost, accuracy], feed_dict=model.feed_dict(images=batch_x, labels=batch_y))
         name = "train_accuracy"
       if loss is not None and acc is not None and name is not None:
-        log("epoch %d, iteration %6d: loss=%10.3f, %s=%.4f" % (train_set.epochs_completed, step * batch_size, loss, name, acc))
+        log("epoch %d, iteration %6d: loss=%.6f, %s=%.4f" % (train_set.epochs_completed, step * batch_size, loss, name, acc))
       step += 1
 
-    test_acc = session.run(accuracy, feed_dict=model.feed_dict(data_set=test_set))
-    log("Final test_accuracy=%.4f" % test_acc)
+    val_acc = session.run(accuracy, feed_dict=model.feed_dict(data_set=val_set))
+    log("Final validation_accuracy=%.4f" % val_acc)
 
-    return test_acc
+    return val_acc
