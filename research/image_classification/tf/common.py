@@ -17,12 +17,25 @@ def is_gpu():
   return len([x for x in local_devices if x.device_type == 'GPU']) > 0
 
 
+def total_params():
+  total_parameters = 0
+  for variable in tf.trainable_variables():
+      # shape is an array of tf.Dimension
+      shape = variable.get_shape()
+      variable_parametes = 1
+      for dim in shape:
+          variable_parametes *= dim.value
+      total_parameters += variable_parametes
+  return total_parameters
+
+
 def train(data_sets, model, **hyper_params):
   train_set = data_sets.train
   val_set = data_sets.validation
   test_set = data_sets.test
 
   optimizer, cost, accuracy, init = model.build_graph(**hyper_params)
+  log("Total parameters: %dk" % (total_params() / 1000))
 
   with tf.Session() as session:
     log("Start training")
@@ -48,8 +61,8 @@ def train(data_sets, model, **hyper_params):
         loss, acc = session.run([cost, accuracy], feed_dict=model.feed_dict(images=batch_x, labels=batch_y))
         name = "train_accuracy"
       if loss is not None and acc is not None and name is not None:
-        log("epoch %d, iteration %6d: loss=%10.4f, %s=%.4f" % (train_set.epochs_completed, step * batch_size, loss, name, acc))
+        log("epoch %d, iteration %6d: loss=%10.3f, %s=%.4f" % (train_set.epochs_completed, step * batch_size, loss, name, acc))
       step += 1
 
-    test_acc = session.run([accuracy], feed_dict=model.feed_dict(data_set=test_set))
+    test_acc = session.run(accuracy, feed_dict=model.feed_dict(data_set=test_set))
     log("Final test_accuracy=%.4f" % test_acc)
