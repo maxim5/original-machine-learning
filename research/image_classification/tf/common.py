@@ -36,6 +36,7 @@ def train(data_sets, model, **hyper_params):
 
   optimizer, cost, accuracy, init = model.build_graph(**hyper_params)
   log("Total parameters: %dk" % (total_params() / 1000))
+  log("Hyper params: ", hyper_params)
 
   with tf.Session() as session:
     log("Start training")
@@ -66,3 +67,5 @@ def train(data_sets, model, **hyper_params):
 
     test_acc = session.run(accuracy, feed_dict=model.feed_dict(data_set=test_set))
     log("Final test_accuracy=%.4f" % test_acc)
+
+    return test_acc

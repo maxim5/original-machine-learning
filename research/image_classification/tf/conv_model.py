@@ -14,6 +14,10 @@ class ConvModel:
     self.y = tf.placeholder(tf.float32, [None, num_classes])
 
 
+  def init(self, shape):
+    return tf.random_normal(shape)
+
+
   def conv2d_relu(self, image, W, b, strides):
     layer = tf.nn.conv2d(image, W, strides=[1, strides, strides, 1], padding='SAME')
     layer = tf.nn.bias_add(layer, b)
@@ -24,8 +28,8 @@ class ConvModel:
   def conv_layer(self, image, filter_size, pool_size, dropout):
     conv = image
     for filter in filter_size:
-      W = tf.Variable(tf.random_normal(filter))
-      b = tf.Variable(tf.random_normal(filter[-1:]))
+      W = tf.Variable(self.init(filter))
+      b = tf.Variable(self.init(filter[-1:]))
       conv = self.conv2d_relu(conv, W, b, strides=1)
 
     layer = tf.nn.max_pool(conv, ksize=pool_size, strides=pool_size, padding='SAME')
@@ -34,8 +38,8 @@ class ConvModel:
 
 
   def fully_connected_layer(self, features, shape, dropout):
-    W = tf.Variable(tf.random_normal(shape))
-    b = tf.Variable(tf.random_normal(shape[-1:]))
+    W = tf.Variable(self.init(shape))
+    b = tf.Variable(self.init(shape[-1:]))
     layer = tf.reshape(features, [-1, W.get_shape().as_list()[0]])
     layer = tf.add(tf.matmul(layer, W), b)
     layer = tf.nn.relu(layer)
@@ -44,8 +48,8 @@ class ConvModel:
 
 
   def output_layer(self, input, shape):
-    W_out = tf.Variable(tf.random_normal(shape))
-    b_out = tf.Variable(tf.random_normal(shape[-1:]))
+    W_out = tf.Variable(self.init(shape))
+    b_out = tf.Variable(self.init(shape[-1:]))
     layer = tf.add(tf.matmul(input, W_out), b_out)
     return layer
 
