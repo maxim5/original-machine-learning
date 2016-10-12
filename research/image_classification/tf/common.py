@@ -11,6 +11,13 @@ def log(*msg):
   print '[%s]' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ' '.join([str(it) for it in msg])
 
 
+def zip_longest(list1, list2):
+  len1 = len(list1)
+  len2 = len(list2)
+  for i in xrange(max(len1, len2)):
+    yield (list1[i % len1], list2[i % len2])
+
+
 def is_gpu():
   from tensorflow.python.client import device_lib
   local_devices = device_lib.list_local_devices()
