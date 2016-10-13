@@ -38,10 +38,11 @@ def hyper_tune(data_sets, model):
   best_accuracy = 0
   while True:
     hyper_params = default_hyper_params.copy()
+    hyper_params['init_stdev'] = 10**np.random.uniform(-1, -3)
     hyper_params['learning_rate'] = 10**np.random.uniform(-3, -4)
-    hyper_params['dropout_conv'] = np.random.uniform(0.8, 1.0)
-    hyper_params['dropout_fc'] = np.random.uniform(0.5, 1.0)
-    hyper_params['init_stdev'] = 10**np.random.uniform(-0.1, -0.3)
+    hyper_params['dropout_conv'] = np.random.uniform(0.5, 1.0)
+    hyper_params['dropout_fc'] = np.random.uniform(0.2, 1.0)
+    hyper_params['epochs'] = 15
 
     tf.reset_default_graph()
     accuracy = train(data_sets=data_sets, model=model, **hyper_params)
@@ -53,7 +54,7 @@ def hyper_tune(data_sets, model):
 
 def train_best_candidate(data_sets, model):
   hyper_params = default_hyper_params.copy()
-  hyper_params.update({'epochs': 20, 'learning_rate': 0.000849, 'dropout_fc': 0.896, 'dropout_conv': 0.967})
+  hyper_params.update({'epochs': 20, 'dropout_fc': 0.551, 'learning_rate': 0.00076, 'dropout_conv': 0.9409, 'init_stdev': 0.0248})
   train(data_sets=data_sets, model=model, **hyper_params)
 
 
@@ -64,4 +65,4 @@ def train_default(data_sets, model):
 if __name__ == "__main__":
   mnist = input_data.read_data_sets("../../../dat/mnist-tf", one_hot=True)
   conv_model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
-  train_default(mnist, conv_model)
+  hyper_tune(mnist, conv_model)
