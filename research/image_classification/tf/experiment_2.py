@@ -93,7 +93,7 @@ def hyper_tune(data_sets, model):
 
 def train_best_candidate(data_sets, model):
   hyper_params = default_hyper_params.copy()
-  hyper_params.update({'batch_size': 128, 'conv_activation': 'elu', 'conv_dropout': 0.79266, 'conv_filters': [[[5, 5, 24]], [[3, 3, 64]], [[5, 5, 256]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'relu', 'fc_dropout': 0.85501, 'fc_size': 1024, 'init_stdev': 0.05557, 'learning_rate': 0.00108})
+  hyper_params.update({'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.76786, 'conv_filters': [[[3, 3, 32]], [[5, 5, 64]], [[3, 3, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'elu', 'fc_dropout': 0.99931, 'fc_size': 768, 'init_stdev': 0.04807, 'learning_rate': 0.00235})
   hyper_params['epochs'] = 30
   train(data_sets=data_sets, model=model, **hyper_params)
 
