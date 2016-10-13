@@ -38,6 +38,23 @@ default_hyper_params = {
 }
 
 
+def random_conv_spec():
+  size1 = np.random.choice([3, 5, 7])
+  size2 = np.random.choice([3, 5, 7])
+  size3 = np.random.choice([3, 5])
+
+  num1 = np.random.choice([24, 32, 36])
+  num2 = np.random.choice([32, 48, 64, 72])
+  num3 = np.random.choice([0, 64, 72, 96, 128, 256])
+
+  spec = [
+    [[size1, size1, num1]],
+    [[size2, size2, num2]],
+    [[size3, size3, num3]] if num3 > 0 else None,
+  ]
+  return [x for x in spec if x is not None]
+
+
 def save_hyper(accuracy, hyper_params, path='best-hyper-%.4f.txt', limit=0.992):
   if accuracy < limit:
     return
@@ -58,6 +75,7 @@ def hyper_tune(data_sets, model):
       'learning_rate': 10**np.random.uniform(-2, -4),
       'dropout_conv': np.random.uniform(0.5, 1.0),
       'dropout_fc': np.random.uniform(0.2, 1.0),
+      'conv_filters': random_conv_spec(),
     }
     hyper_params.update(tuned_params)
 
