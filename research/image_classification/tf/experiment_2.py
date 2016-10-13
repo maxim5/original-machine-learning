@@ -23,7 +23,7 @@ default_hyper_params = {
 
     [[3, 3, 32]],
     [[3, 3, 64]],
-    [[3, 3, 128]],
+    [[3, 3, 256]],
   ],
   'conv_pools': [
     [1, 2, 2, 1]
@@ -38,23 +38,30 @@ def hyper_tune(data_sets, model):
   best_accuracy = 0
   while True:
     hyper_params = default_hyper_params.copy()
-    hyper_params['init_stdev'] = 10**np.random.uniform(-1, -3)
-    hyper_params['learning_rate'] = 10**np.random.uniform(-3, -4)
-    hyper_params['dropout_conv'] = np.random.uniform(0.5, 1.0)
-    hyper_params['dropout_fc'] = np.random.uniform(0.2, 1.0)
-    hyper_params['epochs'] = 15
+    hyper_params['epochs'] = 10
+    # accuracy=0.9618, tuned_params:  {'init_stdev': 0.05529920193609984}
+    tuned_params = {
+      'init_stdev': np.random.uniform(0.04, 0.06),
+      'learning_rate': 10**np.random.uniform(-2, -4),
+      'dropout_conv': np.random.uniform(0.5, 1.0),
+      'dropout_fc': np.random.uniform(0.2, 1.0),
+    }
+    hyper_params.update(tuned_params)
 
     tf.reset_default_graph()
     accuracy = train(data_sets=data_sets, model=model, **hyper_params)
 
+    marker = '   '
     if accuracy > best_accuracy:
       best_accuracy = accuracy
-      log("!!! new best_acc=%.4f" %  best_accuracy)
+      marker = '!!!'
+    log("%s accuracy=%.4f, tuned_params: " %  (marker, accuracy), tuned_params)
 
 
 def train_best_candidate(data_sets, model):
   hyper_params = default_hyper_params.copy()
-  hyper_params.update({'epochs': 20, 'dropout_fc': 0.551, 'learning_rate': 0.00076, 'dropout_conv': 0.9409, 'init_stdev': 0.0248})
+  hyper_params.update({'learning_rate': 0.0006568582429913265, 'dropout_fc': 0.8558553724757245, 'dropout_conv': 0.9400811432728358, 'init_stdev': 0.043707865797119355})
+  hyper_params['epochs'] = 30
   train(data_sets=data_sets, model=model, **hyper_params)
 
 
