@@ -70,7 +70,7 @@ class ConvModel:
         adapted_filters.append([filter[0], filter[1], channels, filter[2]])
         channels = filter[2]
       result_filters.append(adapted_filters)
-      result_pools.append(pool)
+      result_pools.append([1, pool[0], pool[1], 1])
     return result_filters, result_pools
 
 
