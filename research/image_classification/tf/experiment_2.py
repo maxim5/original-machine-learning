@@ -28,7 +28,7 @@ default_hyper_params = {
   'conv_pools': [
     [1, 2, 2, 1]
   ],
-  'fc_size': 625,
+  'fc_size': 1024,
   'dropout_conv': 0.8,
   'dropout_fc': 0.5,
 }

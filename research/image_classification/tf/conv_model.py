@@ -31,15 +31,23 @@ class ConvModel:
       b = tf.Variable(self.init(filter[-1:]))
       conv = self.conv2d_relu(conv, W, b, strides=1)
 
-    layer = tf.nn.max_pool(conv, ksize=pool_size, strides=pool_size, padding='VALID')
+    layer = tf.nn.max_pool(conv, ksize=pool_size, strides=pool_size, padding='SAME')
     layer = tf.nn.dropout(layer, keep_prob=dropout)
     return layer
 
 
-  def fully_connected_layer(self, features, shape, dropout):
-    W = tf.Variable(self.init(shape))
-    b = tf.Variable(self.init(shape[-1:]))
-    layer = tf.reshape(features, [-1, W.get_shape().as_list()[0]])
+  def reduce_layer(self, input):
+    input_shape = input.get_shape()
+    layer = tf.nn.avg_pool(input, ksize=[1, input_shape[1].value, input_shape[2].value, 1], strides=[1, 1, 1, 1], padding='VALID')
+    return layer
+
+
+  def fully_connected_layer(self, input, size, dropout):
+    input_shape = input.get_shape()
+    fc_shape = [input_shape[1].value * input_shape[2].value * input_shape[3].value, size]
+    W = tf.Variable(self.init(fc_shape))
+    b = tf.Variable(self.init(fc_shape[-1:]))
+    layer = tf.reshape(input, [-1, W.get_shape().as_list()[0]])
     layer = tf.add(tf.matmul(layer, W), b)
     layer = tf.nn.relu(layer)
     layer = tf.nn.dropout(layer, dropout)
@@ -71,16 +79,15 @@ class ConvModel:
     self.dropout_fc = tf.placeholder(tf.float32)
 
     image_shape = (-1,) + self.input_shape
-    conv_layer = tf.reshape(self.x, shape=image_shape)
+    layer_conv = tf.reshape(self.x, shape=image_shape)
 
     filters, pools = self.adapt_shapes(self.hyper_params['conv_filters'], self.hyper_params['conv_pools'])
     for filter, pool in zip(filters, pools):
-      conv_layer = self.conv_layer(conv_layer, filter_size=filter, pool_size=pool, dropout=self.dropout_conv)
+      layer_conv = self.conv_layer(layer_conv, filter_size=filter, pool_size=pool, dropout=self.dropout_conv)
 
-    conv_shape = conv_layer.get_shape()
-    fc_shape = [conv_shape[1].value * conv_shape[2].value * conv_shape[3].value, self.hyper_params['fc_size']]
-    layer_fc = self.fully_connected_layer(conv_layer, shape=fc_shape, dropout=self.dropout_fc)
-    layer_out = self.output_layer(layer_fc, shape=[fc_shape[-1], self.num_classes])
+    layer_pool = self.reduce_layer(layer_conv)
+    layer_fc = self.fully_connected_layer(layer_pool, size=self.hyper_params['fc_size'], dropout=self.dropout_fc)
+    layer_out = self.output_layer(layer_fc, shape=[self.hyper_params['fc_size'], self.num_classes])
 
     return layer_out
 
