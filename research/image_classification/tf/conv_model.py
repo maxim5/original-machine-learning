@@ -17,10 +17,15 @@ class ConvModel:
     return tf.random_normal(shape) * self.hyper_params['init_stdev']
 
 
+  def get_activation_function(self, name):
+    return getattr(tf.nn, name)
+
+
   def conv2d_relu(self, image, W, b, strides):
+    activation = self.get_activation_function(self.hyper_params.get('conv_activation', 'relu'))
     layer = tf.nn.conv2d(image, W, strides=[1, strides, strides, 1], padding='SAME')
     layer = tf.nn.bias_add(layer, b)
-    layer = tf.nn.relu(layer)
+    layer = activation(layer)
     return layer
 
 
@@ -47,9 +52,12 @@ class ConvModel:
     fc_shape = [input_shape[1].value * input_shape[2].value * input_shape[3].value, size]
     W = tf.Variable(self.init(fc_shape))
     b = tf.Variable(self.init(fc_shape[-1:]))
+
+    activation = self.get_activation_function(self.hyper_params.get('fc_activation', 'relu'))
+
     layer = tf.reshape(input, [-1, W.get_shape().as_list()[0]])
     layer = tf.add(tf.matmul(layer, W), b)
-    layer = tf.nn.relu(layer)
+    layer = activation(layer)
     layer = tf.nn.dropout(layer, dropout)
     return layer
 
@@ -116,6 +124,6 @@ class ConvModel:
     return {
       self.x: images,
       self.y: labels,
-      self.dropout_conv: hyper_params.get('dropout_conv', 1.0),
-      self.dropout_fc: hyper_params.get('dropout_fc', 1.0),
+      self.dropout_conv: hyper_params.get('conv_dropout', 1.0),
+      self.dropout_fc: hyper_params.get('fc_dropout', 1.0),
     }
