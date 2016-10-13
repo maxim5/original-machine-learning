@@ -14,7 +14,7 @@ class ConvModel:
 
 
   def init(self, shape):
-    return tf.random_normal(shape) * 0.01   # TODO: make it a param
+    return tf.random_normal(shape) * self.hyper_params['init_stdev']
 
 
   def conv2d_relu(self, image, W, b, strides):
@@ -66,7 +66,7 @@ class ConvModel:
     return result_filters, result_pools, channels
 
 
-  def conv_net(self, **hyper_params):
+  def conv_net(self):
     self.dropout_conv = tf.placeholder(tf.float32)
     self.dropout_fc = tf.placeholder(tf.float32)
 
@@ -74,13 +74,13 @@ class ConvModel:
     conv_layer = tf.reshape(self.x, shape=image_shape)
 
     reduced_width, reduced_height, _ = self.input_shape
-    filters, pools, channels = self.adapt_shapes(hyper_params['conv_filters'], hyper_params['conv_pools'])
+    filters, pools, channels = self.adapt_shapes(self.hyper_params['conv_filters'], self.hyper_params['conv_pools'])
     for filter, pool in zip(filters, pools):
       conv_layer = self.conv_layer(conv_layer, filter_size=filter, pool_size=pool, dropout=self.dropout_conv)
       reduced_width /= 2
       reduced_height /= 2
 
-    fc_shape = [reduced_width * reduced_height * channels, hyper_params['fc_size']]
+    fc_shape = [reduced_width * reduced_height * channels, self.hyper_params['fc_size']]
     layer_fc = self.fully_connected_layer(conv_layer, shape=fc_shape, dropout=self.dropout_fc)
     layer_out = self.output_layer(layer_fc, shape=[fc_shape[-1], self.num_classes])
 
@@ -88,10 +88,11 @@ class ConvModel:
 
 
   def build_graph(self, **hyper_params):
+    self.hyper_params = hyper_params
     self.x = tf.placeholder(tf.float32, [None, self.input_shape[0] * self.input_shape[1] * self.input_shape[2]])
     self.y = tf.placeholder(tf.float32, [None, self.num_classes])
 
-    prediction = self.conv_net(**hyper_params)
+    prediction = self.conv_net()
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction, self.y))
     optimizer = tf.train.AdamOptimizer(learning_rate=hyper_params['learning_rate']).minimize(cost)
 
