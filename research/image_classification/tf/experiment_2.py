@@ -14,6 +14,7 @@ from conv_model import ConvModel
 default_hyper_params = {
   'batch_size': 128,
   'epochs': 10,
+  'init_stdev': 0.01,
   'learning_rate': 0.001,
   'conv_filters': [
     # [[7, 1,  32], [1, 7,  32]],
@@ -40,6 +41,7 @@ def hyper_tune(data_sets, model):
     hyper_params['learning_rate'] = 10**np.random.uniform(-3, -4)
     hyper_params['dropout_conv'] = np.random.uniform(0.8, 1.0)
     hyper_params['dropout_fc'] = np.random.uniform(0.5, 1.0)
+    hyper_params['init_stdev'] = 10**np.random.uniform(-0.1, -0.3)
 
     tf.reset_default_graph()
     accuracy = train(data_sets=data_sets, model=model, **hyper_params)
@@ -55,11 +57,11 @@ def train_best_candidate(data_sets, model):
   train(data_sets=data_sets, model=model, **hyper_params)
 
 
-def experiment(data_sets, model):
+def train_default(data_sets, model):
   train(data_sets=data_sets, model=model, **default_hyper_params)
 
 
 if __name__ == "__main__":
   mnist = input_data.read_data_sets("../../../dat/mnist-tf", one_hot=True)
   conv_model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
-  experiment(mnist, conv_model)
+  train_default(mnist, conv_model)
