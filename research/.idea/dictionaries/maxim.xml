@@ -3,6 +3,7 @@
     <words>
       <w>conv</w>
       <w>relu</w>
+      <w>stdev</w>
     </words>
   </dictionary>
 </component>
