@@ -26,7 +26,7 @@ default_hyper_params = {
     [[3, 3, 256]],
   ],
   'conv_pools': [
-    [1, 2, 2, 1]
+    [2, 2]
   ],
   'fc_size': 1024,
   'dropout_conv': 0.8,
@@ -34,11 +34,20 @@ default_hyper_params = {
 }
 
 
+def save_hyper(accuracy, hyper_params, path='best-hyper-%.4f.txt', limit=0.992):
+  if accuracy < limit:
+    return
+
+  filename = path % limit
+  with open(filename, 'a') as file_:
+    file_.write('accuracy=%.4f -> %s' % (accuracy, str(hyper_params)))
+
+
 def hyper_tune(data_sets, model):
   best_accuracy = 0
   while True:
     hyper_params = default_hyper_params.copy()
-    hyper_params['epochs'] = 10
+    hyper_params['epochs'] = 12
     # accuracy=0.9618, tuned_params:  {'init_stdev': 0.05529920193609984}
     tuned_params = {
       'init_stdev': np.random.uniform(0.04, 0.06),
@@ -56,6 +65,8 @@ def hyper_tune(data_sets, model):
       best_accuracy = accuracy
       marker = '!!!'
     log("%s accuracy=%.4f, tuned_params: " %  (marker, accuracy), tuned_params)
+
+    save_hyper(accuracy, hyper_params)
 
 
 def train_best_candidate(data_sets, model):
