@@ -16,6 +16,7 @@ default_hyper_params = {
   'epochs': 10,
   'init_stdev': 0.01,
   'learning_rate': 0.001,
+
   'conv_filters': [
     # [[7, 1,  32], [1, 7,  32]],
     # [[7, 1,  64], [1, 7,  64]],
@@ -28,9 +29,12 @@ default_hyper_params = {
   'conv_pools': [
     [2, 2]
   ],
+  'conv_activation': 'elu',
+  'conv_dropout': 0.8,
+
+  'fc_activation': 'elu',
   'fc_size': 1024,
-  'dropout_conv': 0.8,
-  'dropout_fc': 0.5,
+  'fc_dropout': 0.5,
 }
 
 
@@ -83,4 +87,4 @@ def train_default(data_sets, model):
 if __name__ == "__main__":
   mnist = input_data.read_data_sets("../../../dat/mnist-tf", one_hot=True)
   conv_model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
-  hyper_tune(mnist, conv_model)
+  train_default(mnist, conv_model)
