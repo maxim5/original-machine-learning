@@ -11,6 +11,15 @@ def log(*msg):
   print '[%s]' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ' '.join([str(it) for it in msg])
 
 
+def dict_to_str(d):
+  def smart_str(val):
+    if type(val) == float:
+      return "%.5f" % val
+    return repr(val)
+
+  return '{%s}' % ', '.join(['%s: %s' % (repr(k), smart_str(d[k])) for k in sorted(d.keys())])
+
+
 def zip_longest(list1, list2):
   len1 = len(list1)
   len2 = len(list2)
@@ -22,6 +31,8 @@ def is_gpu():
   from tensorflow.python.client import device_lib
   local_devices = device_lib.list_local_devices()
   return len([x for x in local_devices if x.device_type == 'GPU']) > 0
+
+is_gpu_available = is_gpu()
 
 
 def total_params():
@@ -46,27 +57,31 @@ def train(data_sets, model, **hyper_params):
   val_set = data_sets.validation
   test_set = data_sets.test
 
+  epochs = hyper_params['epochs']
+  batch_size = hyper_params['batch_size']
+
   optimizer, cost, accuracy, init = model.build_graph(**hyper_params)
   log("Total parameters: %dk" % (total_params() / 1000))
-  log("Hyper params: ", hyper_params)
+  log("Hyper params: %s" % dict_to_str(hyper_params))
 
   with tf.Session() as session:
     log("Start training")
     session.run(init)
 
-    step = 1
-    is_gpu_used = is_gpu()
-    epochs = hyper_params['epochs']
-    batch_size = hyper_params['batch_size']
-    while train_set.epochs_completed < epochs:
+    step = 0
+    max_val_acc = 0
+    while True:
       batch_x, batch_y = train_set.next_batch(batch_size)
       session.run(optimizer, feed_dict=model.feed_dict(images=batch_x, labels=batch_y, **hyper_params))
+      step += 1
+      iteration = step * batch_size
 
       loss, acc, name = None, None, None
-      if is_gpu_used:
-        if (step * batch_size) % train_set.num_examples < batch_size:
+      if is_gpu_available:
+        if iteration % train_set.num_examples < batch_size:
           loss, acc = session.run([cost, accuracy], feed_dict=model.feed_dict(data_set=val_set))
           name = "validation_accuracy"
+          max_val_acc = max(max_val_acc, acc)
       elif step % 100 == 0:
         loss, acc = session.run([cost, accuracy], feed_dict=model.feed_dict(data_set=val_set))
         name = "validation_accuracy"
@@ -74,10 +89,13 @@ def train(data_sets, model, **hyper_params):
         loss, acc = session.run([cost, accuracy], feed_dict=model.feed_dict(images=batch_x, labels=batch_y))
         name = "train_accuracy"
       if loss is not None and acc is not None and name is not None:
-        log("epoch %d, iteration %6d: loss=%.6f, %s=%.4f" % (train_set.epochs_completed, step * batch_size, loss, name, acc))
-      step += 1
+        log("epoch %d, iteration %6d: loss=%.6f, %s=%.4f" % (train_set.epochs_completed, iteration, loss, name, acc))
 
-    val_acc = session.run(accuracy, feed_dict=model.feed_dict(data_set=val_set))
-    log("Final validation_accuracy=%.4f" % val_acc)
+      if iteration >= train_set.num_examples * epochs:
+        break
 
-    return val_acc
+    if hyper_params.get('evaluate_test', False):
+      test_acc = session.run(accuracy, feed_dict=model.feed_dict(data_set=test_set))
+      log("Final test_accuracy=%.4f" % test_acc)
+
+    return max_val_acc
