@@ -63,7 +63,7 @@ class ConvModel:
         channels = filter[2]
       result_filters.append(adapted_filters)
       result_pools.append(pool)
-    return result_filters, result_pools, channels
+    return result_filters, result_pools
 
 
   def conv_net(self):
@@ -73,14 +73,12 @@ class ConvModel:
     image_shape = (-1,) + self.input_shape
     conv_layer = tf.reshape(self.x, shape=image_shape)
 
-    reduced_width, reduced_height, _ = self.input_shape
-    filters, pools, channels = self.adapt_shapes(self.hyper_params['conv_filters'], self.hyper_params['conv_pools'])
+    filters, pools = self.adapt_shapes(self.hyper_params['conv_filters'], self.hyper_params['conv_pools'])
     for filter, pool in zip(filters, pools):
       conv_layer = self.conv_layer(conv_layer, filter_size=filter, pool_size=pool, dropout=self.dropout_conv)
-      reduced_width /= 2
-      reduced_height /= 2
 
-    fc_shape = [reduced_width * reduced_height * channels, self.hyper_params['fc_size']]
+    conv_shape = conv_layer.get_shape()
+    fc_shape = [conv_shape[1].value * conv_shape[2].value * conv_shape[3].value, self.hyper_params['fc_size']]
     layer_fc = self.fully_connected_layer(conv_layer, shape=fc_shape, dropout=self.dropout_fc)
     layer_out = self.output_layer(layer_fc, shape=[fc_shape[-1], self.num_classes])
 
