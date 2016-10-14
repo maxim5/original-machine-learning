@@ -11,6 +11,8 @@ def dict_to_str(d):
   def smart_str(val):
     if type(val) == float:
       return "%.5f" % val
+    if type(val) == dict:
+      return dict_to_str(val)
     return repr(val)
 
   return '{%s}' % ', '.join(['%s: %s' % (repr(k), smart_str(d[k])) for k in sorted(d.keys())])
