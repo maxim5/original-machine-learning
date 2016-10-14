@@ -1,0 +1,72 @@
+# max_validation_accuracy=0.9940
+# model_complexity=296314
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.79808, 'conv_filters': [[[5, 5, 24]], [[5, 5, 128]], [[3, 3, 128]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'elu', 'fc_dropout': 0.60001, 'fc_size': 512, 'init_stdev': 0.05223, 'learning_rate': 0.00071}
+
+# max_validation_accuracy=0.9938
+# model_complexity=748682
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.76786, 'conv_filters': [[[3, 3, 32]], [[5, 5, 64]], [[3, 3, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'elu', 'fc_dropout': 0.99931, 'fc_size': 768, 'init_stdev': 0.04807, 'learning_rate': 0.00235}
+
+# max_validation_accuracy=0.9934
+# model_complexity=1279410
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.81406, 'conv_filters': [[[3, 3, 36]], [[5, 5, 64]], [[5, 5, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'elu', 'fc_dropout': 0.61303, 'fc_size': 768, 'init_stdev': 0.04148, 'learning_rate': 0.00179}
+
+# max_validation_accuracy=0.9930
+# model_complexity=1242546
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.74848, 'conv_filters': [[[3, 3, 36]], [[3, 3, 64]], [[5, 5, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'relu', 'fc_dropout': 0.80377, 'fc_size': 768, 'init_stdev': 0.04454, 'learning_rate': 0.00068}
+
+# max_validation_accuracy=0.9930
+# model_complexity=1135410
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.72691, 'conv_filters': [[[5, 5, 36]], [[3, 3, 128]], [[5, 5, 256]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'elu', 'fc_dropout': 0.92256, 'fc_size': 1024, 'init_stdev': 0.04102, 'learning_rate': 0.00055}
+
+# max_validation_accuracy=0.9930
+# model_complexity=585274
+{'batch_size': 128, 'conv_activation': 'elu', 'conv_dropout': 0.83288, 'conv_filters': [[[3, 3, 24]], [[5, 5, 64]], [[5, 5, 256]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'relu', 'fc_dropout': 0.98522, 'fc_size': 512, 'init_stdev': 0.04817, 'learning_rate': 0.00082}
+
+# max_validation_accuracy=0.9928
+# model_complexity=2144714
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.85947, 'conv_filters': [[[7, 7, 32]], [[5, 5, 128]], [[5, 5, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'relu', 'fc_dropout': 0.89179, 'fc_size': 768, 'init_stdev': 0.04855, 'learning_rate': 0.00051}
+
+# max_validation_accuracy=0.9928
+# model_complexity=1518554
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.77522, 'conv_filters': [[[5, 5, 24]], [[3, 3, 96]], [[5, 5, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'elu', 'fc_dropout': 0.66024, 'fc_size': 512, 'init_stdev': 0.05511, 'learning_rate': 0.00163}
+
+# max_validation_accuracy=0.9928
+# model_complexity=697786
+{'batch_size': 128, 'conv_activation': 'elu', 'conv_dropout': 0.79266, 'conv_filters': [[[5, 5, 24]], [[3, 3, 64]], [[5, 5, 256]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'relu', 'fc_dropout': 0.85501, 'fc_size': 1024, 'init_stdev': 0.05557, 'learning_rate': 0.00108}
+
+# max_validation_accuracy=0.9926
+# model_complexity=2202490
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.90444, 'conv_filters': [[[3, 3, 24]], [[3, 3, 128]], [[5, 5, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'elu', 'fc_dropout': 0.92361, 'fc_size': 1024, 'init_stdev': 0.05177, 'learning_rate': 0.00065}
+
+# max_validation_accuracy=0.9924
+# model_complexity=2022386
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.88567, 'conv_filters': [[[3, 3, 36]], [[5, 5, 128]], [[5, 5, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'relu', 'fc_dropout': 0.79878, 'fc_size': 512, 'init_stdev': 0.05997, 'learning_rate': 0.00124}
+
+# max_validation_accuracy=0.9924
+# model_complexity=1182554
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.78883, 'conv_filters': [[[3, 3, 24]], [[3, 3, 96]], [[5, 5, 256]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'relu', 'fc_dropout': 0.78889, 'fc_size': 2048, 'init_stdev': 0.05158, 'learning_rate': 0.00038}
+
+# max_validation_accuracy=0.9924
+# model_complexity=896714
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.98724, 'conv_filters': [[[7, 7, 32]], [[3, 3, 128]], [[3, 3, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'elu', 'fc_dropout': 0.84280, 'fc_size': 512, 'init_stdev': 0.05936, 'learning_rate': 0.00096}
+
+# max_validation_accuracy=0.9924
+# model_complexity=603082
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.92370, 'conv_filters': [[[3, 3, 32]], [[5, 5, 128]], [[3, 3, 256]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'relu', 'fc_dropout': 0.67344, 'fc_size': 768, 'init_stdev': 0.05255, 'learning_rate': 0.00507}
+
+# max_validation_accuracy=0.9924
+# model_complexity=398322
+{'batch_size': 128, 'conv_activation': 'elu', 'conv_dropout': 0.74749, 'conv_filters': [[[5, 5, 36]], [[7, 7, 64]], [[3, 3, 256]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'relu', 'fc_dropout': 0.63955, 'fc_size': 512, 'init_stdev': 0.04697, 'learning_rate': 0.00102}
+
+# max_validation_accuracy=0.9922
+# model_complexity=1950290
+{'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.87303, 'conv_filters': [[[7, 7, 36]], [[5, 5, 64]], [[5, 5, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'relu', 'fc_dropout': 0.96039, 'fc_size': 2048, 'init_stdev': 0.05416, 'learning_rate': 0.00132}
+
+# max_validation_accuracy=0.9922
+# model_complexity=1948658
+{'batch_size': 128, 'conv_activation': 'elu', 'conv_dropout': 0.87611, 'conv_filters': [[[3, 3, 36]], [[3, 3, 128]], [[5, 5, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'relu', 'fc_dropout': 0.64985, 'fc_size': 512, 'init_stdev': 0.04757, 'learning_rate': 0.00072}
+
+# max_validation_accuracy=0.9922
+# model_complexity=1944522
+{'batch_size': 128, 'conv_activation': 'elu', 'conv_dropout': 0.81699, 'conv_filters': [[[5, 5, 32]], [[3, 3, 128]], [[5, 5, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'relu', 'fc_dropout': 0.72401, 'fc_size': 512, 'init_stdev': 0.05243, 'learning_rate': 0.00047}
+

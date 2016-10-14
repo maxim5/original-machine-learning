@@ -3,6 +3,9 @@
 __author__ = "maxim"
 
 
+import json
+
+
 def dict_to_str(d):
   def smart_str(val):
     if type(val) == float:
@@ -10,6 +13,11 @@ def dict_to_str(d):
     return repr(val)
 
   return '{%s}' % ', '.join(['%s: %s' % (repr(k), smart_str(d[k])) for k in sorted(d.keys())])
+
+
+def str_to_dict(s):
+  s = s.replace("'", "\"")
+  return json.loads(s)
 
 
 def zip_longest(list1, list2):
