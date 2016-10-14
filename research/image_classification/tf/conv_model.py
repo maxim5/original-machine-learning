@@ -115,7 +115,12 @@ class ConvModel:
 
     prediction = self.conv_net()
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction, self.y))
-    optimizer = tf.train.AdamOptimizer(learning_rate=hyper_params['learning_rate']).minimize(cost)
+
+    adam_params = self.hyper_params['adam']
+    optimizer = tf.train.AdamOptimizer(learning_rate=adam_params['learning_rate'],
+                                       beta1=adam_params['beta1'],
+                                       beta2=adam_params['beta2'],
+                                       epsilon=adam_params['epsilon']).minimize(cost)
 
     correct_prediction = tf.equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))

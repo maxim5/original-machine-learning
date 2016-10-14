@@ -15,7 +15,13 @@ default_hyper_params = {
   'batch_size': 128,
   'epochs': 10,
   'init_stdev': 0.05,
-  'learning_rate': 0.001,
+
+  'adam': {
+    'learning_rate': 0.001,
+    'beta1': 0.9,
+    'beta2': 0.999,
+    'epsilon': 1e-8,
+  },
 
   'conv': {
     'layers_num': 3,
@@ -58,7 +64,10 @@ def hyper_tune(data_sets, model):
   activations = ['relu', 'relu6', 'elu', 'prelu', 'leaky_relu']
   tuned_params_generator = lambda : {
     'init_stdev': np.random.uniform(0.04, 0.06),
-    'learning_rate': 10**np.random.uniform(-2, -4),
+
+    'adam': {
+      'learning_rate': 10**np.random.uniform(-2, -4),
+    },
 
     'conv': {
       'layers_num': 3,
