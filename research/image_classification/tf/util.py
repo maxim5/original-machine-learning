@@ -3,14 +3,14 @@
 __author__ = "maxim"
 
 
+import ast
 import collections
-import json
 
 
 def dict_to_str(d):
   def smart_str(val):
     if type(val) == float:
-      return "%.5f" % val
+      return "%.6f" % val if val > 1e-6 else "%e" % val
     if type(val) == dict:
       return dict_to_str(val)
     return repr(val)
@@ -19,8 +19,7 @@ def dict_to_str(d):
 
 
 def str_to_dict(s):
-  s = s.replace("'", "\"")
-  return json.loads(s)
+  return ast.literal_eval(s)
 
 
 def zip_longest(list1, list2):
