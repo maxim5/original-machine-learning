@@ -22,7 +22,7 @@ class ConvModel:
 
 
   def conv2d_activation(self, image, W, b, strides, params):
-    activation_func = self._get_activation_function(params['activation'] or 'relu')
+    activation_func = self._get_activation_function(params.get('activation', 'relu'))
     layer = tf.nn.conv2d(image, W, strides=[1, strides, strides, 1], padding='SAME')
     layer = tf.nn.bias_add(layer, b)
     layer = activation_func(layer)
@@ -54,7 +54,7 @@ class ConvModel:
     W = tf.Variable(self.init(fc_shape))
     b = tf.Variable(self.init(fc_shape[-1:]))
 
-    activation_func = self._get_activation_function(params['activation'] or 'relu')
+    activation_func = self._get_activation_function(params.get('activation', 'relu'))
     layer = tf.reshape(input, [-1, W.get_shape().as_list()[0]])
     layer = tf.add(tf.matmul(layer, W), b)
     layer = activation_func(layer)
@@ -117,10 +117,10 @@ class ConvModel:
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction, self.y))
 
     adam_params = self.hyper_params['adam']
-    optimizer = tf.train.AdamOptimizer(learning_rate=adam_params['learning_rate'],
-                                       beta1=adam_params['beta1'],
-                                       beta2=adam_params['beta2'],
-                                       epsilon=adam_params['epsilon']).minimize(cost)
+    optimizer = tf.train.AdamOptimizer(learning_rate=adam_params.get('learning_rate', 0.001),
+                                       beta1=adam_params.get('beta1', 0.9),
+                                       beta2=adam_params.get('beta2', 0.999),
+                                       epsilon=adam_params.get('epsilon', 1e-8)).minimize(cost)
 
     correct_prediction = tf.equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
