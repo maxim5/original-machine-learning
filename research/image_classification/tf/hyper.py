@@ -78,8 +78,9 @@ class Solver(Logger):
           break
 
       if eval_test:
-        test_acc = session.run(accuracy, feed_dict=model.feed_dict(data_set=test_set))
-        log("Final test_accuracy=%.4f" % test_acc)
+        test_accuracy = session.run(accuracy, feed_dict=model.feed_dict(data_set=test_set))
+        log("Final test_accuracy=%.4f" % test_accuracy)
+        return max_val_acc, test_accuracy
 
     return max_val_acc
 
@@ -135,3 +136,56 @@ class HyperTuner(Logger):
       self._update_accuracy(trial, accuracy, tuned_params)
 
       self._save_to_disk(accuracy, hyper_params)
+
+
+class HyperParamsFile(Logger):
+  def __init__(self, path, log_level=1):
+    super(HyperParamsFile, self).__init__(log_level)
+    self.path = path
+    self.packs = None
+    self.hyper_list = []
+
+
+  def _load_all(self):
+    if self.packs is None:
+      with open(self.path, 'r') as file_:
+        raw_lines = file_.readlines()
+
+      self.packs = []
+      pack = []
+      for line in raw_lines:
+        line = line.strip()
+        if len(line) == 0:
+          if len(pack) > 0:
+            self.packs.append(pack)
+            pack = []
+        else:
+          pack.append(line)
+          if line.startswith('#'):
+            pass
+          else:
+            self.hyper_list.append(str_to_dict(line))
+
+      if len(pack) > 0:
+        self.packs.append(pack)
+
+
+  def get_all(self):
+    self._load_all()
+    return self.hyper_list
+
+
+  def update_pack(self, index, line):
+    assert len(line) > 0
+    if not line.startswith('#'):
+      line = '# %s' % line
+    self.packs[index].append(line)
+
+
+  def save_all(self):
+    with open(self.path, 'w') as file_:
+      for pack in self.packs:
+        for line in pack:
+          file_.write(line)
+          file_.write('\n')
+        file_.write('\n')
