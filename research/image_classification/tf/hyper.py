@@ -61,7 +61,7 @@ class Solver(Logger):
         iteration = step * batch_size
 
         compose_msg = lambda iteration_, name_, loss_, accuracy_: \
-                "epoch %d, iteration %6d: loss=%.6f, %s=%.4f" % \
+                "epoch %2d, iteration %6d: loss=%.6f, %s=%.4f" % \
                 (train_set.epochs_completed, iteration_, loss_, name_, accuracy_)
 
         if log_every and step % log_train_every == 0 and self.is_info_logged():
@@ -103,30 +103,34 @@ class HyperTuner(Logger):
       return
 
     self.debug('Saving hyper_params to %s' % self.save_path)
-    with open(self.save_path) as file_:
+    with open(self.save_path, 'a') as file_:
       file_.writelines([
-        '# max_validation_accuracy=%.4f, model_complexity=%d' % (accuracy, self.solver.model.params_num()),
-        dict_to_str(all_hyper_params),
+        '# max_validation_accuracy=%.4f, model_complexity=%d\n' % (accuracy, self.solver.model.params_num()),
+        '%s\n' % dict_to_str(all_hyper_params),
+        '\n',
       ])
 
-  def _update_accuracy(self, accuracy, tuned_params):
-    marker = '   '
+
+  def _update_accuracy(self, trial, accuracy, tuned_params):
+    marker = ' '
     if accuracy > self.best_accuracy:
       self.best_accuracy = accuracy
-      marker = '!!!'
-    self.info('%s accuracy=%.4f, tuned_params: %s' % (marker, accuracy, dict_to_str(tuned_params)))
+      marker = '!'
+    self.info('[%d] %s accuracy=%.4f, params: %s' % (trial, marker, accuracy, dict_to_str(tuned_params)))
 
 
   def tune(self, fixed_params, tuned_params_generator):
     self.info('Start hyper-tuner')
 
+    trial = 0
     while True:
       hyper_params = fixed_params.copy()
       tuned_params = tuned_params_generator()
       hyper_params.update(tuned_params)
 
+      trial += 1
       tf_reset_all()
       accuracy = self.solver.train(**hyper_params)
-      self._update_accuracy(accuracy, tuned_params)
+      self._update_accuracy(trial, accuracy, tuned_params)
 
       self._save_to_disk(accuracy, hyper_params)
