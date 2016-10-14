@@ -70,16 +70,16 @@ def hyper_tune(data_sets, model):
   tuner.tune(fixed_params, tuned_params_generator)
 
 
-def train_best_candidate(data_sets, model, from_file='best-hyper-0.9920.txt', limit=5, epochs=30):
+def train_best_candidate(data_sets, model, from_file='best-hyper-0.9920.txt', start=0, end=5, epochs=50):
   hyper_file = HyperParamsFile(from_file)
   hyper_list = hyper_file.get_all()
 
   solver = Solver(data_sets, model)
 
-  for index, hyper_params in enumerate(hyper_list[:limit]):
+  for index, hyper_params in enumerate(hyper_list[start:end]):
     hyper_params['epochs'] = epochs
     max_val_accuracy, test_accuracy = solver.train(evaluate_test=True, **hyper_params)
-    line = '# trained_epochs=%d validation_accuracy=%.5f test_accuracy=%.5f' % (epochs, max_val_accuracy, test_accuracy)
+    line = '# trained_epochs=%d validation_accuracy=%.4f test_accuracy=%.4f' % (epochs, max_val_accuracy, test_accuracy)
     hyper_file.update_pack(index, line)
     hyper_file.save_all()
 
@@ -92,4 +92,4 @@ def train_default(data_sets, model):
 if __name__ == "__main__":
   mnist = input_data.read_data_sets("../../../dat/mnist-tf", one_hot=True)
   conv_model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
-  hyper_tune(mnist, conv_model)
+  train_best_candidate(mnist, conv_model)
