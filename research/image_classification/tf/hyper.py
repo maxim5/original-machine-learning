@@ -58,7 +58,7 @@ class Solver(Logger):
       max_val_acc = 0
       while True:
         batch_x, batch_y = train_set.next_batch(batch_size)
-        session.run(optimizer, feed_dict=model.feed_dict(images=batch_x, labels=batch_y, **hyper_params))
+        session.run(optimizer, feed_dict=model.feed_dict(images=batch_x, labels=batch_y, mode='train'))
         step += 1
         iteration = step * batch_size
 
