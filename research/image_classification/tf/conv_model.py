@@ -4,7 +4,7 @@ __author__ = "maxim"
 
 
 import tensorflow as tf
-from common import zip_longest
+from util import zip_longest
 
 
 class ConvModel:
@@ -114,6 +114,17 @@ class ConvModel:
 
     init = tf.initialize_all_variables()
     return optimizer, cost, accuracy, init
+
+
+  def params_num(self):
+    total_parameters = 0
+    for variable in tf.trainable_variables():
+        shape = variable.get_shape()
+        variable_parameters = 1
+        for dim in shape:
+            variable_parameters *= dim.value
+        total_parameters += variable_parameters
+    return total_parameters
 
 
   def feed_dict(self, data_set=None, images=None, labels=None, **hyper_params):

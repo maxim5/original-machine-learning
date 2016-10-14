@@ -3,12 +3,10 @@
 __author__ = "maxim"
 
 import numpy as np
-
-import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
-from common import *
 from conv_model import ConvModel
+from hyper import Solver, HyperTuner
 
 
 default_hyper_params = {
@@ -51,55 +49,38 @@ def random_conv_spec():
   return [x for x in spec if x is not None]
 
 
-def save_hyper(accuracy, hyper_params, path='best-hyper-%.4f.txt', limit=0.992):
-  if accuracy < limit:
-    return
-
-  filename = path % limit
-  with open(filename, 'a') as file_:
-    file_.write('accuracy=%.4f -> %s\n' % (accuracy, dict_to_str(hyper_params)))
-
-
 def hyper_tune(data_sets, model):
-  best_accuracy = 0
-  while True:
-    hyper_params = default_hyper_params.copy()
-    hyper_params['epochs'] = 10
-    tuned_params = {
-      'init_stdev': np.random.uniform(0.04, 0.06),
-      'learning_rate': 10**np.random.uniform(-2, -4),
+  fixed_params = default_hyper_params.copy()
+  fixed_params['epochs'] = 10
+  tuned_params_generator = lambda : {
+    'init_stdev': np.random.uniform(0.04, 0.06),
+    'learning_rate': 10**np.random.uniform(-2, -4),
 
-      'conv_filters': random_conv_spec(),
-      'conv_activation': np.random.choice(['relu', 'elu']),
-      'conv_dropout': np.random.uniform(0.7, 1.0),
+    'conv_filters': random_conv_spec(),
+    'conv_activation': np.random.choice(['relu', 'elu']),
+    'conv_dropout': np.random.uniform(0.7, 1.0),
 
-      'fc_size': np.random.choice([512, 768, 1024, 2048]),
-      'fc_activation': np.random.choice(['relu', 'elu']),
-      'fc_dropout': np.random.uniform(0.5, 1.0),
-    }
-    hyper_params.update(tuned_params)
+    'fc_size': np.random.choice([512, 768, 1024, 2048]),
+    'fc_activation': np.random.choice(['relu', 'elu']),
+    'fc_dropout': np.random.uniform(0.5, 1.0),
+  }
 
-    tf.reset_default_graph()
-    accuracy = train(data_sets=data_sets, model=model, **hyper_params)
-
-    marker = '   '
-    if accuracy > best_accuracy:
-      best_accuracy = accuracy
-      marker = '!!!'
-    log('%s accuracy=%.4f, tuned_params: %s' % (marker, accuracy, dict_to_str(tuned_params)))
-
-    save_hyper(accuracy, hyper_params)
+  solver = Solver(data_sets, model)
+  tuner = HyperTuner(solver, save_path='best-hyper-%.4f.txt')
+  tuner.tune(fixed_params, tuned_params_generator)
 
 
 def train_best_candidate(data_sets, model):
   hyper_params = default_hyper_params.copy()
   hyper_params.update({'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.76786, 'conv_filters': [[[3, 3, 32]], [[5, 5, 64]], [[3, 3, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'elu', 'fc_dropout': 0.99931, 'fc_size': 768, 'init_stdev': 0.04807, 'learning_rate': 0.00235})
   hyper_params['epochs'] = 30
-  train(data_sets=data_sets, model=model, **hyper_params)
+  solver = Solver(data_sets, model)
+  solver.train(**hyper_params)
 
 
 def train_default(data_sets, model):
-  train(data_sets=data_sets, model=model, **default_hyper_params)
+  solver = Solver(data_sets, model)
+  solver.train(**default_hyper_params)
 
 
 if __name__ == "__main__":
