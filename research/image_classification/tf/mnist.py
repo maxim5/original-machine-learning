@@ -66,7 +66,7 @@ def hyper_tune(data_sets, model):
   }
 
   solver = Solver(data_sets, model)
-  tuner = HyperTuner(solver, save_path='best-hyper-%.4f.txt')
+  tuner = HyperTuner(solver, save_path='best-hyper-%.4f.txt', save_limit=0.9930)
   tuner.tune(fixed_params, tuned_params_generator)
 
 
@@ -75,12 +75,12 @@ def train_best_candidate(data_sets, model):
   hyper_params.update({'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.76786, 'conv_filters': [[[3, 3, 32]], [[5, 5, 64]], [[3, 3, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'elu', 'fc_dropout': 0.99931, 'fc_size': 768, 'init_stdev': 0.04807, 'learning_rate': 0.00235})
   hyper_params['epochs'] = 30
   solver = Solver(data_sets, model)
-  solver.train(**hyper_params)
+  solver.train(evaluate_test=True, **hyper_params)
 
 
 def train_default(data_sets, model):
   solver = Solver(data_sets, model)
-  solver.train(**default_hyper_params)
+  solver.train(evaluate_test=True, **default_hyper_params)
 
 
 if __name__ == "__main__":
