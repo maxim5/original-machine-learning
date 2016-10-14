@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 __author__ = "maxim"
 
+
 import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
 
@@ -52,16 +53,18 @@ def random_conv_spec():
 def hyper_tune(data_sets, model):
   fixed_params = default_hyper_params.copy()
   fixed_params['epochs'] = 10
+
+  activations = ['relu', 'relu6', 'elu', 'prelu', 'leaky_relu']
   tuned_params_generator = lambda : {
     'init_stdev': np.random.uniform(0.04, 0.06),
     'learning_rate': 10**np.random.uniform(-2, -4),
 
     'conv_filters': random_conv_spec(),
-    'conv_activation': np.random.choice(['relu', 'elu']),
+    'conv_activation': np.random.choice(activations),
     'conv_dropout': np.random.uniform(0.7, 1.0),
 
     'fc_size': np.random.choice([512, 768, 1024, 2048]),
-    'fc_activation': np.random.choice(['relu', 'elu']),
+    'fc_activation': np.random.choice(activations),
     'fc_dropout': np.random.uniform(0.5, 1.0),
   }
 
