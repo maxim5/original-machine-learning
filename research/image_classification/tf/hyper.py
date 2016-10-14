@@ -3,6 +3,8 @@
 __author__ = "maxim"
 
 
+import copy
+
 from log import *
 from util import *
 
@@ -126,9 +128,9 @@ class HyperTuner(Logger):
 
     trial = 0
     while True:
-      hyper_params = fixed_params.copy()
+      hyper_params = copy.deepcopy(fixed_params)
       tuned_params = tuned_params_generator()
-      hyper_params.update(tuned_params)
+      deep_update(hyper_params, tuned_params)
 
       trial += 1
       tf_reset_all()
