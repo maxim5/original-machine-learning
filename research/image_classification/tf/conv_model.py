@@ -4,6 +4,8 @@ __author__ = "maxim"
 
 
 import tensorflow as tf
+import tflearn
+
 from util import zip_longest
 
 
@@ -18,7 +20,7 @@ class ConvModel:
 
 
   def get_activation_function(self, name):
-    return getattr(tf.nn, name)
+    return getattr(tflearn.activations, name, None)
 
 
   def conv2d_relu(self, image, W, b, strides):
