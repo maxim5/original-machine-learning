@@ -6,7 +6,7 @@ import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
 
 from conv_model import ConvModel
-from hyper import Solver, HyperTuner
+from hyper import Solver, HyperTuner, HyperParamsFile
 
 
 default_hyper_params = {
@@ -70,12 +70,18 @@ def hyper_tune(data_sets, model):
   tuner.tune(fixed_params, tuned_params_generator)
 
 
-def train_best_candidate(data_sets, model):
-  hyper_params = default_hyper_params.copy()
-  hyper_params.update({'batch_size': 128, 'conv_activation': 'relu', 'conv_dropout': 0.76786, 'conv_filters': [[[3, 3, 32]], [[5, 5, 64]], [[3, 3, 512]]], 'conv_pools': [[2, 2]], 'epochs': 10, 'fc_activation': 'elu', 'fc_dropout': 0.99931, 'fc_size': 768, 'init_stdev': 0.04807, 'learning_rate': 0.00235})
-  hyper_params['epochs'] = 30
+def train_best_candidate(data_sets, model, from_file='best-hyper-0.9920.txt', limit=5, epochs=30):
+  hyper_file = HyperParamsFile(from_file)
+  hyper_list = hyper_file.get_all()
+
   solver = Solver(data_sets, model)
-  solver.train(evaluate_test=True, **hyper_params)
+
+  for index, hyper_params in enumerate(hyper_list[:limit]):
+    hyper_params['epochs'] = epochs
+    max_val_accuracy, test_accuracy = solver.train(evaluate_test=True, **hyper_params)
+    line = '# trained_epochs=%d validation_accuracy=%.5f test_accuracy=%.5f' % (epochs, max_val_accuracy, test_accuracy)
+    hyper_file.update_pack(index, line)
+    hyper_file.save_all()
 
 
 def train_default(data_sets, model):
