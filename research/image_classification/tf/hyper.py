@@ -105,7 +105,8 @@ class HyperTuner(Logger):
     self.debug('Saving hyper_params to %s' % self.save_path)
     with open(self.save_path, 'a') as file_:
       file_.writelines([
-        '# max_validation_accuracy=%.4f, model_complexity=%d\n' % (accuracy, self.solver.model.params_num()),
+        '# max_validation_accuracy=%.4f\n' % accuracy,
+        '# model_complexity=%d\n' % self.solver.model.params_num(),
         '%s\n' % dict_to_str(all_hyper_params),
         '\n',
       ])
