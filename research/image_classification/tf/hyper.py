@@ -61,7 +61,7 @@ class Solver(Logger):
         iteration = step * batch_size
 
         compose_msg = lambda iteration_, name_, loss_, accuracy_: \
-                "epoch %2d, iteration %6d: loss=%.6f, %s=%.4f" % \
+                "epoch %2d, iteration %7d: loss=%.6f, %s=%.4f" % \
                 (train_set.epochs_completed, iteration_, loss_, name_, accuracy_)
 
         if log_every and step % log_train_every == 0 and self.is_info_logged():
@@ -179,7 +179,7 @@ class HyperParamsFile(Logger):
     assert len(line) > 0
     if not line.startswith('#'):
       line = '# %s' % line
-    self.packs[index].append(line)
+    self.packs[index].insert(-1, line)
 
 
   def save_all(self):
