@@ -3,6 +3,7 @@
 __author__ = "maxim"
 
 
+import collections
 import json
 
 
@@ -25,3 +26,13 @@ def zip_longest(list1, list2):
   len2 = len(list2)
   for i in xrange(max(len1, len2)):
     yield (list1[i % len1], list2[i % len2])
+
+
+def deep_update(dict_, upd):
+  for key, value in upd.iteritems():
+    if isinstance(value, collections.Mapping):
+      recursive = deep_update(dict_.get(key, {}), value)
+      dict_[key] = recursive
+    else:
+      dict_[key] = upd[key]
+  return dict_
