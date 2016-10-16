@@ -3,6 +3,8 @@
 __author__ = "maxim"
 
 
+import copy
+
 import tensorflow as tf
 import tflearn
 
@@ -108,7 +110,7 @@ class ConvModel:
 
 
   def build_graph(self, **hyper_params):
-    self.hyper_params = hyper_params
+    self.hyper_params = copy.deepcopy(hyper_params)
     self.x = tf.placeholder(tf.float32, [None, self.input_shape[0] * self.input_shape[1] * self.input_shape[2]])
     self.y = tf.placeholder(tf.float32, [None, self.num_classes])
     self.mode = tf.placeholder(tf.string)
