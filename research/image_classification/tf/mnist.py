@@ -53,7 +53,9 @@ default_hyper_params = {
 }
 
 
-def random_conv_layer(size, num):
+def random_conv_layer(size, num, prob=0.5):
+  if np.random.uniform() > prob:
+    return [[size, 1, num], [1, size, num]]
   return [[size, size, num]]
 
 
