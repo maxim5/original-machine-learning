@@ -25,6 +25,25 @@ def tf_is_gpu():
 is_gpu_available = tf_is_gpu()
 
 
+# TODO: move it
+def plot_images_together(images, labels):
+  import matplotlib
+  import matplotlib.pyplot as plt
+  import numpy as np
+
+  images = [image.reshape(28, 28) for image in images]
+  image = np.concatenate(images, axis=1)
+
+  print labels
+
+  fig = plt.figure()
+  ax = fig.add_subplot(1, 1, 1)
+  ax.matshow(image, cmap=matplotlib.cm.binary)
+  plt.xticks(np.array([]))
+  plt.yticks(np.array([]))
+  plt.show()
+
+
 class Solver(Logger):
   def __init__(self, data, model, log_level=1):
     super(Solver, self).__init__(log_level)
@@ -47,7 +66,7 @@ class Solver(Logger):
     test_set = self.data.test
 
     model = self.model
-    optimizer, cost, accuracy, init = model.build_graph(**hyper_params)
+    init, optimizer, cost, accuracy, misclassified_x, misclassified_y = model.build_graph(**hyper_params)
 
     with tf.Session() as session:
       self.info("Start training. Model size: %dk" % (model.params_num() / 1000))
@@ -80,8 +99,11 @@ class Solver(Logger):
           break
 
       if eval_test:
-        test_accuracy = session.run(accuracy, feed_dict=model.feed_dict(data_set=test_set))
+        test_accuracy, x, y = session.run([accuracy, misclassified_x, misclassified_y],
+                                          feed_dict=model.feed_dict(data_set=test_set))
         log("Final test_accuracy=%.4f" % test_accuracy)
+
+        plot_images_together(x[:20], y[:20])
         return max_val_acc, test_accuracy
 
     return max_val_acc

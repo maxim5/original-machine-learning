@@ -124,11 +124,16 @@ class ConvModel:
                                        beta2=adam_params.get('beta2', 0.999),
                                        epsilon=adam_params.get('epsilon', 1e-8)).minimize(cost)
 
+    init = tf.initialize_all_variables()
+
     correct_prediction = tf.equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-    init = tf.initialize_all_variables()
-    return optimizer, cost, accuracy, init
+    incorrect_prediction = tf.not_equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
+    misclassified_x = tf.boolean_mask(self.x, incorrect_prediction)
+    misclassified_y = tf.boolean_mask(tf.argmax(prediction, 1), incorrect_prediction)
+
+    return init, optimizer, cost, accuracy, misclassified_x, misclassified_y
 
 
   def params_num(self):
