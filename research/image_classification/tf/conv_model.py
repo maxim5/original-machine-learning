@@ -8,6 +8,9 @@ import copy
 import tensorflow as tf
 import tflearn
 
+# See https://github.com/tflearn/tflearn/issues/367
+tf.python.control_flow_ops = tf
+
 
 class ConvModel:
   def __init__(self, input_shape, num_classes):
@@ -19,28 +22,43 @@ class ConvModel:
     return tf.random_normal(shape) * self.hyper_params['init_stdev']
 
 
+  def train_or_test(self, train_func, test_func):
+    return tf.cond(tf.equal(self.mode, 'train'), train_func, test_func)
+
+
   def _get_activation_function(self, name):
     return getattr(tflearn.activations, name, None)
 
 
-  def conv2d_activation(self, image, W, b, strides, params):
+  def conv2d_activation(self, image, W, b, strides, params, cache):
     activation_func = self._get_activation_function(params.get('activation', 'relu'))
     layer = tf.nn.conv2d(image, W, strides=[1, strides, strides, 1], padding='SAME')
     layer = tf.nn.bias_add(layer, b)
+
+    bn_input = layer
+    def train_batchnorm():
+      normalized = tflearn.batch_normalization(bn_input)
+      cache['bn'] = (normalized.beta, normalized.gamma)
+      return normalized
+    def test_batchnorm():
+      beta, gamma = cache['bn']
+      normalized = bn_input * gamma + beta
+      return normalized
+    layer = self.train_or_test(train_batchnorm, test_batchnorm)
+
     layer = activation_func(layer)
     return layer
 
 
-  def conv_layer(self, image, params):
+  def conv_layer(self, image, params, cache):
     conv = image
     for filter in params['filters_adapted']:
       W = tf.Variable(self.init(filter))
       b = tf.Variable(self.init(filter[-1:]))
-      conv = self.conv2d_activation(conv, W, b, strides=1, params=params)
+      conv = self.conv2d_activation(conv, W, b, strides=1, params=params, cache=cache)
 
     layer = tf.nn.max_pool(conv, ksize=params['pools_adapted'], strides=params['pools_adapted'], padding='SAME')
-    if self.mode == 'train':
-      layer = tf.nn.dropout(layer, keep_prob=params['dropout'])
+    layer = self.train_or_test(lambda: tf.nn.dropout(layer, keep_prob=params['dropout']), lambda: layer)
     return layer
 
 
@@ -60,8 +78,7 @@ class ConvModel:
     layer = tf.reshape(input, [-1, W.get_shape().as_list()[0]])
     layer = tf.add(tf.matmul(layer, W), b)
     layer = activation_func(layer)
-    if self.mode == 'train':
-      layer = tf.nn.dropout(layer, keep_prob=params['dropout'])
+    layer = self.train_or_test(lambda: tf.nn.dropout(layer, keep_prob=params['dropout']), lambda: layer)
     return layer
 
 
@@ -98,7 +115,8 @@ class ConvModel:
     self._adapt_conv_shapes(conv_params, conv_layers_num)
     layer_conv = layer_input
     for i in xrange(1, conv_layers_num + 1):
-      layer_conv = self.conv_layer(layer_conv, params=conv_params[i])
+      self.cache.setdefault(i, {})
+      layer_conv = self.conv_layer(layer_conv, params=conv_params[i], cache=self.cache[i])
 
     # Reduced + fully-connected + output layers
     fc_params = self.hyper_params['fc']
@@ -110,10 +128,11 @@ class ConvModel:
 
 
   def build_graph(self, **hyper_params):
+    self.mode = tf.placeholder(tf.string)
     self.hyper_params = copy.deepcopy(hyper_params)
     self.x = tf.placeholder(tf.float32, [None, self.input_shape[0] * self.input_shape[1] * self.input_shape[2]])
     self.y = tf.placeholder(tf.float32, [None, self.num_classes])
-    self.mode = tf.placeholder(tf.string)
+    self.cache = {}
 
     prediction = self.conv_net()
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction, self.y))
