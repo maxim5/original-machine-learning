@@ -76,17 +76,17 @@ def hyper_tune(data_sets, model):
       1: {
         'filters': random_conv_layer(size=np.random.choice([3, 5, 7]), num=np.random.choice([ 24,  32,  36])),
         'activation': np.random.choice(activations),
-        'dropout': np.random.uniform(0.7, 1.0),
+        'dropout': np.random.uniform(0.9, 1.0),
       },
       2: {
         'filters': random_conv_layer(size=np.random.choice([3, 5, 7]), num=np.random.choice([ 64,  96, 128])),
         'activation': np.random.choice(activations),
-        'dropout': np.random.uniform(0.7, 1.0),
+        'dropout': np.random.uniform(0.8, 1.0),
       },
       3: {
         'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([128, 256, 512])),
         'activation': np.random.choice(activations),
-        'dropout': np.random.uniform(0.7, 1.0),
+        'dropout': np.random.uniform(0.6, 1.0),
       }
     },
 
@@ -102,7 +102,7 @@ def hyper_tune(data_sets, model):
   tuner.tune(fixed_params, tuned_params_generator)
 
 
-def train_best_candidate(data_sets, model, from_file='best-hyper-0.9920.txt', start=0, end=5, epochs=50):
+def train_best_candidate(data_sets, model, from_file='best-hyper-0.9930.txt', start=0, end=1, epochs=30):
   hyper_file = HyperParamsFile(from_file)
   hyper_list = hyper_file.get_all()
 
