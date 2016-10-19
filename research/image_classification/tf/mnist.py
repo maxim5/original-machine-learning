@@ -4,6 +4,8 @@ __author__ = "maxim"
 
 
 import copy
+import os
+
 import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
 
@@ -102,7 +104,7 @@ def hyper_tune(data_sets, model):
   tuner.tune(fixed_params, tuned_params_generator)
 
 
-def train_best_candidate(data_sets, model, from_file='best-hyper-0.9930.txt', start=0, end=1, epochs=30):
+def train_best_candidate(data_sets, model, from_file='best-hyper-0.9930.txt', start=0, end=1, epochs=50):
   hyper_file = HyperParamsFile(from_file)
   hyper_list = hyper_file.get_all()
 
@@ -110,10 +112,17 @@ def train_best_candidate(data_sets, model, from_file='best-hyper-0.9930.txt', st
 
   for index, hyper_params in enumerate(hyper_list[start:end]):
     hyper_params['epochs'] = epochs
-    max_val_accuracy, test_accuracy = solver.train(evaluate_test=True, **hyper_params)
-    line = '# trained_epochs=%d validation_accuracy=%.4f test_accuracy=%.4f' % (epochs, max_val_accuracy, test_accuracy)
-    hyper_file.update_pack(index, line)
-    hyper_file.save_all()
+    hyper_params['save_path'] = 'model.ckpt'
+    solver.train(evaluate_test=False, **hyper_params)
+    #line = '# trained_epochs=%d validation_accuracy=%.4f test_accuracy=%.4f' % (epochs, max_val_accuracy, test_accuracy)
+    #hyper_file.update_pack(index, line)
+    #hyper_file.save_all()
+
+
+def load_and_test(data_sets, model):
+  hyper_params = {'adam': {'beta1': 0.900000, 'beta2': 0.999000, 'epsilon': 1.000000e-08, 'learning_rate': 0.001765}, 'batch_size': 128, 'conv': {1: {'activation': 'prelu', 'dropout': 0.933399, 'filters': [[3, 3, 36]], 'pools': [2, 2]}, 2: {'activation': 'leaky_relu', 'dropout': 0.809058, 'filters': [[5, 5, 128]], 'pools': [2, 2]}, 3: {'activation': 'relu6', 'dropout': 0.761748, 'filters': [[5, 5, 128]], 'pools': [2, 2]}, 'layers_num': 3}, 'epochs': 10, 'fc': {'activation': 'relu6', 'dropout': 0.821744, 'size': 768}, 'init_stdev': 0.058094}
+  solver = Solver(data_sets, model)
+  solver.load_session(from_file=os.path.abspath('model.ckpt'), **hyper_params)
 
 
 def train_default(data_sets, model):
