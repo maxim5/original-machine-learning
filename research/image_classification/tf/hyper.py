@@ -67,6 +67,7 @@ class Solver(Logger):
 
     model = self.model
     init, optimizer, cost, accuracy, misclassified_x, misclassified_y = model.build_graph(**hyper_params)
+    saver = tf.train.Saver()
 
     with tf.Session() as session:
       self.info("Start training. Model size: %dk" % (model.params_num() / 1000))
@@ -97,6 +98,9 @@ class Solver(Logger):
 
         if iteration >= train_set.num_examples * epochs:
           break
+
+      save_path = saver.save(session, "model.ckpt")
+      log("Model saved in file: %s" % save_path)
 
       if eval_test:
         test_accuracy, x, y = session.run([accuracy, misclassified_x, misclassified_y],
