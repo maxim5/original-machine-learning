@@ -32,7 +32,7 @@ default_hyper_params = {
       'dropout': 0.9,
     },
     2: {
-      'filters': [[3, 3,  64], [5, 3,  64]],
+      'filters': [[3, 3,  64], [3, 3,  64]],
       'pools': [2, 2],
       'activation': 'elu',
       'dropout': 0.8,
@@ -53,7 +53,7 @@ default_hyper_params = {
 }
 
 
-def random_conv_layer(size, num, prob=0.5):
+def random_conv_layer(size, num, prob=0.8):
   if np.random.uniform() > prob:
     return [[size, 1, num], [1, size, num]]
   return [[size, size, num]]
@@ -91,7 +91,7 @@ def hyper_tune(data_sets, model):
     },
 
     'fc': {
-      'size': np.random.choice([512, 768, 1024, 2048]),
+      'size': np.random.choice([512, 768, 1024]),
       'activation': np.random.choice(activations),
       'dropout': np.random.uniform(0.5, 1.0),
     },
