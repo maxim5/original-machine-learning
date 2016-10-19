@@ -58,6 +58,7 @@ class Solver(Logger):
     log_train_every = hyper_params.get('log_train_every', 10)
     log_validation_every = hyper_params.get('log_validation_every', 100)
     eval_test = hyper_params.get('evaluate_test', False)
+    save_path = hyper_params.get('save_path')
 
     log_every = not log_accuracy_flexible or not is_gpu_available
 
@@ -99,8 +100,9 @@ class Solver(Logger):
         if iteration >= train_set.num_examples * epochs:
           break
 
-      save_path = saver.save(session, "model.ckpt")
-      log("Model saved in file: %s" % save_path)
+      if save_path:
+        save_path = saver.save(session, save_path)
+        log("Model saved in file: %s" % save_path)
 
       if eval_test:
         test_accuracy, x, y = session.run([accuracy, misclassified_x, misclassified_y],
@@ -111,6 +113,28 @@ class Solver(Logger):
         return max_val_acc, test_accuracy
 
     return max_val_acc
+
+
+  def load_session(self, from_file, **hyper_params):
+    test_set = self.data.test
+    images = test_set.images
+    labels = test_set.labels
+
+    init, optimizer, cost, accuracy, misclassified_x, misclassified_y = self.model.build_graph(**hyper_params)
+    saver = tf.train.Saver()
+
+    with tf.Session() as session:
+      self.info("Load session. Model size: %dk" % (self.model.params_num() / 1000))
+      self.debug("Hyper params: %s" % dict_to_str(hyper_params))
+      session.run(init)
+
+      saver.restore(session, from_file)
+
+      for batch_start, batch_end in [(None, 5000), (5000, None)]:
+        test_accuracy, x, y = session.run([accuracy, misclassified_x, misclassified_y],
+                                          feed_dict=self.model.feed_dict(images=images[batch_start:batch_end],
+                                                                         labels=labels[batch_start:batch_end]))
+        log("Final test_accuracy=%.4f" % test_accuracy)
 
 
 def tf_reset_all():
