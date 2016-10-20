@@ -4,6 +4,8 @@
       <w>conv</w>
       <w>relu</w>
       <w>stdev</w>
+      <w>tensorflow</w>
+      <w>xjson</w>
     </words>
   </dictionary>
 </component>
