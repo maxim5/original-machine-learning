@@ -5,6 +5,8 @@ __author__ = "maxim"
 
 import ast
 import collections
+import random
+import string
 
 
 def dict_to_str(d):
@@ -37,3 +39,12 @@ def deep_update(dict_, upd):
     else:
       dict_[key] = upd[key]
   return dict_
+
+
+def mini_batch(total, size):
+  return zip(range(0, total, size),
+             range(size, total + size, size))
+
+
+def random_id(size=6, chars=string.ascii_uppercase + string.digits):
+  return ''.join(random.choice(chars) for _ in xrange(size))
