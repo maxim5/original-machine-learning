@@ -8,43 +8,8 @@ import os
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 
-from base_runner import BaseRunner
-from base_solver import BaseSolver
-from util import *
-
-
-class TensorflowRunner(BaseRunner):
-  def __init__(self, model, log_level=1, **hyper_params):
-    super(TensorflowRunner, self).__init__(log_level)
-    self.model = model
-    self.hyper_params = hyper_params
-    self.session = None
-
-
-  def prepare(self, **kwargs):
-    self.session = kwargs['session']
-    init, self.optimizer, self.cost, self.accuracy, self.misclassified_x, self.misclassified_y = self.model.build_graph(**self.hyper_params)
-    self.info("Start training. Model size: %dk" % (self.model.params_num() / 1000))
-    self.info("Hyper params: %s" % dict_to_str(self.hyper_params))
-    self.session.run(init)
-
-
-  def run_batch(self, batch_x, batch_y):
-    self.session.run(self.optimizer, feed_dict=self.model.feed_dict(images=batch_x, labels=batch_y, mode='train'))
-
-
-  def evaluate(self, batch_x, batch_y):
-    cost, accuracy, x, y = self.session.run([self.cost, self.accuracy, self.misclassified_x, self.misclassified_y],
-                                            feed_dict=self.model.feed_dict(images=batch_x, labels=batch_y, mode='test'))
-    return {'cost': cost, 'accuracy': accuracy, 'misclassified_x': x, 'misclassified_y': y}
-
-
-def tf_is_gpu():
-  local_devices = device_lib.list_local_devices()
-  return len([x for x in local_devices if x.device_type == 'GPU']) > 0
-
-
-_is_gpu_available = tf_is_gpu()
+from image_classification.tf.base_solver import BaseSolver
+from image_classification.tf.util import *
 
 
 class TensorflowSolver(BaseSolver):
@@ -131,3 +96,11 @@ class TensorflowSolver(BaseSolver):
         return str_to_dict(line)
     except:
       return {}
+
+
+def tf_is_gpu():
+  local_devices = device_lib.list_local_devices()
+  return len([x for x in local_devices if x.device_type == 'GPU']) > 0
+
+
+_is_gpu_available = tf_is_gpu()
