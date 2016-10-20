@@ -12,6 +12,7 @@ def log(*msg):
 
 class Logger(object):
   def __init__(self, log_level=1):
+    assert type(log_level) == int
     self.log_level = log_level
 
   def silence(self):
