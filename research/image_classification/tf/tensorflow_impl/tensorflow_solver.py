@@ -43,7 +43,7 @@ class TensorflowSolver(BaseSolver):
     if not self.load_dir:
       return 0
 
-    session_file = os.path.join(os.path.abspath(self.load_dir), 'session.dat')
+    session_file = os.path.join(os.path.abspath(self.load_dir), 'session.data')
     if os.path.exists(session_file):
       self.saver.build()
       self.saver.restore(session, session_file)
@@ -72,7 +72,7 @@ class TensorflowSolver(BaseSolver):
 
     hyper_file = os.path.join(self.save_dir, 'hyper_params.xjson')
     results_file = os.path.join(self.save_dir, 'results.xjson')
-    session_file = os.path.join(self.save_dir, 'session.dat')
+    session_file = os.path.join(self.save_dir, 'session.data')
 
     self.saver.build()
     self.saver.save(session, session_file)
