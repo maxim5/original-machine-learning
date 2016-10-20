@@ -74,17 +74,17 @@ def hyper_tune_ground_up():
     'conv': {
       'layers_num': 3,
       1: {
-        'filters': random_conv_layer(size=np.random.choice([3, 5, 7]), num=np.random.choice([24,  32,  36])),
+        'filters': random_conv_layer(size=np.random.choice([3, 5, 7]), num=np.random.choice([ 24,  32,  36])),
         'activation': np.random.choice(activations),
         'dropout': np.random.uniform(0.9, 1.0),
       },
       2: {
-        'filters': random_conv_layer(size=np.random.choice([3, 5, 7]), num=np.random.choice([64,  96, 128])),
+        'filters': random_conv_layer(size=np.random.choice([3, 5, 7]), num=np.random.choice([ 64,  96, 128])),
         'activation': np.random.choice(activations),
         'dropout': np.random.uniform(0.8, 1.0),
       },
       3: {
-        'filters': random_conv_layer(size=np.random.choice([3, 5, ]), num=np.random.choice([128, 256, 512])),
+        'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([128, 256, 512])),
         'activation': np.random.choice(activations),
         'dropout': np.random.uniform(0.6, 1.0),
       }
@@ -121,7 +121,7 @@ def fine_tune(eval_test=False):
   model_path = 'model-zoo/2016-10-20-3SHDJG'
   solver_params = {
     'batch_size': 128,
-    'epochs': 0 if eval_test else 10,
+    'epochs': 0 if eval_test else 30,
     'evaluate_test': eval_test,
     'eval_test_batch_size': 5000,
     'save_dir': model_path,
