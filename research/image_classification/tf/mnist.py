@@ -74,24 +74,24 @@ def hyper_tune_ground_up():
     'conv': {
       'layers_num': 3,
       1: {
-        'filters': random_conv_layer(size=np.random.choice([3, 5, 7]), num=np.random.choice([ 24,  32,  36])),
+        'filters': random_conv_layer(size=np.random.choice([3, 5, 7]), num=np.random.choice([ 24,  32,  36,  48])),
         'activation': np.random.choice(activations),
         'dropout': np.random.uniform(0.9, 1.0),
       },
       2: {
-        'filters': random_conv_layer(size=np.random.choice([3, 5, 7]), num=np.random.choice([ 64,  96, 128])),
+        'filters': random_conv_layer(size=np.random.choice([3, 5, 7]), num=np.random.choice([ 64,  96, 128, 192])),
         'activation': np.random.choice(activations),
         'dropout': np.random.uniform(0.8, 1.0),
       },
       3: {
-        'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([128, 256, 512])),
+        'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([128, 256, 512, 768])),
         'activation': np.random.choice(activations),
         'dropout': np.random.uniform(0.6, 1.0),
       }
     },
 
     'fc': {
-      'size': np.random.choice([512, 768, 1024]),
+      'size': np.random.choice([512, 768, 1024, 1280]),
       'activation': np.random.choice(activations),
       'dropout': np.random.uniform(0.5, 1.0),
     },
@@ -99,11 +99,12 @@ def hyper_tune_ground_up():
 
   def solver_generator(hyper_params):
     solver_params = {
-      'batch_size': 128,
-      'epochs': 15,
+      'batch_size': 256,
+      'epochs': 10,
+      'dynamic_epochs': lambda acc: 3 if acc < 0.8 else 5 if acc < 0.99 else 10 if acc < 0.994 else 15,
       'evaluate_test': False,
       'save_dir': 'model-zoo/%s-%s' % (datetime.datetime.now().strftime('%Y-%m-%d'), random_id()),
-      'accuracy_limit': 0.9930
+      'save_accuracy_limit': 0.9940
     }
 
     runner = TensorflowRunner(model=conv_model, **hyper_params)
@@ -134,4 +135,4 @@ def fine_tune(eval_test=False):
 
 
 if __name__ == "__main__":
-  fine_tune()
+  hyper_tune_ground_up()
