@@ -12,7 +12,7 @@ import string
 def dict_to_str(d):
   def smart_str(val):
     if type(val) == float:
-      return "%.6f" % val if val > 1e-6 else "%e" % val
+      return "%.6f" % val if abs(val) > 1e-6 else "%e" % val
     if type(val) == dict:
       return dict_to_str(val)
     return repr(val)
