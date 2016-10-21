@@ -119,10 +119,10 @@ def fine_tune(eval_test=False):
   mnist = read_data_sets("../../../dat/mnist-tf", one_hot=True)
   conv_model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
 
-  model_path = 'model-zoo/2016-10-20-3SHDJG'
+  model_path = 'model-zoo/2016-10-21-BT5CES'
   solver_params = {
-    'batch_size': 128,
-    'epochs': 0 if eval_test else 30,
+    'batch_size': 1024,
+    'epochs': 0 if eval_test else 50,
     'evaluate_test': eval_test,
     'eval_test_batch_size': 5000,
     'save_dir': model_path,
@@ -135,4 +135,4 @@ def fine_tune(eval_test=False):
 
 
 if __name__ == "__main__":
-  hyper_tune_ground_up()
+  fine_tune(eval_test=True)
