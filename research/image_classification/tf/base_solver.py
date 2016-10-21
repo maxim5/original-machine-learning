@@ -18,8 +18,9 @@ class BaseSolver(Logger):
 
     self.runner = self.init_runner(runner)
 
-    self.epochs = params['epochs']
-    self.batch_size = params['batch_size']
+    self.epochs = params.get('epochs', 1)
+    self.dynamic_epochs = params.get('dynamic_epochs')
+    self.batch_size = params.get('batch_size', 16)
     self.eval_flexible = params.get('eval_flexible', True)
     self.eval_train_every = params.get('eval_train_every', 10) if not self.eval_flexible else 1e1000
     self.eval_validation_every = params.get('eval_validation_every', 100) if not self.eval_flexible else 1e1000
@@ -69,7 +70,15 @@ class BaseSolver(Logger):
 
 
   def on_best_accuracy(self, session, accuracy):
-    pass
+    self._update_epochs_dynamically(accuracy)
+
+
+  def _update_epochs_dynamically(self, accuracy):
+    if self.dynamic_epochs is not None:
+      new_epochs = self.dynamic_epochs(accuracy)
+      if self.epochs != new_epochs:
+        self.epochs = new_epochs or self.epochs
+        self.debug('Update epochs=%d' % new_epochs)
 
 
   def _evaluate_validation(self, iteration, step, batch_x, batch_y):

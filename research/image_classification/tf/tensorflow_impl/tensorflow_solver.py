@@ -17,7 +17,7 @@ class TensorflowSolver(BaseSolver):
     self.load_dir = params.get('load_dir')
     self.saver = tf.train.Saver(defer_build=True)
     self.save_dir = params.get('save_dir')
-    self.accuracy_limit = params.get('accuracy_limit', 0)
+    self.save_accuracy_limit = params.get('save_accuracy_limit', 0)
 
     params['eval_flexible'] = params.get('eval_flexible', True) and _is_gpu_available
     super(TensorflowSolver, self).__init__(data, runner, log_level, **params)
@@ -55,7 +55,8 @@ class TensorflowSolver(BaseSolver):
 
 
   def on_best_accuracy(self, session, accuracy):
-    if accuracy > self.accuracy_limit:
+    super(TensorflowSolver, self).on_best_accuracy(session, accuracy)
+    if accuracy > self.save_accuracy_limit:
       self._save(session, accuracy)
 
 
