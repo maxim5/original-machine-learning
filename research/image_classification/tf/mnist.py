@@ -115,7 +115,7 @@ def hyper_tune_ground_up():
   tuner.tune(solver_generator, fixed_params, tuned_params_generator)
 
 
-def fine_tune(eval_test=False):
+def fine_tune(only_test=False):
   mnist = read_data_sets("../../../dat/mnist-tf", one_hot=True)
   conv_model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
 
@@ -123,8 +123,8 @@ def fine_tune(eval_test=False):
   solver_params = {
     'batch_size': 1024,
     'eval_batch_size': 5000,
-    'epochs': 0 if eval_test else 50,
-    'evaluate_test': eval_test,
+    'epochs': 0 if only_test else 50,
+    'evaluate_test': True,
     'save_dir': model_path,
     'load_dir': model_path,
   }
@@ -135,4 +135,4 @@ def fine_tune(eval_test=False):
 
 
 if __name__ == "__main__":
-  hyper_tune_ground_up()
+  fine_tune()
