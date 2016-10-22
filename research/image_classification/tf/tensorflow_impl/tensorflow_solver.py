@@ -110,14 +110,14 @@ class TensorflowSolver(BaseSolver):
     self.saver.save(session, session_file)
     self.debug('Session saved to %s' % session_file)
 
-    # TODO: use self.runner.describe()
+    runner_describe = self.runner.describe()
 
     with open(results_file, 'w') as file_:
-      file_.write(dict_to_str({'validation_accuracy': accuracy, 'model_size': self.runner.model.params_num()}))
+      file_.write(dict_to_str({'validation_accuracy': accuracy, 'model_size': runner_describe.get('model_size', 0)}))
       self.debug('Results saved to %s' % results_file)
 
     with open(hyper_file, 'w') as file_:
-      file_.write(dict_to_str(self.runner.hyper_params))
+      file_.write(dict_to_str(runner_describe.get('hyper_params', {})))
       self.debug('Hyper parameters saved to %s' % hyper_file)
 
 

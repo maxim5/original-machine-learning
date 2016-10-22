@@ -21,3 +21,7 @@ class BaseRunner(Logger):
 
   def evaluate(self, batch_x, batch_y):
     return {}
+
+
+  def describe(self):
+    return {}

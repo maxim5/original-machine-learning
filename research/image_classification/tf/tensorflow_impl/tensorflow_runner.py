@@ -31,3 +31,7 @@ class TensorflowRunner(BaseRunner):
     cost, accuracy, x, y = self.session.run([self.cost, self.accuracy, self.misclassified_x, self.misclassified_y],
                                             feed_dict=self.model.feed_dict(images=batch_x, labels=batch_y, mode='test'))
     return {'cost': cost, 'accuracy': accuracy, 'misclassified_x': x, 'misclassified_y': y}
+
+
+  def describe(self):
+    return {'model_size': self.model.params_num(), 'hyper_params': self.hyper_params}
