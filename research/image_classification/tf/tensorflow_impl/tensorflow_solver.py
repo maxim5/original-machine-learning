@@ -19,6 +19,8 @@ class TensorflowSolver(BaseSolver):
     self.save_dir = params.get('save_dir')
     self.save_accuracy_limit = params.get('save_accuracy_limit', 0)
 
+    self.session = None
+
     params['eval_flexible'] = params.get('eval_flexible', True) and _is_gpu_available
     super(TensorflowSolver, self).__init__(data, runner, log_level, **params)
 
@@ -29,7 +31,7 @@ class TensorflowSolver(BaseSolver):
     return data_set
 
 
-  def init_runner(self, runner):
+  def prepare_runner(self, runner):
     if not self.load_dir:
       return runner
     hyper_params = self._load_dict(os.path.join(self.load_dir, 'hyper_params.xjson'))
@@ -39,29 +41,58 @@ class TensorflowSolver(BaseSolver):
     return runner
 
 
-  def init_session(self, session):
-    if not self.load_dir:
-      return 0
+  def create_session(self):
+    self.session = tf.Session()
+    return self.session
 
-    session_file = os.path.join(os.path.abspath(self.load_dir), 'session.data')
-    if os.path.exists(session_file):
-      self.saver.build()
-      self.saver.restore(session, session_file)
-      self.info('Loaded session from %s' % session_file)
 
-    results = self._load_dict(os.path.join(self.load_dir, 'results.xjson'))
-    self.info('Loaded results: %s' % dict_to_str(results))
+  def init_session(self):
+    results = self._load(self.load_dir, self.session, log_level=1)
     return results.get('validation_accuracy', 0)
 
 
-  def on_best_accuracy(self, session, accuracy):
-    super(TensorflowSolver, self).on_best_accuracy(session, accuracy)
+  def on_best_accuracy(self, accuracy):
+    super(TensorflowSolver, self).on_best_accuracy(accuracy)
     if accuracy > self.save_accuracy_limit:
-      self._save(session, accuracy)
+      self._save(self.session, accuracy)
 
 
-  def create_session(self):
-    return tf.Session()
+  def _evaluate_test(self):
+    if not self.save_dir:
+      return super(TensorflowSolver, self)._evaluate_test()
+
+    # Load the best session if available before test evaluation
+    current_results = self._load(self.save_dir, self.runner.session, log_level=0)
+    eval = super(TensorflowSolver, self)._evaluate_test()
+    if not current_results: return eval
+
+    # Update the current results
+    current_results['test_accuracy'] = eval.get('accuracy', 0)
+    results_file = os.path.join(self.save_dir, 'results.xjson')
+    with open(results_file, 'w') as file_:
+      file_.write(dict_to_str(current_results))
+      self.info('Results updated to %s' % results_file)
+    return eval
+
+
+  def _load(self, directory, session, log_level):
+    if not directory:
+      return {}
+
+    directory = os.path.abspath(directory)
+    session_file = os.path.join(directory, 'session.data')
+    if os.path.exists(session_file):
+      self.saver.build()
+      self.saver.restore(session, session_file)
+      self._log(log_level, 'Loaded session from %s' % session_file)
+
+    results_file = os.path.join(directory, 'results.xjson')
+    if os.path.exists(results_file):
+      results = self._load_dict(results_file)
+      self._log(log_level, 'Loaded results: %s from %s' % (dict_to_str(results), results_file))
+      return results
+
+    return {}
 
 
   def _save(self, session, accuracy):
@@ -77,15 +108,17 @@ class TensorflowSolver(BaseSolver):
 
     self.saver.build()
     self.saver.save(session, session_file)
-    self.debug("Session saved to: %s" % session_file)
+    self.debug('Session saved to %s' % session_file)
+
+    # TODO: use self.runner.describe()
 
     with open(results_file, 'w') as file_:
       file_.write(dict_to_str({'validation_accuracy': accuracy, 'model_size': self.runner.model.params_num()}))
-      self.debug("Validation accuracy saved to: %s" % results_file)
+      self.debug('Results saved to %s' % results_file)
 
     with open(hyper_file, 'w') as file_:
       file_.write(dict_to_str(self.runner.hyper_params))
-      self.debug("Hyper parameters saved to: %s" % hyper_file)
+      self.debug('Hyper parameters saved to %s' % hyper_file)
 
 
   def _load_dict(self, from_file):

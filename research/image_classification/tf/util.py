@@ -8,6 +8,8 @@ import collections
 import random
 import string
 
+import numpy as np
+
 
 def dict_to_str(d):
   def smart_str(val):
@@ -48,3 +50,12 @@ def mini_batch(total, size):
 
 def random_id(size=6, chars=string.ascii_uppercase + string.digits):
   return ''.join(random.choice(chars) for _ in xrange(size))
+
+
+def safe_concat(list_):
+  list_ = [i for i in list_ if i is not None]
+  if len(list_) == 0:
+    return None
+  if type(list_[0]) == np.ndarray:
+    return np.concatenate(list_)
+  return list_
