@@ -13,7 +13,7 @@ import numpy as np
 
 def dict_to_str(d):
   def smart_str(val):
-    if type(val) == float:
+    if type(val) == float or type(val) == np.float32 or type(val) == np.float64:
       return "%.6f" % val if abs(val) > 1e-6 else "%e" % val
     if type(val) == dict:
       return dict_to_str(val)
