@@ -12,6 +12,7 @@ class BaseSolver(Logger):
   def __init__(self, data, runner, log_level=1, **params):
     super(BaseSolver, self).__init__(log_level)
 
+    # TODO: data: augmentation + sample validation
     self.train_set = self.prepare_data(data.train)
     self.val_set = self.prepare_data(data.validation)
     self.test_set = self.prepare_data(data.test)
