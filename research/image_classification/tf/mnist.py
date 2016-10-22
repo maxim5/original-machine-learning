@@ -4,7 +4,6 @@ __author__ = "maxim"
 
 
 import datetime
-import numpy as np
 from tflearn.datasets.mnist import read_data_sets
 
 from conv_model import ConvModel
@@ -100,9 +99,10 @@ def hyper_tune_ground_up():
   def solver_generator(hyper_params):
     solver_params = {
       'batch_size': 1024,
+      'eval_batch_size': 5000,
       'epochs': 10,
       'dynamic_epochs': lambda acc: 3 if acc < 0.8000 else 5 if acc < 0.9800 else 10 if acc < 0.9920 else 15,
-      'evaluate_test': False,
+      'evaluate_test': True,
       'save_dir': 'model-zoo/%s-%s' % (datetime.datetime.now().strftime('%Y-%m-%d'), random_id()),
       'save_accuracy_limit': 0.9940
     }
@@ -122,9 +122,9 @@ def fine_tune(eval_test=False):
   model_path = 'model-zoo/2016-10-21-BT5CES'
   solver_params = {
     'batch_size': 1024,
+    'eval_batch_size': 5000,
     'epochs': 0 if eval_test else 50,
     'evaluate_test': eval_test,
-    'eval_test_batch_size': 5000,
     'save_dir': model_path,
     'load_dir': model_path,
   }
