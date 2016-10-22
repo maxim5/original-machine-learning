@@ -74,24 +74,24 @@ def hyper_tune_ground_up():
     'conv': {
       'layers_num': 3,
       1: {
-        'filters': random_conv_layer(size=np.random.choice([3, 5, 7]), num=np.random.choice([ 24,  32,  36,  48])),
+        'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([ 24,  32,  36])),
         'activation': np.random.choice(activations),
-        'dropout': np.random.uniform(0.9, 1.0),
+        'dropout': np.random.uniform(0.85, 1.0),
       },
       2: {
-        'filters': random_conv_layer(size=np.random.choice([3, 5, 7]), num=np.random.choice([ 64,  96, 128, 192])),
+        'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([ 64,  96, 128])),
         'activation': np.random.choice(activations),
         'dropout': np.random.uniform(0.8, 1.0),
       },
       3: {
-        'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([128, 256, 512, 768])),
+        'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([128, 256, 512])),
         'activation': np.random.choice(activations),
         'dropout': np.random.uniform(0.6, 1.0),
       }
     },
 
     'fc': {
-      'size': np.random.choice([512, 768, 1024, 1280]),
+      'size': np.random.choice([512, 768, 1024]),
       'activation': np.random.choice(activations),
       'dropout': np.random.uniform(0.5, 1.0),
     },
@@ -99,9 +99,9 @@ def hyper_tune_ground_up():
 
   def solver_generator(hyper_params):
     solver_params = {
-      'batch_size': 256,
+      'batch_size': 1024,
       'epochs': 10,
-      'dynamic_epochs': lambda acc: 3 if acc < 0.8 else 5 if acc < 0.99 else 10 if acc < 0.994 else 15,
+      'dynamic_epochs': lambda acc: 3 if acc < 0.8000 else 5 if acc < 0.9800 else 10 if acc < 0.9920 else 15,
       'evaluate_test': False,
       'save_dir': 'model-zoo/%s-%s' % (datetime.datetime.now().strftime('%Y-%m-%d'), random_id()),
       'save_accuracy_limit': 0.9940
@@ -135,4 +135,4 @@ def fine_tune(eval_test=False):
 
 
 if __name__ == "__main__":
-  fine_tune(eval_test=True)
+  hyper_tune_ground_up()
