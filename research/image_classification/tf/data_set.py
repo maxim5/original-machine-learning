@@ -12,12 +12,17 @@ class DataSet(object):
     self.size = x.shape[0]
     self.x = x
     self.y = y
+    self.step = 0
     self.epochs_completed = 0
+    self.index = 0
     self.index_in_epoch = 0
+    self.just_completed = False
 
 
   def reset_counters(self):
+    self.step = 0
     self.epochs_completed = 0
+    self.index = 0
     self.index_in_epoch = 0
 
 
@@ -26,6 +31,9 @@ class DataSet(object):
     assert batch_size <= self.size
 
     start = self.index_in_epoch
+
+    self.step += 1
+    self.index += batch_size
     self.index_in_epoch += batch_size
     if self.index_in_epoch > self.size:
       self.epochs_completed += 1
@@ -37,6 +45,9 @@ class DataSet(object):
 
       start = 0
       self.index_in_epoch = batch_size
+      self.just_completed = True
+    else:
+      self.just_completed = False
 
     end = self.index_in_epoch
     return self.x[start:end], self.y[start:end]
