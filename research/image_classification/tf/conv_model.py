@@ -166,13 +166,13 @@ class ConvModel:
     return total_parameters
 
 
-  def feed_dict(self, data_set=None, images=None, labels=None, mode='test'):
-    if images is None and data_set is not None:
-      images = data_set.images
-    if labels is None and data_set is not None:
-      labels = data_set.labels
+  def feed_dict(self, data_set=None, x=None, y=None, mode='test'):
+    if x is None and data_set is not None:
+      x = data_set.x
+    if y is None and data_set is not None:
+      y = data_set.y
     return {
-      self.x: images,
-      self.y: labels,
+      self.x: x,
+      self.y: y,
       self.mode: mode,
     }
