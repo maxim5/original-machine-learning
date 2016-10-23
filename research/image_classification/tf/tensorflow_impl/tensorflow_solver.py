@@ -13,7 +13,7 @@ from image_classification.tf.util import *
 
 
 class TensorflowSolver(BaseSolver):
-  def __init__(self, data, runner, log_level=1, **params):
+  def __init__(self, data, runner, augmentation=None, log_level=1, **params):
     self.load_dir = params.get('load_dir')
     self.saver = tf.train.Saver(defer_build=True)
     self.save_dir = params.get('save_dir')
@@ -22,7 +22,7 @@ class TensorflowSolver(BaseSolver):
     self.session = None
 
     params['eval_flexible'] = params.get('eval_flexible', True) and _is_gpu_available
-    super(TensorflowSolver, self).__init__(data, runner, log_level, **params)
+    super(TensorflowSolver, self).__init__(data, runner, augmentation, log_level, **params)
 
 
   def prepare_data(self, data_set):
@@ -49,6 +49,15 @@ class TensorflowSolver(BaseSolver):
   def init_session(self):
     results = self._load(self.load_dir, self.session, log_level=1)
     return results.get('validation_accuracy', 0)
+
+
+  def augment(self, x):
+    from tflearn import DataAugmentation
+
+    if self.augmentation is None or type(self.augmentation) != DataAugmentation:
+      return x
+
+    return self.augmentation.apply(x)
 
 
   def on_best_accuracy(self, accuracy):

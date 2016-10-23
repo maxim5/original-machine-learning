@@ -2,6 +2,7 @@
   <dictionary name="maxim">
     <words>
       <w>conv</w>
+      <w>preprocess</w>
       <w>relu</w>
       <w>stdev</w>
       <w>tensorflow</w>

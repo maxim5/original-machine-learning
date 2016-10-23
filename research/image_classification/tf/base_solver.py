@@ -9,13 +9,13 @@ from util import *
 
 
 class BaseSolver(Logger):
-  def __init__(self, data, runner, log_level=1, **params):
+  def __init__(self, data, runner, augmentation=None, log_level=1, **params):
     super(BaseSolver, self).__init__(log_level)
 
-    # TODO: data: augmentation + sample validation
     self.train_set = self.prepare_data(data.train)
     self.val_set = self.prepare_data(data.validation)
     self.test_set = self.prepare_data(data.test)
+    self.augmentation = augmentation
 
     self.runner = self.prepare_runner(runner)
     self.max_val_accuracy = 0
@@ -38,6 +38,7 @@ class BaseSolver(Logger):
       self.max_val_accuracy = self.init_session()
       while True:
         batch_x, batch_y = self.train_set.next_batch(self.batch_size)
+        batch_x = self.augment(batch_x)
         self.runner.run_batch(batch_x, batch_y)
         step += 1
         iteration = step * self.batch_size
@@ -70,6 +71,10 @@ class BaseSolver(Logger):
 
   def init_session(self):
     return 0
+
+
+  def augment(self, x):
+    return x
 
 
   def on_best_accuracy(self, accuracy):
