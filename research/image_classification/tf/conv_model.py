@@ -16,7 +16,7 @@ class ConvModel:
   def __init__(self, input_shape, num_classes, **hyper_params):
     self.input_shape = input_shape
     self.num_classes = num_classes
-    self.hyper_params = copy.deepcopy(hyper_params)
+    self.hyper_params = hyper_params
     self.cache = {}
 
 
@@ -112,7 +112,7 @@ class ConvModel:
     layer_input = tf.reshape(self.x, shape=image_shape)
 
     # Conv layers
-    conv_params = self.hyper_params['conv']
+    conv_params = copy.deepcopy(self.hyper_params['conv'])  # copy because it's patched
     conv_layers_num = conv_params['layers_num']
     self._adapt_conv_shapes(conv_params, conv_layers_num)
     layer_conv = layer_input
