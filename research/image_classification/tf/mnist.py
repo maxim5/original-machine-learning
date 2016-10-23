@@ -24,7 +24,7 @@ def hyper_tune_ground_up():
   conv_model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
 
   activations = ['relu', 'relu6', 'elu', 'prelu', 'leaky_relu']
-  tuned_params_generator = lambda: {
+  hyper_params_generator = lambda: {
     'init_stdev': np.random.uniform(0.04, 0.06),
 
     'augment': {
@@ -100,7 +100,7 @@ def hyper_tune_ground_up():
     return solver
 
   tuner = HyperTuner()
-  tuner.tune(solver_generator, tuned_params_generator)
+  tuner.tune(solver_generator, hyper_params_generator)
 
 
 def fine_tune(only_test=False):
