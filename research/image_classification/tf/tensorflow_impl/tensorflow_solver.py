@@ -71,7 +71,7 @@ class TensorflowSolver(BaseSolver):
       return super(TensorflowSolver, self)._evaluate_test()
 
     # Load the best session if available before test evaluation
-    current_results = self._load(self.save_dir, self.runner.session, log_level=0)
+    current_results = self._load(self.save_dir, self.session, log_level=0)
     eval = super(TensorflowSolver, self)._evaluate_test()
     if not current_results: return eval
 
