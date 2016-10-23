@@ -35,21 +35,18 @@ class BaseSolver(Logger):
     with self.create_session() as session:
       self.runner.build_model(session=session)
 
-      step = 0
       self.max_val_accuracy = self.init_session()
       while True:
         batch_x, batch_y = self.train_set.next_batch(self.batch_size)
         batch_x = self.augment(batch_x)
         self.runner.run_batch(batch_x, batch_y)
-        step += 1
-        iteration = step * self.batch_size
 
-        val_accuracy = self._evaluate_validation(iteration, step, batch_x, batch_y)
+        val_accuracy = self._evaluate_validation(batch_x, batch_y)
         if val_accuracy is not None and val_accuracy > self.max_val_accuracy:
           self.max_val_accuracy = val_accuracy
           self.on_best_accuracy(val_accuracy)
 
-        if iteration >= self.train_set.size * self.epochs:
+        if self.train_set.epochs_completed >= self.epochs:
           break
 
       if self.eval_test:
@@ -86,14 +83,14 @@ class BaseSolver(Logger):
         self.debug('Update epochs=%d' % new_epochs)
 
 
-  def _evaluate_validation(self, iteration, step, batch_x, batch_y):
-    if step % self.eval_train_every == 0 and self.is_info_logged():
+  def _evaluate_validation(self, batch_x, batch_y):
+    if (self.train_set.step % self.eval_train_every == 0) and self.is_info_logged():
       loss, accuracy = self.runner.evaluate(batch_x, batch_y)
-      self._log_iteration(iteration, 'train_accuracy', loss, accuracy, False)
+      self._log_iteration('train_accuracy', loss, accuracy, False)
 
-    if (step % self.eval_validation_every == 0) or (iteration % self.train_set.size < self.batch_size):
+    if (self.train_set.step % self.eval_validation_every == 0) or self.train_set.just_completed:
       eval = self._evaluate(batch_x=self.val_set.x, batch_y=self.val_set.y)
-      self._log_iteration(iteration, 'validation_accuracy', eval.get('cost', 0), eval.get('accuracy', 0), True)
+      self._log_iteration('validation_accuracy', eval.get('cost', 0), eval.get('accuracy', 0), True)
       return eval.get('accuracy')
 
 
@@ -103,10 +100,10 @@ class BaseSolver(Logger):
     return eval
 
 
-  def _log_iteration(self, iteration, name, loss, accuracy, mark_best):
+  def _log_iteration(self, name, loss, accuracy, mark_best):
     marker = ' *' if mark_best and (accuracy > self.max_val_accuracy) else ''
-    self.info('Epoch %2d, iteration %7d: loss=%.6f, %s=%.4f%s' % (self.train_set.epochs_completed,
-                                                                  iteration, loss, name, accuracy, marker))
+    self.info('Epoch %2d, iteration %7d: loss=%.6f, %s=%.4f%s' %
+              (self.train_set.epochs_completed, self.train_set.index, loss, name, accuracy, marker))
 
 
   def _evaluate(self, batch_x, batch_y):
