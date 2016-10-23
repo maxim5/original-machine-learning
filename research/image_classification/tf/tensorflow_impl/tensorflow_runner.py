@@ -24,12 +24,12 @@ class TensorflowRunner(BaseRunner):
 
 
   def run_batch(self, batch_x, batch_y):
-    self.session.run(self.optimizer, feed_dict=self.model.feed_dict(images=batch_x, labels=batch_y, mode='train'))
+    self.session.run(self.optimizer, feed_dict=self.model.feed_dict(x=batch_x, y=batch_y, mode='train'))
 
 
   def evaluate(self, batch_x, batch_y):
     cost, accuracy, x, y = self.session.run([self.cost, self.accuracy, self.misclassified_x, self.misclassified_y],
-                                            feed_dict=self.model.feed_dict(images=batch_x, labels=batch_y, mode='test'))
+                                            feed_dict=self.model.feed_dict(x=batch_x, y=batch_y, mode='test'))
     return {'cost': cost, 'accuracy': accuracy, 'misclassified_x': x, 'misclassified_y': y}
 
 

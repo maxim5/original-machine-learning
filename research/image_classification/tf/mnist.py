@@ -9,8 +9,16 @@ import tflearn
 from tflearn.datasets.mnist import read_data_sets
 
 from conv_model import ConvModel
+from data_set import Data, DataSet
 from hyper_tuner import *
 from tensorflow_impl import *
+
+
+def get_mnist_data():
+  tf_data_sets = read_data_sets("../../../dat/mnist-tf", one_hot=True)
+  return Data(train=DataSet(tf_data_sets.train.images, tf_data_sets.train.labels),
+              validation=DataSet(tf_data_sets.validation.images, tf_data_sets.validation.labels),
+              test=DataSet(tf_data_sets.test.images, tf_data_sets.test.labels))
 
 
 def random_conv_layer(size, num, prob=0.8):
@@ -20,7 +28,7 @@ def random_conv_layer(size, num, prob=0.8):
 
 
 def hyper_tune_ground_up():
-  mnist = read_data_sets("../../../dat/mnist-tf", one_hot=True)
+  mnist = get_mnist_data()
   conv_model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
 
   activations = ['relu', 'relu6', 'elu', 'prelu', 'leaky_relu']
@@ -104,7 +112,7 @@ def hyper_tune_ground_up():
 
 
 def fine_tune(only_test=False):
-  mnist = read_data_sets("../../../dat/mnist-tf", one_hot=True)
+  mnist = get_mnist_data()
   conv_model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
 
   model_path = 'model-zoo/2016-10-21-BT5CES'

@@ -12,9 +12,10 @@ class BaseSolver(Logger):
   def __init__(self, data, runner, augmentation=None, log_level=1, **params):
     super(BaseSolver, self).__init__(log_level)
 
-    self.train_set = self.prepare_data(data.train)
-    self.val_set = self.prepare_data(data.validation)
-    self.test_set = self.prepare_data(data.test)
+    data.reset_counters()
+    self.train_set = data.train
+    self.val_set = data.validation
+    self.test_set = data.test
     self.augmentation = augmentation
 
     self.runner = self.prepare_runner(runner)
@@ -23,7 +24,7 @@ class BaseSolver(Logger):
     self.epochs = params.get('epochs', 1)
     self.dynamic_epochs = params.get('dynamic_epochs')
     self.batch_size = params.get('batch_size', 16)
-    self.eval_batch_size = params.get('eval_batch_size', self.val_set.num_examples)
+    self.eval_batch_size = params.get('eval_batch_size', self.val_set.size)
     self.eval_flexible = params.get('eval_flexible', True)
     self.eval_train_every = params.get('eval_train_every', 10) if not self.eval_flexible else 1e1000
     self.eval_validation_every = params.get('eval_validation_every', 100) if not self.eval_flexible else 1e1000
@@ -48,7 +49,7 @@ class BaseSolver(Logger):
           self.max_val_accuracy = val_accuracy
           self.on_best_accuracy(val_accuracy)
 
-        if iteration >= self.train_set.num_examples * self.epochs:
+        if iteration >= self.train_set.size * self.epochs:
           break
 
       if self.eval_test:
@@ -94,14 +95,14 @@ class BaseSolver(Logger):
       loss, accuracy = self.runner.evaluate(batch_x, batch_y)
       self._log_iteration(iteration, 'train_accuracy', loss, accuracy, False)
 
-    if (step % self.eval_validation_every == 0) or (iteration % self.train_set.num_examples < self.batch_size):
-      eval = self._evaluate(batch_x=self.val_set.images, batch_y=self.val_set.labels)
+    if (step % self.eval_validation_every == 0) or (iteration % self.train_set.size < self.batch_size):
+      eval = self._evaluate(batch_x=self.val_set.x, batch_y=self.val_set.y)
       self._log_iteration(iteration, 'validation_accuracy', eval.get('cost', 0), eval.get('accuracy', 0), True)
       return eval.get('accuracy')
 
 
   def _evaluate_test(self):
-    eval = self._evaluate(batch_x=self.test_set.images, batch_y=self.test_set.labels)
+    eval = self._evaluate(batch_x=self.test_set.x, batch_y=self.test_set.y)
     self.info('Final test_accuracy=%.4f' % eval.get('accuracy', 0))
     return eval
 
