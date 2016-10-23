@@ -77,7 +77,7 @@ def hyper_tune_ground_up():
   mnist = get_mnist_data()
   def solver_generator(hyper_params):
     solver_params = {
-      'batch_size': 1024,
+      'batch_size': 128,
       'eval_batch_size': 5000,
       'epochs': 12,
       'dynamic_epochs': lambda acc: 3 if acc < 0.8000 else 5 if acc < 0.9800 else 10 if acc < 0.9920 else 15,
@@ -113,7 +113,7 @@ def hyper_tune_ground_up():
 def fine_tune(only_test=False):
   model_path = 'model-zoo/2016-10-21-BT5CES'
   solver_params = {
-    'batch_size': 1024,
+    'batch_size': 128,
     'eval_batch_size': 5000,
     'epochs': 0 if only_test else 50,
     'evaluate_test': True,
