@@ -3,8 +3,6 @@
 __author__ = "maxim"
 
 
-import copy
-
 from log import Logger
 from util import *
 
@@ -28,17 +26,14 @@ class HyperTuner(Logger):
     self.info('%s [%d] accuracy=%.4f, params: %s' % (marker, trial, accuracy, dict_to_str(tuned_params)))
 
 
-  def tune(self, solver_generator, fixed_params, tuned_params_generator):
+  def tune(self, solver_generator, tuned_params_generator):
     self.info('Start hyper-tuner')
 
     trial = 0
     while True:
-      hyper_params = copy.deepcopy(fixed_params)
-      tuned_params = tuned_params_generator()
-      deep_update(hyper_params, tuned_params)
-
+      hyper_params = tuned_params_generator()
       solver = solver_generator(hyper_params)
       trial += 1
       tf_reset_all()
       accuracy = solver.train()
-      self._update_accuracy(trial, accuracy, tuned_params)
+      self._update_accuracy(trial, accuracy, hyper_params)

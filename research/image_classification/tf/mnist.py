@@ -13,46 +13,6 @@ from hyper_tuner import *
 from tensorflow_impl import *
 
 
-default_hyper_params = {
-  'init_stdev': 0.05,
-
-  'adam': {
-    'learning_rate': 0.001,
-    'beta1': 0.9,
-    'beta2': 0.999,
-    'epsilon': 1e-8,
-  },
-
-  'conv': {
-    'layers_num': 3,
-    1: {
-      'filters': [[3, 3,  32]],
-      'pools': [2, 2],
-      'activation': 'elu',
-      'dropout': 0.9,
-    },
-    2: {
-      'filters': [[3, 3,  64]],
-      'pools': [2, 2],
-      'activation': 'elu',
-      'dropout': 0.8,
-    },
-    3: {
-      'filters': [[3, 3, 256]],
-      'pools': [2, 2],
-      'activation': 'elu',
-      'dropout': 0.7,
-    },
-  },
-
-  'fc': {
-    'size': 1024,
-    'activation': 'elu',
-    'dropout': 0.5,
-  }
-}
-
-
 def random_conv_layer(size, num, prob=0.8):
   if np.random.uniform() > prob:
     return [[size, 1, num], [1, size, num]]
@@ -63,7 +23,6 @@ def hyper_tune_ground_up():
   mnist = read_data_sets("../../../dat/mnist-tf", one_hot=True)
   conv_model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
 
-  fixed_params = copy.deepcopy(default_hyper_params)
   activations = ['relu', 'relu6', 'elu', 'prelu', 'leaky_relu']
   tuned_params_generator = lambda: {
     'init_stdev': np.random.uniform(0.04, 0.06),
@@ -74,24 +33,30 @@ def hyper_tune_ground_up():
       'crop_size': np.random.choice(range(5)),
     },
 
-    'adam': {
+    'optimizer': {
       'learning_rate': 10 ** np.random.uniform(-2, -4),
+      'beta1': 0.9,
+      'beta2': 0.999,
+      'epsilon': 1e-8,
     },
 
     'conv': {
       'layers_num': 3,
       1: {
         'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([ 24,  32,  36])),
+        'pools': [2, 2],
         'activation': np.random.choice(activations),
         'dropout': np.random.uniform(0.85, 1.0),
       },
       2: {
         'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([ 64,  96, 128])),
+        'pools': [2, 2],
         'activation': np.random.choice(activations),
         'dropout': np.random.uniform(0.8, 1.0),
       },
       3: {
         'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([128, 256, 512])),
+        'pools': [2, 2],
         'activation': np.random.choice(activations),
         'dropout': np.random.uniform(0.6, 1.0),
       }
@@ -135,7 +100,7 @@ def hyper_tune_ground_up():
     return solver
 
   tuner = HyperTuner()
-  tuner.tune(solver_generator, fixed_params, tuned_params_generator)
+  tuner.tune(solver_generator, tuned_params_generator)
 
 
 def fine_tune(only_test=False):
