@@ -18,7 +18,7 @@ class BaseSolver(Logger):
     self.test_set = data.test
     self.augmentation = augmentation
 
-    self.runner = self.prepare_runner(runner)
+    self.runner = self.init_runner(runner)
     self.max_val_accuracy = 0
 
     self.epochs = params.get('epochs', 1)
@@ -33,7 +33,7 @@ class BaseSolver(Logger):
 
   def train(self):
     with self.create_session() as session:
-      self.runner.prepare(session=session)
+      self.runner.build_model(session=session)
 
       step = 0
       self.max_val_accuracy = self.init_session()
@@ -58,11 +58,7 @@ class BaseSolver(Logger):
     return self.max_val_accuracy
 
 
-  def prepare_data(self, data_set):
-    return data_set
-
-
-  def prepare_runner(self, runner):
+  def init_runner(self, runner):
     return runner
 
 

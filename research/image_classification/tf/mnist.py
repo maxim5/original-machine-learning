@@ -28,9 +28,6 @@ def random_conv_layer(size, num, prob=0.8):
 
 
 def hyper_tune_ground_up():
-  mnist = get_mnist_data()
-  conv_model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
-
   activations = ['relu', 'relu6', 'elu', 'prelu', 'leaky_relu']
   hyper_params_generator = lambda: {
     'init_stdev': np.random.uniform(0.04, 0.06),
@@ -77,6 +74,7 @@ def hyper_tune_ground_up():
     },
   }
 
+  mnist = get_mnist_data()
   def solver_generator(hyper_params):
     solver_params = {
       'batch_size': 1024,
@@ -103,7 +101,8 @@ def hyper_tune_ground_up():
     else:
       augmentation = None
 
-    runner = TensorflowRunner(model=conv_model, **hyper_params)
+    model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
+    runner = TensorflowRunner(model=model)
     solver = TensorflowSolver(data=mnist, runner=runner, augmentation=augmentation, **solver_params)
     return solver
 
@@ -112,9 +111,6 @@ def hyper_tune_ground_up():
 
 
 def fine_tune(only_test=False):
-  mnist = get_mnist_data()
-  conv_model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
-
   model_path = 'model-zoo/2016-10-21-BT5CES'
   solver_params = {
     'batch_size': 1024,
@@ -125,7 +121,9 @@ def fine_tune(only_test=False):
     'load_dir': model_path,
   }
 
-  runner = TensorflowRunner(model=conv_model)
+  mnist = get_mnist_data()
+  model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
+  runner = TensorflowRunner(model=model)
   solver = TensorflowSolver(data=mnist, runner=runner, **solver_params)
   solver.train()
 

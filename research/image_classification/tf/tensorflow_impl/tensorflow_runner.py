@@ -8,18 +8,21 @@ from image_classification.tf.util import *
 
 
 class TensorflowRunner(BaseRunner):
-  def __init__(self, model, log_level=1, **hyper_params):
+  def __init__(self, model, log_level=1):
     super(TensorflowRunner, self).__init__(log_level)
     self.model = model
-    self.hyper_params = hyper_params
     self.session = None
 
 
-  def prepare(self, **kwargs):
+  def init_model(self, **hyper_params):
+    self.model.hyper_params = hyper_params
+
+
+  def build_model(self, **kwargs):
     self.session = kwargs['session']
-    init, self.optimizer, self.cost, self.accuracy, self.misclassified_x, self.misclassified_y = self.model.build_graph(**self.hyper_params)
-    self.info("Start training. Model size: %dk" % (self.model.params_num() / 1000))
-    self.info("Hyper params: %s" % dict_to_str(self.hyper_params))
+    init, self.optimizer, self.cost, self.accuracy, self.misclassified_x, self.misclassified_y = self.model.build_graph()
+    self.info('Start training. Model size: %dk' % (self.model.params_num() / 1000))
+    self.info('Hyper params: %s' % dict_to_str(self.model.hyper_params))
     self.session.run(init)
 
 
@@ -34,4 +37,4 @@ class TensorflowRunner(BaseRunner):
 
 
   def describe(self):
-    return {'model_size': self.model.params_num(), 'hyper_params': self.hyper_params}
+    return {'model_size': self.model.params_num(), 'hyper_params': self.model.hyper_params}
