@@ -4,6 +4,8 @@ __author__ = "maxim"
 
 
 import datetime
+
+import tflearn
 from tflearn.datasets.mnist import read_data_sets
 
 from conv_model import ConvModel
@@ -66,6 +68,12 @@ def hyper_tune_ground_up():
   tuned_params_generator = lambda: {
     'init_stdev': np.random.uniform(0.04, 0.06),
 
+    'augment': {
+      'rotation_angle': np.random.uniform(0, 15),
+      'blur_sigma': np.random.uniform(0, 5),
+      'crop_size': np.random.choice(range(5)),
+    },
+
     'adam': {
       'learning_rate': 10 ** np.random.uniform(-2, -4),
     },
@@ -100,15 +108,30 @@ def hyper_tune_ground_up():
     solver_params = {
       'batch_size': 1024,
       'eval_batch_size': 5000,
-      'epochs': 10,
+      'epochs': 12,
       'dynamic_epochs': lambda acc: 3 if acc < 0.8000 else 5 if acc < 0.9800 else 10 if acc < 0.9920 else 15,
       'evaluate_test': True,
       'save_dir': 'model-zoo/%s-%s' % (datetime.datetime.now().strftime('%Y-%m-%d'), random_id()),
       'save_accuracy_limit': 0.9940
     }
 
+    augment_params = hyper_params.get('augment')
+    if augment_params:
+      augmentation = tflearn.ImageAugmentation()
+      rotation_angle = augment_params.get('rotation_angle')
+      if rotation_angle:
+        augmentation.add_random_rotation(max_angle=rotation_angle)
+      blur_sigma = augment_params.get('blur_sigma')
+      if blur_sigma:
+        augmentation.add_random_blur(sigma_max=blur_sigma)
+      crop_size = augment_params.get('crop_size')
+      if crop_size:
+        augmentation.add_random_crop(crop_shape=(28-crop_size, 28-crop_size), padding=(crop_size, crop_size))
+    else:
+      augmentation = None
+
     runner = TensorflowRunner(model=conv_model, **hyper_params)
-    solver = TensorflowSolver(data=mnist, runner=runner, **solver_params)
+    solver = TensorflowSolver(data=mnist, runner=runner, augmentation=augmentation, **solver_params)
     return solver
 
   tuner = HyperTuner()
@@ -135,4 +158,4 @@ def fine_tune(only_test=False):
 
 
 if __name__ == "__main__":
-  fine_tune()
+  hyper_tune_ground_up()
