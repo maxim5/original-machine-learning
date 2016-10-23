@@ -31,13 +31,10 @@ class DataSet(object):
     assert batch_size <= self.size
 
     start = self.index_in_epoch
-
     self.step += 1
     self.index += batch_size
     self.index_in_epoch += batch_size
     if self.index_in_epoch > self.size:
-      self.epochs_completed += 1
-
       permutation = np.arange(self.size)
       np.random.shuffle(permutation)
       self.x = self.x[permutation]
@@ -45,9 +42,9 @@ class DataSet(object):
 
       start = 0
       self.index_in_epoch = batch_size
-      self.just_completed = True
-    else:
-      self.just_completed = False
+
+    self.just_completed = (self.index_in_epoch + batch_size > self.size)  # next batch will roll over
+    self.epochs_completed += int(self.just_completed)
 
     end = self.index_in_epoch
     return self.x[start:end], self.y[start:end]
