@@ -25,19 +25,13 @@ class TensorflowSolver(BaseSolver):
     super(TensorflowSolver, self).__init__(data, runner, augmentation, log_level, **params)
 
 
-  def prepare_data(self, data_set):
-    data_set._epochs_completed = 0
-    data_set._index_in_epoch = 0
-    return data_set
-
-
-  def prepare_runner(self, runner):
+  def init_runner(self, runner):
     if not self.load_dir:
       return runner
     hyper_params = self._load_dict(os.path.join(self.load_dir, 'hyper_params.xjson'))
     if hyper_params:
       self.info('Loaded hyper-params: %s' % dict_to_str(hyper_params))
-      runner.hyper_params = hyper_params
+      runner.init_model(**hyper_params)
     return runner
 
 

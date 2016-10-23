@@ -13,9 +13,11 @@ tf.python.control_flow_ops = tf
 
 
 class ConvModel:
-  def __init__(self, input_shape, num_classes):
+  def __init__(self, input_shape, num_classes, **hyper_params):
     self.input_shape = input_shape
     self.num_classes = num_classes
+    self.hyper_params = copy.deepcopy(hyper_params)
+    self.cache = {}
 
 
   def init(self, shape):
@@ -127,12 +129,10 @@ class ConvModel:
     return layer_out
 
 
-  def build_graph(self, **hyper_params):
+  def build_graph(self):
     self.mode = tf.placeholder(tf.string)
-    self.hyper_params = copy.deepcopy(hyper_params)
     self.x = tf.placeholder(tf.float32, [None, self.input_shape[0] * self.input_shape[1] * self.input_shape[2]])
     self.y = tf.placeholder(tf.float32, [None, self.num_classes])
-    self.cache = {}
 
     prediction = self.conv_net()
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction, self.y))

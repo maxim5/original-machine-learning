@@ -11,7 +11,11 @@ class BaseRunner(Logger):
     super(BaseRunner, self).__init__(log_level)
 
 
-  def prepare(self, **kwargs):
+  def init_model(self, **hyper_params):
+    pass
+
+
+  def build_model(self, **kwargs):
     pass
 
 
