@@ -85,8 +85,8 @@ class BaseSolver(Logger):
 
   def _evaluate_validation(self, batch_x, batch_y):
     if (self.train_set.step % self.eval_train_every == 0) and self.is_info_logged():
-      loss, accuracy = self.runner.evaluate(batch_x, batch_y)
-      self._log_iteration('train_accuracy', loss, accuracy, False)
+      eval = self.runner.evaluate(batch_x, batch_y)
+      self._log_iteration('train_accuracy', eval.get('cost', 0), eval.get('accuracy', 0), False)
 
     if (self.train_set.step % self.eval_validation_every == 0) or self.train_set.just_completed:
       eval = self._evaluate(batch_x=self.val_set.x, batch_y=self.val_set.y)
