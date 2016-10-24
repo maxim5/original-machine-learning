@@ -4,6 +4,7 @@ __author__ = "maxim"
 
 
 import datetime
+import sys
 
 import tflearn
 from tflearn.datasets.mnist import read_data_sets
@@ -110,8 +111,8 @@ def hyper_tune_ground_up():
   tuner.tune(solver_generator, hyper_params_generator)
 
 
-def fine_tune(only_test=False):
-  model_path = 'model-zoo/2016-10-21-BT5CES'
+def fine_tune(path='2016-10-24-SE5DZ8', only_test=False):
+  model_path = 'model-zoo/%s' % path
   solver_params = {
     'batch_size': 128,
     'eval_batch_size': 5000,
@@ -129,4 +130,12 @@ def fine_tune(only_test=False):
 
 
 if __name__ == "__main__":
-  hyper_tune_ground_up()
+  run_config = {
+    'fine_tune': fine_tune,
+    'hyper_tune_ground_up': hyper_tune_ground_up,
+  }
+
+  arguments = sys.argv
+  method = run_config.get(arguments[1])
+  args = arguments[2:]
+  method(*args)
