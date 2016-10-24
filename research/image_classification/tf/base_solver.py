@@ -36,7 +36,7 @@ class BaseSolver(Logger):
       self.runner.build_model(session=session)
 
       self.max_val_accuracy = self.init_session()
-      while True:
+      while self.train_set.epochs_completed < self.epochs:
         batch_x, batch_y = self.train_set.next_batch(self.batch_size)
         batch_x = self.augment(batch_x)
         self.runner.run_batch(batch_x, batch_y)
@@ -45,9 +45,6 @@ class BaseSolver(Logger):
         if val_accuracy is not None and val_accuracy > self.max_val_accuracy:
           self.max_val_accuracy = val_accuracy
           self.on_best_accuracy(val_accuracy)
-
-        if self.train_set.epochs_completed >= self.epochs:
-          break
 
       if self.eval_test:
         self._evaluate_test()
