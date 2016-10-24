@@ -56,7 +56,7 @@ class TensorflowSolver(BaseSolver):
 
   def on_best_accuracy(self, accuracy):
     super(TensorflowSolver, self).on_best_accuracy(accuracy)
-    if accuracy > self.save_accuracy_limit:
+    if accuracy >= self.save_accuracy_limit:
       self._save(self.session, accuracy)
 
 
