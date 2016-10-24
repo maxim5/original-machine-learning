@@ -41,7 +41,7 @@ class TensorflowSolver(BaseSolver):
 
 
   def init_session(self):
-    results = self._load(self.load_dir, self.session, log_level=1)
+    results = self._load(self.load_dir, log_level=1)
     return results.get('validation_accuracy', 0)
 
 
@@ -57,7 +57,7 @@ class TensorflowSolver(BaseSolver):
   def on_best_accuracy(self, accuracy):
     super(TensorflowSolver, self).on_best_accuracy(accuracy)
     if accuracy >= self.save_accuracy_limit:
-      self._save(self.session, accuracy)
+      self._save(accuracy)
 
 
   def _evaluate_test(self):
@@ -65,7 +65,7 @@ class TensorflowSolver(BaseSolver):
       return super(TensorflowSolver, self)._evaluate_test()
 
     # Load the best session if available before test evaluation
-    current_results = self._load(self.save_dir, self.session, log_level=0)
+    current_results = self._load(self.save_dir, log_level=0)
     eval = super(TensorflowSolver, self)._evaluate_test()
     if not current_results: return eval
 
@@ -78,7 +78,7 @@ class TensorflowSolver(BaseSolver):
     return eval
 
 
-  def _load(self, directory, session, log_level):
+  def _load(self, directory, log_level):
     if not directory:
       return {}
 
@@ -86,7 +86,7 @@ class TensorflowSolver(BaseSolver):
     session_file = os.path.join(directory, 'session.data')
     if os.path.exists(session_file):
       self.saver.build()
-      self.saver.restore(session, session_file)
+      self.saver.restore(self.session, session_file)
       self._log(log_level, 'Loaded session from %s' % session_file)
 
     results_file = os.path.join(directory, 'results.xjson')
@@ -98,7 +98,7 @@ class TensorflowSolver(BaseSolver):
     return {}
 
 
-  def _save(self, session, accuracy):
+  def _save(self, accuracy):
     if not self.save_dir:
       return
 
@@ -110,7 +110,7 @@ class TensorflowSolver(BaseSolver):
     session_file = os.path.join(self.save_dir, 'session.data')
 
     self.saver.build()
-    self.saver.save(session, session_file)
+    self.saver.save(self.session, session_file)
     self.debug('Session saved to %s' % session_file)
 
     runner_describe = self.runner.describe()
