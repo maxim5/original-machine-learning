@@ -114,9 +114,9 @@ def hyper_tune_ground_up():
 def fine_tune(path='2016-10-24-SE5DZ8', only_test=False):
   model_path = 'model-zoo/%s' % path
   solver_params = {
-    'batch_size': 128,
+    'batch_size': 1000,
     'eval_batch_size': 5000,
-    'epochs': 0 if only_test else 50,
+    'epochs': 0 if only_test else 80,
     'evaluate_test': True,
     'save_dir': model_path,
     'load_dir': model_path,
