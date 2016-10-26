@@ -131,7 +131,7 @@ class ConvModel:
 
   def build_graph(self):
     self.mode = tf.placeholder(tf.string)
-    self.x = tf.placeholder(tf.float32, [None, self.input_shape[0] * self.input_shape[1] * self.input_shape[2]])
+    self.x = tf.placeholder(tf.float32, [None, self.input_shape[0], self.input_shape[1], self.input_shape[2]])
     self.y = tf.placeholder(tf.float32, [None, self.num_classes])
 
     prediction = self.conv_net()
