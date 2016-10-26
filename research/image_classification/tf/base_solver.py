@@ -66,7 +66,8 @@ class BaseSolver(Logger):
 
 
   def augment(self, x):
-    return call(self.augmentation, x) or x
+    augmented = call(self.augmentation, x)
+    return augmented if augmented is not None else x
 
 
   def on_best_accuracy(self, accuracy, eval_result):
