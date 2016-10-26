@@ -45,17 +45,8 @@ class TensorflowSolver(BaseSolver):
     return results.get('validation_accuracy', 0)
 
 
-  def augment(self, x):
-    from tflearn import DataAugmentation
-
-    if self.augmentation is None or type(self.augmentation) != DataAugmentation:
-      return x
-
-    return self.augmentation.apply(x)
-
-
-  def on_best_accuracy(self, accuracy):
-    super(TensorflowSolver, self).on_best_accuracy(accuracy)
+  def on_best_accuracy(self, accuracy, eval_result):
+    super(TensorflowSolver, self).on_best_accuracy(accuracy, eval_result)
     if accuracy >= self.save_accuracy_limit:
       self._save(accuracy)
 

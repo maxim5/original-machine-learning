@@ -59,3 +59,12 @@ def safe_concat(list_):
   if type(list_[0]) == np.ndarray:
     return np.concatenate(list_)
   return list_
+
+
+def call(obj, *args):
+  if callable(obj):
+    return obj(*args)
+
+  apply = getattr(obj, 'apply', None)
+  if callable(apply):
+    return apply(*args)

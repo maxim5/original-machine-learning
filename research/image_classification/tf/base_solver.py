@@ -41,10 +41,11 @@ class BaseSolver(Logger):
         batch_x = self.augment(batch_x)
         self.runner.run_batch(batch_x, batch_y)
 
-        val_accuracy = self._evaluate_validation(batch_x, batch_y)
+        eval_result = self._evaluate_validation(batch_x, batch_y)
+        val_accuracy = eval_result.get('accuracy') if eval_result is not None else None
         if val_accuracy is not None and val_accuracy > self.max_val_accuracy:
           self.max_val_accuracy = val_accuracy
-          self.on_best_accuracy(val_accuracy)
+          self.on_best_accuracy(val_accuracy, eval_result)
 
       if self.eval_test:
         self._evaluate_test()
@@ -65,10 +66,10 @@ class BaseSolver(Logger):
 
 
   def augment(self, x):
-    return x
+    return call(self.augmentation, x) or x
 
 
-  def on_best_accuracy(self, accuracy):
+  def on_best_accuracy(self, accuracy, eval_result):
     self._update_epochs_dynamically(accuracy)
 
 
@@ -88,7 +89,7 @@ class BaseSolver(Logger):
     if (self.train_set.step % self.eval_validation_every == 0) or self.train_set.just_completed:
       eval_ = self._evaluate(batch_x=self.val_set.x, batch_y=self.val_set.y)
       self._log_iteration('validation_accuracy', eval_.get('cost', 0), eval_.get('accuracy', 0), True)
-      return eval_.get('accuracy')
+      return eval_
 
 
   def _evaluate_test(self):
