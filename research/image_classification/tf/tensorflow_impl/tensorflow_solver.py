@@ -66,16 +66,16 @@ class TensorflowSolver(BaseSolver):
 
     # Load the best session if available before test evaluation
     current_results = self._load(self.save_dir, log_level=0)
-    eval = super(TensorflowSolver, self)._evaluate_test()
-    if not current_results: return eval
+    eval_ = super(TensorflowSolver, self)._evaluate_test()
+    if not current_results: return eval_
 
     # Update the current results
-    current_results['test_accuracy'] = eval.get('accuracy', 0)
+    current_results['test_accuracy'] = eval_.get('accuracy', 0)
     results_file = os.path.join(self.save_dir, 'results.xjson')
     with open(results_file, 'w') as file_:
       file_.write(dict_to_str(current_results))
       self.info('Results updated to %s' % results_file)
-    return eval
+    return eval_
 
 
   def _load(self, directory, log_level):
