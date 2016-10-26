@@ -6,13 +6,16 @@ __author__ = "maxim"
 import datetime
 import sys
 
+import numpy as np
 import tflearn
 from tflearn.datasets.mnist import read_data_sets
 
 from conv_model import ConvModel
 from data_set import Data, DataSet
-from hyper_tuner import *
+from hyper_tuner import HyperTuner
+from interaction import read_model
 from tensorflow_impl import *
+from util import random_id
 
 
 def get_mnist_data():
@@ -111,12 +114,15 @@ def hyper_tune_ground_up():
   tuner.tune(solver_generator, hyper_params_generator)
 
 
-def fine_tune(path='2016-10-24-SE5DZ8', only_test=False):
+def fine_tune(path=None, only_test=False):
+  if not path:
+    path = read_model('model-zoo')
+
   model_path = 'model-zoo/%s' % path
   solver_params = {
     'batch_size': 1000,
     'eval_batch_size': 5000,
-    'epochs': 0 if only_test else 80,
+    'epochs': 0 if only_test else 50,
     'evaluate_test': True,
     'save_dir': model_path,
     'load_dir': model_path,
