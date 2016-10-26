@@ -39,7 +39,7 @@ def hyper_tune_ground_up():
 
     'augment': {
       'rotation_angle': np.random.uniform(0, 15),
-      'blur_sigma': np.random.uniform(0, 5),
+      'blur_sigma': 10**np.random.uniform(-2, 0),
       'crop_size': np.random.choice(range(5)),
     },
 
