@@ -12,10 +12,9 @@ from tensorflow_model_io import TensorflowModelIO
 
 class TensorflowSolver(BaseSolver):
   def __init__(self, data, runner, augmentation=None, log_level=1, **params):
+    self.session = None
     self.model_io = TensorflowModelIO(log_level, **params)
     self.save_accuracy_limit = params.get('save_accuracy_limit', 0)
-
-    self.session = None
 
     params['eval_flexible'] = params.get('eval_flexible', True) and _is_gpu_available
     super(TensorflowSolver, self).__init__(data, runner, augmentation, log_level, **params)
@@ -34,7 +33,7 @@ class TensorflowSolver(BaseSolver):
 
 
   def init_session(self):
-    results = self._load(self.model_io.load_dir, log_level=1)
+    results = self._load(directory=self.model_io.load_dir, log_level=1)
     return results.get('validation_accuracy', 0)
 
 
@@ -46,9 +45,10 @@ class TensorflowSolver(BaseSolver):
 
   def _evaluate_test(self):
     # Load the best session if available before test evaluation
-    current_results = self._load(self.model_io.save_dir, log_level=0)
+    current_results = self._load(directory=self.model_io.save_dir, log_level=0)
     eval_ = super(TensorflowSolver, self)._evaluate_test()
-    if not current_results: return eval_
+    if not current_results:
+      return eval_
 
     # Update the current results
     current_results['test_accuracy'] = eval_.get('accuracy', 0)
