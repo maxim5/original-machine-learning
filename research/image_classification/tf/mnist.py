@@ -112,14 +112,15 @@ def hyper_tune_ground_up():
   mnist = get_mnist_data()
   def solver_generator(hyper_params):
     solver_params = {
-      'batch_size': 128,
+      'batch_size': 256,
       'eval_batch_size': 5000,
       'epochs': 12,
-      'dynamic_epochs': lambda acc: 3 if acc < 0.8000 else 5 if acc < 0.9800 else 10 if acc < 0.9920 else 15,
+      'dynamic_epochs': lambda acc: 3 if acc < 0.8000 else 5 if acc < 0.9800 else 15 if acc < 0.9920 else 25,
       'evaluate_test': True,
+      'eval_flexible': False,
       'save_dir': 'model-zoo/%s-%s' % (datetime.datetime.now().strftime('%Y-%m-%d'), random_id()),
       'data_saver': plot_images,
-      'save_accuracy_limit': 0.9940,
+      'save_accuracy_limit': 0.9930,
     }
 
     augment_params = hyper_params.get('augment')
