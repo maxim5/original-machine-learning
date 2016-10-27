@@ -4,9 +4,11 @@ __author__ = "maxim"
 
 
 import datetime
+import math
 import sys
 
 import numpy as np
+import matplotlib.pyplot as plt
 import tflearn
 from tflearn.datasets.mnist import read_data_sets
 
@@ -24,6 +26,26 @@ def get_mnist_data():
   return Data(train=convert(tf_data_sets.train),
               validation=convert(tf_data_sets.validation),
               test=convert(tf_data_sets.test))
+
+
+def plot_images(images, labels, destination):
+  num = min(len(images), 100)
+  rows = int(math.sqrt(num))
+  cols = (num + rows - 1) / rows
+
+  f, axes = plt.subplots(rows, cols, figsize=(rows*2, cols*2))
+  axes = axes.reshape(-1)
+  for i in xrange(len(axes)):
+    a = axes[i]
+    a.imshow(images[i].reshape((28, 28)), cmap=plt.cm.gray_r)
+    a.set_title(labels[i])
+    a.set_xticks(())
+    a.set_yticks(())
+
+  if destination:
+    destination += '.png'
+    plt.savefig(destination, bbox_inches='tight')
+    return destination
 
 
 def random_conv_layer(size, num, prob=0.8):
@@ -88,7 +110,8 @@ def hyper_tune_ground_up():
       'dynamic_epochs': lambda acc: 3 if acc < 0.8000 else 5 if acc < 0.9800 else 10 if acc < 0.9920 else 15,
       'evaluate_test': True,
       'save_dir': 'model-zoo/%s-%s' % (datetime.datetime.now().strftime('%Y-%m-%d'), random_id()),
-      'save_accuracy_limit': 0.9940
+      'data_saver': plot_images,
+      'save_accuracy_limit': 0.9940,
     }
 
     augment_params = hyper_params.get('augment')
@@ -127,6 +150,7 @@ def fine_tune(path=None, only_test=False):
     'evaluate_test': True,
     'save_dir': model_path,
     'load_dir': model_path,
+    'data_saver': plot_images,
   }
 
   mnist = get_mnist_data()

@@ -40,7 +40,11 @@ class TensorflowSolver(BaseSolver):
   def on_best_accuracy(self, accuracy, eval_result):
     super(TensorflowSolver, self).on_best_accuracy(accuracy, eval_result)
     if accuracy >= self.save_accuracy_limit:
-      self._save(accuracy)
+      runner_describe = self.runner.describe()
+      self.model_io.save_results({'validation_accuracy': accuracy, 'model_size': runner_describe.get('model_size', 0)})
+      self.model_io.save_hyper_params(runner_describe.get('hyper_params', {}))
+      self.model_io.save_session(self.session)
+      self.model_io.save_data(eval_result.get('misclassified_x'), eval_result.get('misclassified_y'))
 
 
   def _evaluate_test(self):
@@ -60,13 +64,6 @@ class TensorflowSolver(BaseSolver):
     self.model_io.load_session(self.session, directory, log_level)
     results = self.model_io.load_results(directory, log_level)
     return results or {}
-
-
-  def _save(self, accuracy):
-    runner_describe = self.runner.describe()
-    self.model_io.save_results({'validation_accuracy': accuracy, 'model_size': runner_describe.get('model_size', 0)})
-    self.model_io.save_hyper_params(runner_describe.get('hyper_params', {}))
-    self.model_io.save_session(self.session)
 
 
 def tf_is_gpu():
