@@ -56,6 +56,7 @@ class ModelIO(Logger):
     hyper_params = ModelIO._load_dict(os.path.join(directory, 'hyper_params.xjson'))
     if hyper_params:
       self.info('Loaded hyper-params: %s' % dict_to_str(hyper_params))
+      return hyper_params
 
 
   @staticmethod
