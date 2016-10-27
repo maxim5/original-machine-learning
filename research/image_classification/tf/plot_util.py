@@ -3,14 +3,13 @@
 __author__ = "maxim"
 
 
-import math
-
 import numpy as np
 import matplotlib.pyplot as plt
 from tflearn.datasets.mnist import read_data_sets
 from tflearn import ImageAugmentation
 
 from data_set import Data, DataSet
+from mnist import plot_images
 
 
 def get_mnist_data():
@@ -19,22 +18,6 @@ def get_mnist_data():
   return Data(train=convert(tf_data_sets.train),
               validation=convert(tf_data_sets.validation),
               test=convert(tf_data_sets.test))
-
-
-def display(images, labels):
-  num = len(images)
-  rows = int(math.sqrt(num))
-  cols = num / rows
-
-  f, axes = plt.subplots(rows, cols, figsize=(rows*2,cols*2))
-  axes = axes.reshape(-1)
-  for i in range(len(axes)):
-    a = axes[i]
-    a.imshow(images[i].reshape((28, 28)), cmap=plt.cm.gray_r)
-    a.set_title(labels[i])
-    a.set_xticks(())
-    a.set_yticks(())
-
 
 augmentation = ImageAugmentation()
 augmentation.add_random_rotation(max_angle=15)
@@ -47,7 +30,6 @@ x, y = data.train.next_batch(40)
 z = np.array(x)
 z = augmentation.apply(z)
 
-display(x, y)
-display(z, y)
-
+plot_images(data=(x, y, y), destination=None)
+plot_images(data=(z, y, y), destination=None)
 plt.show()
