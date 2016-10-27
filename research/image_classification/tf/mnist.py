@@ -36,11 +36,14 @@ def plot_images(images, labels, destination):
   f, axes = plt.subplots(rows, cols, figsize=(rows*2, cols*2))
   axes = axes.reshape(-1)
   for i in xrange(len(axes)):
-    a = axes[i]
-    a.imshow(images[i].reshape((28, 28)), cmap=plt.cm.gray_r)
-    a.set_title(labels[i])
-    a.set_xticks(())
-    a.set_yticks(())
+    if i < len(images):
+      a = axes[i]
+      a.imshow(images[i].reshape((28, 28)), cmap=plt.cm.gray_r)
+      a.set_title(labels[i])
+      a.set_xticks(())
+      a.set_yticks(())
+    else:
+      axes[i].axis('off')
 
   if destination:
     destination += '.png'
