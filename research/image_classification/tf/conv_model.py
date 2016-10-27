@@ -149,10 +149,11 @@ class ConvModel:
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     incorrect_prediction = tf.not_equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
-    misclassified_x = tf.boolean_mask(self.x, incorrect_prediction)
-    misclassified_y = tf.boolean_mask(tf.argmax(prediction, 1), incorrect_prediction)
+    x_misclassified = tf.boolean_mask(self.x, incorrect_prediction)
+    y_predicted = tf.boolean_mask(tf.argmax(prediction, 1), incorrect_prediction)
+    y_expected = tf.boolean_mask(tf.argmax(self.y, 1), incorrect_prediction)
 
-    return init, optimizer, cost, accuracy, misclassified_x, misclassified_y
+    return init, optimizer, cost, accuracy, x_misclassified, y_predicted, y_expected
 
 
   def params_num(self):

@@ -28,20 +28,25 @@ def get_mnist_data():
               test=convert(tf_data_sets.test))
 
 
-def plot_images(images, labels, destination):
+def plot_images(data, destination):
+  images, labels_predicted, labels_expected = data
+
   num = min(len(images), 100)
   rows = int(math.sqrt(num))
   cols = (num + rows - 1) / rows
 
-  f, axes = plt.subplots(rows, cols, figsize=(rows*2, cols*2))
+  f, axes = plt.subplots(rows, cols, figsize=(cols*2, rows*2), dpi=80, facecolor='w', edgecolor='k')
   axes = axes.reshape(-1)
   for i in xrange(len(axes)):
     if i < len(images):
-      a = axes[i]
-      a.imshow(images[i].reshape((28, 28)), cmap=plt.cm.gray_r)
-      a.set_title(labels[i])
-      a.set_xticks(())
-      a.set_yticks(())
+      ax = axes[i]
+      for spine in ax.spines.values():
+        spine.set_edgecolor('gray')
+      ax.imshow(images[i].reshape((28, 28)), cmap=plt.cm.gray_r, interpolation='nearest', aspect=1)
+      ax.text(0, -5, 'predict %d, expect %d' % (labels_predicted[i], labels_expected[i]),
+             verticalalignment='top', horizontalalignment='left', fontsize=10)
+      ax.set_xticks(())
+      ax.set_yticks(())
     else:
       axes[i].axis('off')
 

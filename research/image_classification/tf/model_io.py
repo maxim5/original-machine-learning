@@ -60,13 +60,13 @@ class ModelIO(Logger):
       return hyper_params
 
 
-  def save_data(self, x, y, directory=None):
+  def save_data(self, data, directory=None):
     directory = directory or self.save_dir
-    if self.data_saver is None or x is None or y is None or not ModelIO._prepare(directory):
+    if self.data_saver is None or data is None or not ModelIO._prepare(directory):
       return
 
     destination = os.path.join(directory, 'misclassified')
-    actual_destination = call(self.data_saver, x, y, destination)
+    actual_destination = call(self.data_saver, data, destination)
     if actual_destination:
       self.debug('Misclassified data saved to %s' % actual_destination)
     else:
