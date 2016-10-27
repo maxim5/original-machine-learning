@@ -20,7 +20,8 @@ class TensorflowRunner(BaseRunner):
 
   def build_model(self, **kwargs):
     self.session = kwargs['session']
-    init, self.optimizer, self.cost, self.accuracy, self.misclassified_x, self.misclassified_y = self.model.build_graph()
+    init, self.optimizer, self.cost, self.accuracy, self.x_misclassified, self.y_predicted, self.y_expected = \
+      self.model.build_graph()
     self.info('Start training. Model size: %dk' % (self.model.params_num() / 1000))
     self.info('Hyper params: %s' % dict_to_str(self.model.hyper_params))
     self.session.run(init)
@@ -31,9 +32,10 @@ class TensorflowRunner(BaseRunner):
 
 
   def evaluate(self, batch_x, batch_y):
-    cost, accuracy, x, y = self.session.run([self.cost, self.accuracy, self.misclassified_x, self.misclassified_y],
-                                            feed_dict=self.model.feed_dict(x=batch_x, y=batch_y, mode='test'))
-    return {'cost': cost, 'accuracy': accuracy, 'misclassified_x': x, 'misclassified_y': y}
+    cost, accuracy, x, y_predicted, y_expected = \
+      self.session.run([self.cost, self.accuracy, self.x_misclassified, self.y_predicted, self.y_expected],
+                       feed_dict=self.model.feed_dict(x=batch_x, y=batch_y, mode='test'))
+    return {'cost': cost, 'accuracy': accuracy, 'data': (x, y_predicted, y_expected)}
 
 
   def describe(self):

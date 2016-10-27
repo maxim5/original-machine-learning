@@ -44,7 +44,7 @@ class TensorflowSolver(BaseSolver):
       self.model_io.save_results({'validation_accuracy': accuracy, 'model_size': runner_describe.get('model_size', 0)})
       self.model_io.save_hyper_params(runner_describe.get('hyper_params', {}))
       self.model_io.save_session(self.session)
-      self.model_io.save_data(eval_result.get('misclassified_x'), eval_result.get('misclassified_y'))
+      self.model_io.save_data(eval_result.get('data'))
 
 
   def _evaluate_test(self):
