@@ -3,20 +3,16 @@
 __author__ = "maxim"
 
 
-import os
-
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 
 from image_classification.tf.base_solver import BaseSolver
-from image_classification.tf.util import *
+from tensorflow_model_io import TensorflowModelIO
 
 
 class TensorflowSolver(BaseSolver):
   def __init__(self, data, runner, augmentation=None, log_level=1, **params):
-    self.load_dir = params.get('load_dir')
-    self.saver = tf.train.Saver(defer_build=True)
-    self.save_dir = params.get('save_dir')
+    self.model_io = TensorflowModelIO(log_level, **params)
     self.save_accuracy_limit = params.get('save_accuracy_limit', 0)
 
     self.session = None
@@ -26,11 +22,8 @@ class TensorflowSolver(BaseSolver):
 
 
   def init_runner(self, runner):
-    if not self.load_dir:
-      return runner
-    hyper_params = self._load_dict(os.path.join(self.load_dir, 'hyper_params.xjson'))
+    hyper_params = self.model_io.load_hyper_params()
     if hyper_params:
-      self.info('Loaded hyper-params: %s' % dict_to_str(hyper_params))
       runner.init_model(**hyper_params)
     return runner
 
@@ -41,7 +34,7 @@ class TensorflowSolver(BaseSolver):
 
 
   def init_session(self):
-    results = self._load(self.load_dir, log_level=1)
+    results = self._load(self.model_io.load_dir, log_level=1)
     return results.get('validation_accuracy', 0)
 
 
@@ -52,78 +45,28 @@ class TensorflowSolver(BaseSolver):
 
 
   def _evaluate_test(self):
-    if not self.save_dir:
-      return super(TensorflowSolver, self)._evaluate_test()
-
     # Load the best session if available before test evaluation
-    current_results = self._load(self.save_dir, log_level=0)
+    current_results = self._load(self.model_io.save_dir, log_level=0)
     eval_ = super(TensorflowSolver, self)._evaluate_test()
     if not current_results: return eval_
 
     # Update the current results
     current_results['test_accuracy'] = eval_.get('accuracy', 0)
-    results_file = os.path.join(self.save_dir, 'results.xjson')
-    with open(results_file, 'w') as file_:
-      file_.write(dict_to_str(current_results))
-      self.info('Results updated to %s' % results_file)
+    self.model_io.save_results(current_results)
     return eval_
 
 
   def _load(self, directory, log_level):
-    if not directory:
-      return {}
-
-    directory = os.path.abspath(directory)
-    session_file = os.path.join(directory, 'session.data')
-    if os.path.exists(session_file):
-      self.saver.build()
-      self.saver.restore(self.session, session_file)
-      self._log(log_level, 'Loaded session from %s' % session_file)
-
-    results_file = os.path.join(directory, 'results.xjson')
-    if os.path.exists(results_file):
-      results = self._load_dict(results_file)
-      self._log(log_level, 'Loaded results: %s from %s' % (dict_to_str(results), results_file))
-      return results
-
-    return {}
+    self.model_io.load_session(self.session, directory, log_level)
+    results = self.model_io.load_results(directory, log_level)
+    return results or {}
 
 
   def _save(self, accuracy):
-    if not self.save_dir:
-      return
-
-    if not os.path.exists(self.save_dir):
-      os.makedirs(self.save_dir)
-
-    hyper_file = os.path.join(self.save_dir, 'hyper_params.xjson')
-    results_file = os.path.join(self.save_dir, 'results.xjson')
-    session_file = os.path.join(self.save_dir, 'session.data')
-
-    self.saver.build()
-    self.saver.save(self.session, session_file)
-    self.debug('Session saved to %s' % session_file)
-
     runner_describe = self.runner.describe()
-
-    with open(results_file, 'w') as file_:
-      file_.write(dict_to_str({'validation_accuracy': accuracy, 'model_size': runner_describe.get('model_size', 0)}))
-      self.debug('Results saved to %s' % results_file)
-
-    with open(hyper_file, 'w') as file_:
-      file_.write(dict_to_str(runner_describe.get('hyper_params', {})))
-      self.debug('Hyper parameters saved to %s' % hyper_file)
-
-
-  def _load_dict(self, from_file):
-    if not os.path.exists(from_file):
-      return {}
-    try:
-      with open(from_file, 'r') as file_:
-        line = file_.readline()
-        return str_to_dict(line)
-    except:
-      return {}
+    self.model_io.save_results({'validation_accuracy': accuracy, 'model_size': runner_describe.get('model_size', 0)})
+    self.model_io.save_hyper_params(runner_describe.get('hyper_params', {}))
+    self.model_io.save_session(self.session)
 
 
 def tf_is_gpu():
