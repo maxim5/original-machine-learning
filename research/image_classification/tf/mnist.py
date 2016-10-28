@@ -9,9 +9,9 @@ import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
-import tflearn
 from tflearn.datasets.mnist import read_data_sets
 
+from augmentor import MyImageAugmentation
 from conv_model import ConvModel
 from data_set import Data, DataSet
 from hyper_tuner import HyperTuner
@@ -71,6 +71,8 @@ def hyper_tune_ground_up():
       'rotation_angle': np.random.uniform(0, 15),
       'blur_sigma': 10**np.random.uniform(-2, 0),
       'crop_size': np.random.choice(range(5)),
+      'scale_x': np.random.uniform(0.5, 1),
+      'scale_y': np.random.uniform(0.5, 1),
     },
 
     'optimizer': {
@@ -125,7 +127,7 @@ def hyper_tune_ground_up():
 
     augment_params = hyper_params.get('augment')
     if augment_params:
-      augmentation = tflearn.ImageAugmentation()
+      augmentation = MyImageAugmentation()
       rotation_angle = augment_params.get('rotation_angle')
       if rotation_angle:
         augmentation.add_random_rotation(max_angle=rotation_angle)
@@ -135,6 +137,10 @@ def hyper_tune_ground_up():
       crop_size = augment_params.get('crop_size')
       if crop_size:
         augmentation.add_random_crop(crop_shape=(28, 28), padding=crop_size)
+      scale_x = augment_params.get('scale_x')
+      scale_y = augment_params.get('scale_y')
+      if scale_x and scale_y:
+        augmentation.add_random_scale(max_scale_x=scale_x, max_scale_y=scale_y)
     else:
       augmentation = None
 
