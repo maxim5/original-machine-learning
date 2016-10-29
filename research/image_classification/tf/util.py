@@ -13,10 +13,12 @@ import numpy as np
 
 def dict_to_str(d):
   def smart_str(val):
-    if type(val) == float or type(val) == np.float32 or type(val) == np.float64:
+    if type(val) in [float, np.float32, np.float64] and val:
       return "%.6f" % val if abs(val) > 1e-6 else "%e" % val
     if type(val) == dict:
       return dict_to_str(val)
+    if type(val) in [list, tuple]:
+      return '[%s]' % ', '.join(['%s' % smart_str(i) for i in val])
     return repr(val)
 
   return '{%s}' % ', '.join(['%s: %s' % (repr(k), smart_str(d[k])) for k in sorted(d.keys())])
