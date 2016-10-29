@@ -96,7 +96,7 @@ def hyper_tune_ground_up():
       # 'rotation_angle': np.random.uniform(0, 15),
       # 'blur_sigma': 10**np.random.uniform(-2, 0),
       'crop_size': np.random.choice(range(5)),
-      'scale': (np.random.uniform(0.5, 1.5), np.random.uniform(0.5, 1.5)),
+      'scale': (np.random.uniform(0.5, 1.0), np.random.uniform(1.0, 1.5)),
     },
 
     'optimizer': {
