@@ -67,12 +67,15 @@ def init_augmentation(**params):
       if isinstance(scale, float):
         scale = (scale, scale)
       augmentation.add_random_scale(downscale_limit=scale[0], upscale_limit=scale[1])
+
     rotation_angle = params.get('rotation_angle')
     if rotation_angle:
       augmentation.add_random_rotation(max_angle=rotation_angle)
+
     blur_sigma = params.get('blur_sigma')
     if blur_sigma:
       augmentation.add_random_blur(sigma_max=blur_sigma)
+
     crop_size = params.get('crop_size')
     if crop_size:
       augmentation.add_random_crop(crop_shape=(28, 28), padding=crop_size)
