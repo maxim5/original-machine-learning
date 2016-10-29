@@ -126,13 +126,13 @@ def fine_tune(path=None, random_fork=True, only_test=False):
 
   model_io = TensorflowModelIO(**solver_params)
   hyper_params = model_io.load_hyper_params() or {}
-  if random_fork:
+  if random_fork and not only_test:
     random_hyper_params = hyper_params_generator()
     hyper_params.update({key: value for key, value in random_hyper_params.iteritems() if key == 'augment'})
 
   model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
   runner = TensorflowRunner(model=model)
-  augmentation = init_augmentation(**hyper_params.get('augment'))
+  augmentation = init_augmentation(**hyper_params.get('augment', {}))
   solver = TensorflowSolver(data=mnist, runner=runner, augmentation=augmentation, **solver_params)
   solver.train()
 
