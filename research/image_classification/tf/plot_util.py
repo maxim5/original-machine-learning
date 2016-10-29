@@ -37,10 +37,10 @@ def plot_one(image, label=None):
 
 
 augmentation = MyImageAugmentation()
-augmentation.add_random_rotation(max_angle=15)
-augmentation.add_random_blur(sigma_max=0.1)
+augmentation.add_random_scale(downscale_limit=(1.6, 1.6), upscale_limit=(1.3, 1.3))
 augmentation.add_random_crop(crop_shape=(28, 28), padding=2)
-augmentation.add_random_scale(0.6, 0.6)
+#augmentation.add_random_rotation(max_angle=15)
+#augmentation.add_random_blur(sigma_max=0.1)
 
 
 def experiment(x0):

@@ -3,34 +3,64 @@
 __author__ = "maxim"
 
 
+import numbers
+import random
+
 import numpy as np
 import skimage.transform
 import skimage.util
-import random
 from tflearn import ImageAugmentation
 
 
 class MyImageAugmentation(ImageAugmentation):
-  def add_random_scale(self, max_scale_x=1.0, max_scale_y=1.0):
-    assert 0.0 < max_scale_x <= 1.0
-    assert 0.0 < max_scale_y <= 1.0
-    if max_scale_x < 1.0 or max_scale_y < 1.0:
-      self.methods.append(self._random_scale)
-      self.args.append([max_scale_x, max_scale_y])
+  def add_random_scale(self, downscale_limit=1.0, upscale_limit=1.0):
+    if isinstance(downscale_limit, numbers.Number):
+      downscale_limit = (downscale_limit, downscale_limit)
+    downscale_limit = t_min(t_max(downscale_limit, (0, 0)), (1, 1))
 
-  def _random_scale(self, batch, max_scale_x, max_scale_y):
+    if isinstance(upscale_limit, numbers.Number):
+      upscale_limit = (upscale_limit, upscale_limit)
+    upscale_limit = t_max(upscale_limit, (1, 1))
+
+    if downscale_limit != (1, 1) or upscale_limit != (1, 1):
+      self.methods.append(self._random_scale)
+      self.args.append([downscale_limit, upscale_limit])
+
+
+  def _random_scale(self, batch, downscale_limit, upscale_limit):
     for i in range(len(batch)):
       if bool(random.getrandbits(1)):
-        scale_x = np.random.uniform(max_scale_x, 1.0)
-        scale_y = np.random.uniform(max_scale_y, 1.0)
-        scaled = skimage.transform.rescale(batch[i], scale=(scale_x, scale_y), preserve_range=True)
-        batch[i] = pad_to_shape(scaled, batch[i].shape)
+        image = batch[i]
+        scale = np.random.uniform(downscale_limit, upscale_limit)
+        if scale[0] < 1 or scale[1] < 1:
+          image = skimage.transform.rescale(image, scale=t_min(scale, (1, 1)), preserve_range=True)
+          image = pad_to_shape(image, batch[i].shape)
+        if scale[0] > 1 or scale[1] > 1:
+          image = skimage.transform.rescale(image, scale=t_max(scale, (1, 1)), preserve_range=True)
+          image = crop_to_shape(image, batch[i].shape)
+        batch[i] = image
     return batch
+
+
+def t_min(lhs, rhs):
+  return min(lhs[0], rhs[0]), min(lhs[1], rhs[1])
+
+
+def t_max(lhs, rhs):
+  return max(lhs[0], rhs[0]), max(lhs[1], rhs[1])
 
 
 def pad_to_shape(image, target_shape):
   current_shape = image.shape
   diff = (target_shape[0] - current_shape[0], target_shape[1] - current_shape[1])
-  pad = (diff[0] / 2, diff[1] / 2)
-  padding = ((pad[0], diff[0]-pad[0]), (pad[1], diff[1]-pad[1]), (0, 0))
-  return skimage.util.pad(image, pad_width=padding, mode='constant')
+  side = (diff[0] / 2, diff[1] / 2)
+  pad_width = ((side[0], diff[0]-side[0]), (side[1], diff[1]-side[1]), (0, 0))
+  return skimage.util.pad(image, pad_width=pad_width, mode='constant')
+
+
+def crop_to_shape(image, target_shape):
+  current_shape = image.shape
+  diff = (current_shape[0] - target_shape[0], current_shape[1] - target_shape[1])
+  side = (diff[0] / 2, diff[1] / 2)
+  crop_width = ((side[0], diff[0]-side[0]), (side[1], diff[1]-side[1]), (0, 0))
+  return skimage.util.crop(image, crop_width=crop_width)
