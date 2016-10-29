@@ -7,22 +7,20 @@ import datetime
 import math
 import sys
 
-import numpy as np
-import matplotlib.pyplot as plt
-from tflearn.datasets.mnist import read_data_sets
-
 from augmentor import MyImageAugmentation
 from conv_model import ConvModel
 from data_set import Data, DataSet
 from hyper_tuner import HyperTuner
 from interaction import read_model
+from mnist_spec import hyper_params_generator
 from log import log
 from tensorflow_impl import *
 from util import random_id, dict_to_str
 
 
 def get_mnist_data():
-  tf_data_sets = read_data_sets("../../../dat/mnist-tf", one_hot=True)
+  from tensorflow.examples.tutorials import mnist
+  tf_data_sets = mnist.input_data.read_data_sets("../../../dat/mnist-tf", one_hot=True)
   convert = lambda data_set: DataSet(data_set.images.reshape((-1, 28, 28, 1)), data_set.labels)
   return Data(train=convert(tf_data_sets.train),
               validation=convert(tf_data_sets.validation),
@@ -30,6 +28,8 @@ def get_mnist_data():
 
 
 def plot_images(data, destination):
+  import matplotlib.pyplot as plt
+
   images, labels_predicted, labels_expected = data
 
   num = min(len(images), 100)
@@ -81,61 +81,9 @@ def init_augmentation(**params):
   return augmentation
 
 
-def random_conv_layer(size, num, prob=0.8):
-  if np.random.uniform() > prob:
-    return [[size, 1, num], [1, size, num]]
-  return [[size, size, num]]
-
-
 def hyper_tune_ground_up():
-  activations = ['relu', 'relu6', 'elu', 'prelu', 'leaky_relu']
-  hyper_params_generator = lambda: {
-    'init_stdev': np.random.uniform(0.04, 0.06),
-
-    'augment': {
-      # 'rotation_angle': np.random.uniform(0, 15),
-      # 'blur_sigma': 10**np.random.uniform(-2, 0),
-      'crop_size': np.random.choice(range(5)),
-      'scale': (np.random.uniform(0.5, 1.0), np.random.uniform(1.0, 1.5)),
-    },
-
-    'optimizer': {
-      'learning_rate': 10 ** np.random.uniform(-2, -4),
-      'beta1': 0.9,
-      'beta2': 0.999,
-      'epsilon': 1e-8,
-    },
-
-    'conv': {
-      'layers_num': 3,
-      1: {
-        'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([ 24,  32,  36])),
-        'pools': [2, 2],
-        'activation': np.random.choice(activations),
-        'dropout': np.random.uniform(0.85, 1.0),
-      },
-      2: {
-        'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([ 64,  96, 128])),
-        'pools': [2, 2],
-        'activation': np.random.choice(activations),
-        'dropout': np.random.uniform(0.8, 1.0),
-      },
-      3: {
-        'filters': random_conv_layer(size=np.random.choice([3, 5,  ]), num=np.random.choice([128, 256, 512])),
-        'pools': [2, 2],
-        'activation': np.random.choice(activations),
-        'dropout': np.random.uniform(0.6, 1.0),
-      }
-    },
-
-    'fc': {
-      'size': np.random.choice([512, 768, 1024]),
-      'activation': np.random.choice(activations),
-      'dropout': np.random.uniform(0.5, 1.0),
-    },
-  }
-
   mnist = get_mnist_data()
+
   def solver_generator(hyper_params):
     solver_params = {
       'batch_size': 256,
@@ -159,7 +107,7 @@ def hyper_tune_ground_up():
   tuner.tune(solver_generator, hyper_params_generator)
 
 
-def fine_tune(path=None, only_test=False):
+def fine_tune(path=None, random_fork=True, only_test=False):
   if not path:
     path = read_model('model-zoo')
 
@@ -175,8 +123,13 @@ def fine_tune(path=None, only_test=False):
   }
 
   mnist = get_mnist_data()
+
   model_io = TensorflowModelIO(**solver_params)
-  hyper_params = model_io.load_hyper_params()
+  hyper_params = model_io.load_hyper_params() or {}
+  if random_fork:
+    random_hyper_params = hyper_params_generator()
+    hyper_params.update({key: value for key, value in random_hyper_params.iteritems() if key == 'augment'})
+
   model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
   runner = TensorflowRunner(model=model)
   augmentation = init_augmentation(**hyper_params.get('augment'))
