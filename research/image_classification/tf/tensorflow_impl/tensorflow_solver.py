@@ -11,20 +11,13 @@ from tensorflow_model_io import TensorflowModelIO
 
 
 class TensorflowSolver(BaseSolver):
-  def __init__(self, data, runner, augmentation=None, log_level=1, **params):
+  def __init__(self, data, runner, augmentation=None, model_io=None, log_level=1, **params):
     self.session = None
-    self.model_io = TensorflowModelIO(log_level, **params)
+    self.model_io = model_io if model_io is not None else TensorflowModelIO(log_level, **params)
     self.save_accuracy_limit = params.get('save_accuracy_limit', 0)
 
     params['eval_flexible'] = params.get('eval_flexible', True) and _is_gpu_available
     super(TensorflowSolver, self).__init__(data, runner, augmentation, log_level, **params)
-
-
-  def init_runner(self, runner):
-    hyper_params = self.model_io.load_hyper_params()
-    if hyper_params:
-      runner.init_model(**hyper_params)
-    return runner
 
 
   def create_session(self):

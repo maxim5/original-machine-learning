@@ -16,8 +16,9 @@ from conv_model import ConvModel
 from data_set import Data, DataSet
 from hyper_tuner import HyperTuner
 from interaction import read_model
+from log import log
 from tensorflow_impl import *
-from util import random_id
+from util import random_id, dict_to_str
 
 
 def get_mnist_data():
@@ -54,6 +55,29 @@ def plot_images(data, destination):
     destination += '.png'
     plt.savefig(destination, bbox_inches='tight')
     return destination
+
+
+def init_augmentation(**params):
+  if params:
+    log('Using augmentation params: %s' % dict_to_str(params))
+
+    augmentation = MyImageAugmentation()
+    rotation_angle = params.get('rotation_angle')
+    if rotation_angle:
+      augmentation.add_random_rotation(max_angle=rotation_angle)
+    blur_sigma = params.get('blur_sigma')
+    if blur_sigma:
+      augmentation.add_random_blur(sigma_max=blur_sigma)
+    crop_size = params.get('crop_size')
+    if crop_size:
+      augmentation.add_random_crop(crop_shape=(28, 28), padding=crop_size)
+    scale_x = params.get('scale_x')
+    scale_y = params.get('scale_y')
+    if scale_x and scale_y:
+      augmentation.add_random_scale(max_scale_x=scale_x, max_scale_y=scale_y)
+  else:
+    augmentation = None
+  return augmentation
 
 
 def random_conv_layer(size, num, prob=0.8):
@@ -125,27 +149,9 @@ def hyper_tune_ground_up():
       'save_accuracy_limit': 0.9930,
     }
 
-    augment_params = hyper_params.get('augment')
-    if augment_params:
-      augmentation = MyImageAugmentation()
-      rotation_angle = augment_params.get('rotation_angle')
-      if rotation_angle:
-        augmentation.add_random_rotation(max_angle=rotation_angle)
-      blur_sigma = augment_params.get('blur_sigma')
-      if blur_sigma:
-        augmentation.add_random_blur(sigma_max=blur_sigma)
-      crop_size = augment_params.get('crop_size')
-      if crop_size:
-        augmentation.add_random_crop(crop_shape=(28, 28), padding=crop_size)
-      scale_x = augment_params.get('scale_x')
-      scale_y = augment_params.get('scale_y')
-      if scale_x and scale_y:
-        augmentation.add_random_scale(max_scale_x=scale_x, max_scale_y=scale_y)
-    else:
-      augmentation = None
-
     model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
     runner = TensorflowRunner(model=model)
+    augmentation = init_augmentation(**hyper_params.get('augment'))
     solver = TensorflowSolver(data=mnist, runner=runner, augmentation=augmentation, **solver_params)
     return solver
 
@@ -169,9 +175,12 @@ def fine_tune(path=None, only_test=False):
   }
 
   mnist = get_mnist_data()
-  model = ConvModel(input_shape=(28, 28, 1), num_classes=10)
+  model_io = TensorflowModelIO(**solver_params)
+  hyper_params = model_io.load_hyper_params()
+  model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
   runner = TensorflowRunner(model=model)
-  solver = TensorflowSolver(data=mnist, runner=runner, **solver_params)
+  augmentation = init_augmentation(**hyper_params.get('augment'))
+  solver = TensorflowSolver(data=mnist, runner=runner, augmentation=augmentation, **solver_params)
   solver.train()
 
 

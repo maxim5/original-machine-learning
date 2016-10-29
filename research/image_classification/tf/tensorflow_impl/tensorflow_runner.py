@@ -14,10 +14,6 @@ class TensorflowRunner(BaseRunner):
     self.session = None
 
 
-  def init_model(self, **hyper_params):
-    self.model.hyper_params = hyper_params
-
-
   def build_model(self, **kwargs):
     self.session = kwargs['session']
     init, self.optimizer, self.cost, self.accuracy, self.x_misclassified, self.y_predicted, self.y_expected = \

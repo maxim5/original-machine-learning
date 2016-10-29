@@ -16,8 +16,7 @@ class BaseSolver(Logger):
     self.val_set = data.validation
     self.test_set = data.test
     self.augmentation = augmentation
-
-    self.runner = self.init_runner(runner)
+    self.runner = runner
     self.max_val_accuracy = 0
 
     self.epochs = params.get('epochs', 1)
@@ -50,10 +49,6 @@ class BaseSolver(Logger):
         self._evaluate_test()
 
     return self.max_val_accuracy
-
-
-  def init_runner(self, runner):
-    return runner
 
 
   def create_session(self):
