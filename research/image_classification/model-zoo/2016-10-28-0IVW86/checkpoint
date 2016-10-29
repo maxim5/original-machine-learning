@@ -1,0 +1,2 @@
+model_checkpoint_path: "session.data"
+all_model_checkpoint_paths: "session.data"
