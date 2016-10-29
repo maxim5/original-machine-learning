@@ -62,6 +62,11 @@ def init_augmentation(**params):
     log('Using augmentation params: %s' % dict_to_str(params))
 
     augmentation = MyImageAugmentation()
+    scale = params.get('scale')
+    if scale:
+      if isinstance(scale, float):
+        scale = (scale, scale)
+      augmentation.add_random_scale(downscale_limit=scale[0], upscale_limit=scale[1])
     rotation_angle = params.get('rotation_angle')
     if rotation_angle:
       augmentation.add_random_rotation(max_angle=rotation_angle)
@@ -71,10 +76,6 @@ def init_augmentation(**params):
     crop_size = params.get('crop_size')
     if crop_size:
       augmentation.add_random_crop(crop_shape=(28, 28), padding=crop_size)
-    scale_x = params.get('scale_x')
-    scale_y = params.get('scale_y')
-    if scale_x and scale_y:
-      augmentation.add_random_scale(max_scale_x=scale_x, max_scale_y=scale_y)
   else:
     augmentation = None
   return augmentation
@@ -92,11 +93,10 @@ def hyper_tune_ground_up():
     'init_stdev': np.random.uniform(0.04, 0.06),
 
     'augment': {
-      'rotation_angle': np.random.uniform(0, 15),
-      'blur_sigma': 10**np.random.uniform(-2, 0),
+      # 'rotation_angle': np.random.uniform(0, 15),
+      # 'blur_sigma': 10**np.random.uniform(-2, 0),
       'crop_size': np.random.choice(range(5)),
-      'scale_x': np.random.uniform(0.5, 1),
-      'scale_y': np.random.uniform(0.5, 1),
+      'scale': (np.random.uniform(0.5, 1.5), np.random.uniform(0.5, 1.5)),
     },
 
     'optimizer': {
