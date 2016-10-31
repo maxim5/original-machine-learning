@@ -18,13 +18,11 @@ hyper_params_generator = lambda: {
   'init_stdev': np.random.uniform(0.04, 0.06),
 
   'augment': {
-    'scale': [min(np.random.uniform(0.5, 1.5), 1.0),
-              max(np.random.uniform(0.5, 1.5), 1.0)],
-    'rotation_angle': np.random.choice([0, np.random.uniform(0, 15)],
-                                       p=[0.8, 0.2]),
-    'blur_sigma': np.random.choice([0, 10**np.random.uniform(-2, 0)],
-                                   p=[0.8, 0.2]),
-    'crop_size': np.random.choice(range(5)),
+    #'scale': [min(np.random.uniform(0.9, 1.1), 1.0),
+    #          max(np.random.uniform(0.9, 1.1), 1.0)],
+    'rotation_angle': np.random.choice([0, np.random.uniform(0, 20)]),
+    'blur_sigma': np.random.choice([0, 10**np.random.uniform(-2, 0.2)]),
+    'crop_size': np.random.choice(range(3)),
   },
 
   'optimizer': {
