@@ -68,7 +68,7 @@ def init_augmentation(**params):
     if scale:
       if isinstance(scale, float):
         scale = (scale, scale)
-      augmentation.add_random_scale(downscale_limit=scale[0], upscale_limit=scale[1])
+      augmentation.add_random_scale(downscale_limit=scale[0], upscale_limit=scale[1], fix_aspect_ratio=True)
 
     rotation_angle = params.get('rotation_angle')
     if rotation_angle:

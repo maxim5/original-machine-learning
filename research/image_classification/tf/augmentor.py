@@ -13,7 +13,7 @@ from tflearn import ImageAugmentation
 
 
 class MyImageAugmentation(ImageAugmentation):
-  def add_random_scale(self, downscale_limit=1.0, upscale_limit=1.0):
+  def add_random_scale(self, downscale_limit=1.0, upscale_limit=1.0, fix_aspect_ratio=False):
     if isinstance(downscale_limit, numbers.Number):
       downscale_limit = (downscale_limit, downscale_limit)
     downscale_limit = t_min(t_max(downscale_limit, (0, 0)), (1, 1))
@@ -24,14 +24,16 @@ class MyImageAugmentation(ImageAugmentation):
 
     if downscale_limit != (1, 1) or upscale_limit != (1, 1):
       self.methods.append(self._random_scale)
-      self.args.append([downscale_limit, upscale_limit])
+      self.args.append([downscale_limit, upscale_limit, fix_aspect_ratio])
 
 
-  def _random_scale(self, batch, downscale_limit, upscale_limit):
+  def _random_scale(self, batch, downscale_limit, upscale_limit, fix_aspect_ratio):
     for i in range(len(batch)):
       if bool(random.getrandbits(1)):
         image = batch[i]
         scale = np.random.uniform(downscale_limit, upscale_limit)
+        if fix_aspect_ratio:
+          scale[1] = scale[0]
         if scale[0] < 1 or scale[1] < 1:
           image = skimage.transform.rescale(image, scale=t_min(scale, (1, 1)), preserve_range=True)
           image = pad_to_shape(image, batch[i].shape)
