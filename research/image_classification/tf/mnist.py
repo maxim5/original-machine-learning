@@ -53,7 +53,9 @@ def plot_images(data, destination):
 
   if destination:
     destination += '.png'
+    plt.figure()
     plt.savefig(destination, bbox_inches='tight')
+    plt.close()
     return destination
 
 
