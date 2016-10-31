@@ -36,6 +36,9 @@ def plot_images(data, destination):
   rows = int(math.sqrt(num))
   cols = (num + rows - 1) / rows
 
+  if destination:
+    plt.figure()
+
   f, axes = plt.subplots(rows, cols, figsize=(cols*2, rows*2), dpi=80, facecolor='w', edgecolor='k')
   axes = axes.reshape(-1)
   for i in xrange(len(axes)):
@@ -53,7 +56,6 @@ def plot_images(data, destination):
 
   if destination:
     destination += '.png'
-    plt.figure()
     plt.savefig(destination, bbox_inches='tight')
     plt.close()
     return destination
