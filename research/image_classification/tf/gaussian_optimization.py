@@ -21,6 +21,10 @@ class Utility(object):
     pass
 
 
+  def compute_batch_values(self, batch):
+    return [self.compute_point_value(x) for x in batch]
+
+
 def rbf_kernel(x, y, gamma=0.5):
   norm2 = np.sum(x*x, axis=0) + np.sum(y*y, axis=0) - 2*np.dot(x, y.T)
   return np.exp(-gamma * norm2)
@@ -43,6 +47,25 @@ class BaseGaussianUtility(Utility):
     mu_star = np.dot(k_star.T, self.k_inv_f)
     sigma_star = k_star_star - np.dot(k_star.T, np.dot(self.k_inv, k_star))
     return mu_star, sigma_star
+
+
+  def _mean_and_std_batch(self, batch):
+    batch = np.array(batch)
+    k_star_batch = np.zeros((batch.shape[0], self.points.shape[0]))
+    k_star_star_batch = np.zeros(batch.shape[:1])
+
+    for i in xrange(batch.shape[0]):
+      x = batch[i]
+      k_star_batch[i] = self._compute_matrix(self.points, x.reshape((1, -1)))
+      k_star_star_batch[i] = self.kernel_function(x, x)
+
+    mu_star_batch = np.dot(k_star_batch, self.k_inv_f)
+
+    t_star_batch = np.dot(self.k_inv, k_star_batch.T)
+    t_star_batch = np.einsum('ij,ji->i', k_star_batch, t_star_batch)
+    sigma_star_batch = k_star_star_batch - t_star_batch
+
+    return mu_star_batch, sigma_star_batch
 
 
   def _compute_matrix(self, x, y=None):
@@ -82,6 +105,14 @@ class ProbabilityOfImprovement(BaseGaussianUtility):
     return stats.norm.cdf(z)
 
 
+  def compute_batch_values(self, batch):
+    mu_batch, sigma_batch = self._mean_and_std_batch(batch)
+    z_batch = (mu_batch - self.max_value - self.epsilon) / sigma_batch
+    cdf = stats.norm.cdf(z_batch)
+    cdf[np.abs(mu_batch - self.max_value) < self.epsilon] = 0.0
+    return cdf
+
+
 class UtilityMaximizer(object):
   def __init__(self, utility):
     super(UtilityMaximizer, self).__init__()
@@ -95,30 +126,27 @@ class Sampler(object):
   def sample(self):
     pass
 
+  def sample_batch(self, size):
+    return [self.sample() for _ in xrange(size)]
+
 
 class MonteCarloUtilityMaximizer(UtilityMaximizer):
   def __init__(self, utility, sampler, **params):
     super(MonteCarloUtilityMaximizer, self).__init__(utility)
     self.sampler = sampler
+    self.batch_size = params.get('batch_size', 5000)
 
-    self.sample_size = params.get('sample_size', 1000)
 
   def compute_max_point(self):
-    max_value = 0
-    max_point = None
-    for i in xrange(self.sample_size):
-      point = self.sampler.sample()
-      value = self.utility.compute_point_value(point)
-      if value > max_value:
-        max_value = value
-        max_point = point
-    return max_point, max_value
+    batch = self.sampler.sample_batch(self.batch_size)
+    values = self.utility.compute_batch_values(batch)
+    i = np.argmax(values)
+    return batch[i], values[i]
 
 
 class BayesianOptimizer(Logger):
   def __init__(self, log_level=1):
     super(BayesianOptimizer, self).__init__(log_level)
-
 
 
 def test1():
@@ -140,11 +168,20 @@ def test1():
   print util.compute_point_value(x=(0.0, 0.0, 0.0, 0.0))
   print util.compute_point_value(x=(0.0, 0.0, 0.0, 3.0))
   print util.compute_point_value(x=(0.0, 0.0, 0.5, 3.0))
+  print util.compute_batch_values(batch=[(0.0, 0.0, 0.0, 0.0),
+                                         (0.0, 0.0, 0.0, 3.0),
+                                         (0.0, 0.0, 0.5, 3.0)])
+
   print util.compute_point_value(x=(0.0, 0.5, 0.5, 3.0))
   print util.compute_point_value(x=(0.0, 0.8, 0.5, 3.0))
   print util.compute_point_value(x=(0.0, 0.9, 0.5, 3.0))
   print util.compute_point_value(x=(0.0, 0.99, 0.5, 3.0))
   print util.compute_point_value(x=(0.0, 1.0, 0.5, 3.0))
+  print util.compute_batch_values(batch=[(0.0, 0.5, 0.5, 3.0),
+                                         (0.0, 0.8, 0.5, 3.0),
+                                         (0.0, 0.9, 0.5, 3.0),
+                                         (0.0, 0.99, 0.5, 3.0),
+                                         (0.0, 1.0, 0.5, 3.0)])
 
   print 'far away'
   print util.compute_point_value(x=(0.0, 2.0, 0.0, 0.0))
@@ -153,6 +190,13 @@ def test1():
   print util.compute_point_value(x=(0.0, -5.0, -1.0, 0.0))
   print util.compute_point_value(x=(0.0, 2.0, -1.0, 3.0))
   print util.compute_point_value(x=(0.0, 2.0, 0.3, 3.5))
+  print util.compute_batch_values(batch=[(0.0, 2.0, 0.0, 0.0),
+                                         (0.0, 2.0, 0.0, 0.0),
+                                         (0.0, -2.0, 0.0, 0.0),
+                                         (0.0, -5.0, 0.0, 0.0),
+                                         (0.0, -5.0, -1.0, 0.0),
+                                         (0.0, 2.0, -1.0, 3.0),
+                                         (0.0, 2.0, 0.3, 3.5)])
 
 
 def test2():
@@ -181,30 +225,38 @@ def test2():
     print maximizer.compute_max_point()
 
 
-def rand_x(size):
-  return np.random.standard_normal(size)
+def rand_x(dim):
+  return np.random.standard_normal(dim)
 
-def rand_pi(size=4, num=10):
-  x = rand_x((num, size))
+def rand_b(dim, num):
+  return np.random.standard_normal((num, dim))
+
+def rand_pi(dim=4, num=10):
+  x = rand_x((num, dim))
   f = rand_x(num) * 2
   return ProbabilityOfImprovement(points=x, values=f, kernel_function=rbf_kernel)
 
 def benchmark1():
   import timeit
-  print timeit.timeit('x = rand_x(4);   rbf_kernel(x, x)', 'from __main__ import rbf_kernel, rand_x', number=10000)
-  print timeit.timeit('x = rand_x(8);   rbf_kernel(x, x)', 'from __main__ import rbf_kernel, rand_x', number=10000)
-  print timeit.timeit('x = rand_x(50);  rbf_kernel(x, x)', 'from __main__ import rbf_kernel, rand_x', number=10000)
-  print timeit.timeit('x = rand_x(100); rbf_kernel(x, x)', 'from __main__ import rbf_kernel, rand_x', number=10000)
-  print timeit.timeit('x = rand_x(200); rbf_kernel(x, x)', 'from __main__ import rbf_kernel, rand_x', number=10000)
+  print timeit.timeit('x=rand_x(4);   rbf_kernel(x, x)', 'from __main__ import *', number=10000)
+  print timeit.timeit('x=rand_x(8);   rbf_kernel(x, x)', 'from __main__ import *', number=10000)
+  print timeit.timeit('x=rand_x(50);  rbf_kernel(x, x)', 'from __main__ import *', number=10000)
+  print timeit.timeit('x=rand_x(100); rbf_kernel(x, x)', 'from __main__ import *', number=10000)
+  print timeit.timeit('x=rand_x(200); rbf_kernel(x, x)', 'from __main__ import *', number=10000)
 
 def benchmark2():
   import timeit
-  print timeit.timeit('pi = rand_pi(4,  10); x = rand_x(4);  pi.compute_point_value(x)', 'from __main__ import rbf_kernel, rand_x, rand_pi', number=1000)
-  print timeit.timeit('pi = rand_pi(8,  10); x = rand_x(8);  pi.compute_point_value(x)', 'from __main__ import rbf_kernel, rand_x, rand_pi', number=1000)
-  print timeit.timeit('pi = rand_pi(20, 10); x = rand_x(20); pi.compute_point_value(x)', 'from __main__ import rbf_kernel, rand_x, rand_pi', number=1000)
-  print timeit.timeit('pi = rand_pi(50, 10); x = rand_x(50); pi.compute_point_value(x)', 'from __main__ import rbf_kernel, rand_x, rand_pi', number=1000)
-  print timeit.timeit('pi = rand_pi(50, 20); x = rand_x(50); pi.compute_point_value(x)', 'from __main__ import rbf_kernel, rand_x, rand_pi', number=1000)
-  print timeit.timeit('pi = rand_pi(50, 80); x = rand_x(50); pi.compute_point_value(x)', 'from __main__ import rbf_kernel, rand_x, rand_pi', number=1000)
+  print timeit.timeit('pi=rand_pi(4,  10); x=rand_x(4);  pi.compute_point_value(x)', 'from __main__ import *', number=1000)
+  print timeit.timeit('pi=rand_pi(8,  10); x=rand_x(8);  pi.compute_point_value(x)', 'from __main__ import *', number=1000)
+  print timeit.timeit('pi=rand_pi(20, 10); x=rand_x(20); pi.compute_point_value(x)', 'from __main__ import *', number=1000)
+  print timeit.timeit('pi=rand_pi(50, 10); x=rand_x(50); pi.compute_point_value(x)', 'from __main__ import *', number=1000)
+  print timeit.timeit('pi=rand_pi(50, 20); x=rand_x(50); pi.compute_point_value(x)', 'from __main__ import *', number=1000)
+
+def benchmark3():
+  import timeit
+  print timeit.timeit('pi=rand_pi(50, 10); b=rand_b(50, 1000); pi.compute_batch_values(b)', 'from __main__ import *', number=1)
+  print timeit.timeit('pi=rand_pi(50, 20); b=rand_b(50, 1000); pi.compute_batch_values(b)', 'from __main__ import *', number=1)
+  print timeit.timeit('pi=rand_pi(50, 80); b=rand_b(50, 5000); pi.compute_batch_values(b)', 'from __main__ import *', number=1)
 
 if __name__ == "__main__":
-  benchmark2()
+  benchmark3()
