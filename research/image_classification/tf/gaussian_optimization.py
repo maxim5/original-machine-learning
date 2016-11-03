@@ -123,11 +123,11 @@ class UtilityMaximizer(object):
 
 
 class Sampler(object):
-  def sample(self):
+  def sample_one(self):
     pass
 
   def sample_batch(self, size):
-    return [self.sample() for _ in xrange(size)]
+    return [self.sample_one() for _ in xrange(size)]
 
 
 class MonteCarloUtilityMaximizer(UtilityMaximizer):
@@ -141,12 +141,28 @@ class MonteCarloUtilityMaximizer(UtilityMaximizer):
     batch = self.sampler.sample_batch(self.batch_size)
     values = self.utility.compute_batch_values(batch)
     i = np.argmax(values)
-    return batch[i], values[i]
+    return batch[i]
 
 
 class BayesianOptimizer(Logger):
-  def __init__(self, log_level=1):
+  def __init__(self, sampler, log_level=1):
     super(BayesianOptimizer, self).__init__(log_level)
+    self.sampler = sampler
+    self.points = []
+    self.values = []
+
+
+  def next_proposal(self):
+    if not self.points:
+      return self.sampler.sample_one()
+    utility = ProbabilityOfImprovement(self.points, self.values, rbf_kernel)
+    maximizer = MonteCarloUtilityMaximizer(utility, self.sampler)
+    return maximizer.compute_max_point()
+
+
+  def add_point(self, point, value):
+    self.points.append(point)
+    self.values.append(value)
 
 
 def test1():
@@ -215,7 +231,7 @@ def test2():
   util = ProbabilityOfImprovement(points=x, values=f, kernel_function=rbf_kernel)
 
   class MySampler(Sampler):
-    def sample(self):
+    def sample_one(self):
       return [np.random.uniform(0, 3), np.random.uniform(1, 2), np.random.uniform(0, 2), np.random.uniform(0, 5)]
 
   sampler = MySampler()
