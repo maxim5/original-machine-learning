@@ -6,16 +6,16 @@ __author__ = "maxim"
 import numpy as np
 
 
-class UtilityMaximizer(object):
+class BaseUtilityMaximizer(object):
   def __init__(self, utility):
-    super(UtilityMaximizer, self).__init__()
+    super(BaseUtilityMaximizer, self).__init__()
     self.utility = utility
 
   def compute_max_point(self):
     pass
 
 
-class MonteCarloUtilityMaximizer(UtilityMaximizer):
+class MonteCarloUtilityMaximizer(BaseUtilityMaximizer):
   def __init__(self, utility, sampler, **params):
     super(MonteCarloUtilityMaximizer, self).__init__(utility)
     self.sampler = sampler
