@@ -7,9 +7,9 @@ import numpy as np
 from scipy import stats
 
 
-class Utility(object):
+class BaseUtility(object):
   def __init__(self, points, values):
-    super(Utility, self).__init__()
+    super(BaseUtility, self).__init__()
     self.points = np.array(points)
     self.values = np.array(values)
     assert self.points.shape[0] == self.values.shape[0]
@@ -18,7 +18,7 @@ class Utility(object):
     pass
 
 
-class BaseGaussianUtility(Utility):
+class BaseGaussianUtility(BaseUtility):
   def __init__(self, points, values, kernel, **params):
     super(BaseGaussianUtility, self).__init__(points, values)
     self.kernel = kernel
@@ -48,8 +48,8 @@ class ProbabilityOfImprovement(BaseGaussianUtility):
     self.max_value = np.max(self.values)
 
   def compute_values(self, batch):
-    mu_batch, sigma_batch = self._mean_and_std(batch)
-    z_batch = (mu_batch - self.max_value - self.epsilon) / sigma_batch
-    cdf = stats.norm.cdf(z_batch)
-    cdf[np.abs(mu_batch - self.max_value) < self.epsilon] = 0.0
+    mu, sigma = self._mean_and_std(batch)
+    z = (mu - self.max_value - self.epsilon) / sigma
+    cdf = stats.norm.cdf(z)
+    cdf[np.abs(mu - self.max_value) < self.epsilon] = 0.0
     return cdf

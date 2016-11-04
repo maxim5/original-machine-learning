@@ -3,6 +3,6 @@
 __author__ = "maxim"
 
 
-class Sampler(object):
+class BaseSampler(object):
   def sample(self, size):
     pass
