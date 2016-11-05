@@ -12,6 +12,11 @@ class BaseUtility(object):
     super(BaseUtility, self).__init__()
     self.points = np.array(points)
     self.values = np.array(values)
+
+    if len(self.points.shape) == 1:
+      self.points = self.points.reshape(-1, 1)
+    assert len(self.points.shape) == 2
+    assert len(self.values.shape) == 1
     assert self.points.shape[0] == self.values.shape[0]
 
   def compute_values(self, batch):
