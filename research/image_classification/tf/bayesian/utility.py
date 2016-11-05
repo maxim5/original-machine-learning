@@ -33,6 +33,8 @@ class BaseGaussianUtility(BaseUtility):
     self.k_inv_f = np.dot(self.k_inv, self.values)
 
   def _mean_and_std(self, batch):
+    assert len(batch.shape) == 2
+
     batch = np.array(batch)
     k_star = np.swapaxes(self.kernel.compute(self.points, batch), 0, 1)
     k_star_star = self.kernel.id(batch)
