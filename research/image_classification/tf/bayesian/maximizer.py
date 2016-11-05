@@ -4,6 +4,7 @@ __author__ = "maxim"
 
 
 import numpy as np
+from image_classification.tf.log import log
 
 
 class BaseUtilityMaximizer(object):
@@ -25,4 +26,5 @@ class MonteCarloUtilityMaximizer(BaseUtilityMaximizer):
     batch = self.sampler.sample(size=self.batch_size)
     values = self.utility.compute_values(batch)
     i = np.argmax(values)
+    log('Max prediction_value: %.6f' % values[i])
     return batch[i]
