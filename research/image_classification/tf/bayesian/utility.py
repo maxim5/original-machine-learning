@@ -3,12 +3,13 @@
 __author__ = "maxim"
 
 
+import math
 import numpy as np
 from scipy import stats
 
 
 class BaseUtility(object):
-  def __init__(self, points, values):
+  def __init__(self, points, values, **params):
     super(BaseUtility, self).__init__()
     self.points = np.array(points)
     self.values = np.array(values)
@@ -19,13 +20,16 @@ class BaseUtility(object):
     assert len(self.values.shape) == 1
     assert self.points.shape[0] == self.values.shape[0]
 
+    self.dimension = self.points.shape[1]
+    self.iteration = params.get('iteration', self.points.shape[0])
+
   def compute_values(self, batch):
     pass
 
 
 class BaseGaussianUtility(BaseUtility):
   def __init__(self, points, values, kernel, mu_prior=0, **params):
-    super(BaseGaussianUtility, self).__init__(points, values)
+    super(BaseGaussianUtility, self).__init__(points, values, **params)
     self.kernel = kernel
     self.mu_prior = mu_prior
 
@@ -61,3 +65,14 @@ class ProbabilityOfImprovement(BaseGaussianUtility):
     cdf = stats.norm.cdf(z)
     cdf[np.abs(mu - self.max_value) < self.epsilon] = 0.0
     return cdf
+
+
+class UpperConfidenceBound(BaseGaussianUtility):
+  def __init__(self, points, values, kernel, mu_prior=0, **params):
+    super(UpperConfidenceBound, self).__init__(points, values, kernel, mu_prior, **params)
+    delta = params.get('delta', 0.5)
+    self.beta = np.sqrt(2 * np.log(self.dimension * self.iteration**2 * math.pi**2 / (6 * delta)))
+
+  def compute_values(self, batch):
+    mu, sigma = self.mean_and_std(batch)
+    return mu + self.beta * sigma
