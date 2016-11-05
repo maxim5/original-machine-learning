@@ -3,9 +3,13 @@
 __author__ = "maxim"
 
 
+import numpy as np
+
 from kernel import RadialBasisFunction
 from maximizer import MonteCarloUtilityMaximizer
-from utility import ProbabilityOfImprovement
+from utility import UpperConfidenceBound
+
+from image_classification.tf.log import log
 
 
 class BayesianOptimizer(object):
@@ -21,8 +25,13 @@ class BayesianOptimizer(object):
     if not self.points:
       return self.sampler.sample(size=1)[0]
 
+    mu_prior = 0
+    if True:
+      mu_prior = np.mean(self.values, axis=0)
+    log('mu_prior=%.6f' % mu_prior)
+
     self.kernel = RadialBasisFunction()
-    self.utility = ProbabilityOfImprovement(self.points, self.values, self.kernel)
+    self.utility = UpperConfidenceBound(self.points, self.values, self.kernel, mu_prior=mu_prior)
     self.maximizer = MonteCarloUtilityMaximizer(self.utility, self.sampler)
     return self.maximizer.compute_max_point()
 
