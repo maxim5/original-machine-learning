@@ -13,15 +13,18 @@ class BayesianOptimizer(object):
     self.sampler = sampler
     self.points = []
     self.values = []
+    self.kernel = None
+    self.utility = None
+    self.maximizer = None
 
   def next_proposal(self):
     if not self.points:
       return self.sampler.sample(size=1)[0]
 
-    kernel = RadialBasisFunction()
-    utility = ProbabilityOfImprovement(self.points, self.values, kernel)
-    maximizer = MonteCarloUtilityMaximizer(utility, self.sampler)
-    return maximizer.compute_max_point()
+    self.kernel = RadialBasisFunction()
+    self.utility = ProbabilityOfImprovement(self.points, self.values, self.kernel)
+    self.maximizer = MonteCarloUtilityMaximizer(self.utility, self.sampler)
+    return self.maximizer.compute_max_point()
 
   def add_point(self, point, value):
     self.points.append(point)
