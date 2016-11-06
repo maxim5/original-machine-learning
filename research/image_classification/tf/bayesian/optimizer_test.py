@@ -14,7 +14,6 @@ from sampler import DefaultSampler
 
 from image_classification.tf.log import log
 
-
 class BayesianOptimizerTest(unittest.TestCase):
   def test_1d_simple(self):
     self.run_opt(a=-10, b=10, start=5, f=lambda x: np.abs(np.sin(x)/x), global_max=1, steps=10, plot=False)
@@ -33,46 +32,48 @@ class BayesianOptimizerTest(unittest.TestCase):
 
   def test_2d_complex(self):
     self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])*np.cos(x[1]), global_max=1, steps=30, plot=False)
-    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])/(np.cos(x[1])+2), global_max=1, steps=30, plot=False)
+    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])/(np.cos(x[1])+2), global_max=1, steps=40, plot=False)
 
   def run_opt(self, a, b, f, global_max, start=None, steps=10, plot=False):
+    if plot:
+      self._run(a, b, f, start, steps, batch_size=100000, stop_condition=None)
+      if type(a) in [tuple, list]:
+        self._plot_2d(a, b, f)
+      else:
+        self._plot_1d(a, b, f)
+      return
+
     size_list = [1000, 10000, 50000, 100000]
     for batch_size in size_list:
       try:
-        self._attempt(a, b, f, global_max, start, steps, plot, batch_size)
+        delta = abs(global_max) / 10.0
+        max_value = self._run(a, b, f, start, steps, batch_size,
+                              stop_condition=lambda x: abs(f(x) - global_max) <= delta)
+        self.assertAlmostEqual(max_value, global_max, delta=delta)
         return
       except AssertionError as e:
         log('Attempt for %d failed: %s' % (batch_size, str(e)))
         if batch_size == size_list[-1]:
           raise
 
-  def _attempt(self, a, b, f, global_max, start, steps, plot, batch_size):
+  def _run(self, a, b, f, start, steps, batch_size, stop_condition):
     sampler = DefaultSampler()
     sampler.add(lambda: np.random.uniform(a, b))
-
     self.optimizer = BayesianOptimizer(sampler, batch_size=batch_size)
 
-    def add(x):
-      self.optimizer.add_point(np.asarray(x), f(x))
-
     if start is not None:
-      add(start)
+      self.optimizer.add_point(np.asarray(start), f(start))
+
     for i in xrange(steps):
       x = self.optimizer.next_proposal()
       log('selected_point=%s -> true=%.6f' % (x, f(x)))
-      add(x)
+      self.optimizer.add_point(x, f(x))
+      if stop_condition is not None and stop_condition(x):
+        break
 
     i = np.argmax(self.optimizer.values)
     log('Best found: %s -> %.6f' % (self.optimizer.points[i], self.optimizer.values[i]))
-
-    if plot:
-      if type(a) in [tuple, list]:
-        self._plot_2d(a, b, f)
-      else:
-        self._plot_1d(a, b, f)
-
-    delta = abs(global_max) / 10.0
-    self.assertAlmostEqual(self.optimizer.values[i], global_max, delta=delta)
+    return self.optimizer.values[i]
 
   def _plot_1d(self, a, b, f, grid_size=1000):
     grid = np.linspace(a, b, num=grid_size).reshape((-1, 1))
