@@ -15,11 +15,6 @@ from sampler import DefaultSampler
 from image_classification.tf.log import log
 
 
-def debug(*msg):
-  if False:
-    log(*msg)
-
-
 class BayesianOptimizerTest(unittest.TestCase):
   def test_1d_simple(self):
     self.run_opt(a=-10, b=10, start=5, f=lambda x: np.abs(np.sin(x)/x), global_max=1, steps=15, plot=False)
@@ -30,11 +25,14 @@ class BayesianOptimizerTest(unittest.TestCase):
   def test_1d_complex(self):
     self.run_opt(a=-10, b=10, start=3, f=lambda x: x * np.sin(x), global_max=7.9, steps=50, plot=False)
     self.run_opt(a=-12, b=16, start=3, f=lambda x: x*np.sin(x+1)/2, global_max=6.55, steps=50, plot=False)
-    self.run_opt(a=0, b=10, start=3, f=lambda x: np.exp(np.sin(x*5)*np.sqrt(x)), global_max=20.3, steps=40, plot=False)
+    self.run_opt(a=0, b=10, start=3, f=lambda x: np.exp(np.sin(x*5)*np.sqrt(x)), global_max=20.3, steps=50, plot=False)
 
   def test_2d_simple(self):
     self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: x[0] + x[1], global_max=20, steps=15, plot=False)
     self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0]) + np.cos(x[1]), global_max=2, steps=15, plot=False)
+
+  def test_2d_complex(self):
+    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0]) * np.cos(x[1]), global_max=1, steps=50, plot=False)
 
 
   def run_opt(self, a, b, f, global_max, start=None, steps=10, plot=False):
@@ -50,17 +48,17 @@ class BayesianOptimizerTest(unittest.TestCase):
       add(start)
     for i in xrange(steps):
       x = self.optimizer.next_proposal()
-      debug('selected_point=%s -> true=%.6f' % (x, f(x)))
+      log('selected_point=%s -> true=%.6f' % (x, f(x)))
       add(x)
 
     i = np.argmax(self.optimizer.values)
-    debug('Best found: %s -> %.6f' % (self.optimizer.points[i], self.optimizer.values[i]))
+    log('Best found: %s -> %.6f' % (self.optimizer.points[i], self.optimizer.values[i]))
 
     if plot:
       if type(a) in [tuple, list]:
-        self._plot_1d(a, b, f)
-      else:
         self._plot_2d(a, b, f)
+      else:
+        self._plot_1d(a, b, f)
 
     delta = abs(global_max) / 10.0
     self.assertAlmostEqual(self.optimizer.values[i], global_max, delta=delta)
