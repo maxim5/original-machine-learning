@@ -23,17 +23,17 @@ class BayesianOptimizerTest(unittest.TestCase):
     self.run_opt(a=-8, b=8, start=3, f=lambda x: x/(np.sin(x)+2), global_max=4.8, steps=15, plot=False)
 
   def test_1d_complex(self):
-    self.run_opt(a=-10, b=10, start=3, f=lambda x: x * np.sin(x), global_max=7.9, steps=50, plot=False)
+    self.run_opt(a=-10, b=10, start=3, f=lambda x: x*np.sin(x), global_max=7.9, steps=50, plot=False)
     self.run_opt(a=-12, b=16, start=3, f=lambda x: x*np.sin(x+1)/2, global_max=6.55, steps=50, plot=False)
     self.run_opt(a=0, b=10, start=3, f=lambda x: np.exp(np.sin(x*5)*np.sqrt(x)), global_max=20.3, steps=50, plot=False)
 
   def test_2d_simple(self):
-    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: x[0] + x[1], global_max=20, steps=15, plot=False)
-    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0]) + np.cos(x[1]), global_max=2, steps=15, plot=False)
+    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: x[0]+x[1], global_max=20, steps=15, plot=False)
+    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])+np.cos(x[1]), global_max=2, steps=15, plot=False)
 
   def test_2d_complex(self):
-    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0]) * np.cos(x[1]), global_max=1, steps=50, plot=False)
-
+    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])*np.cos(x[1]), global_max=1, steps=50, plot=False)
+    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])/(np.cos(x[1])+2), global_max=1, steps=50, plot=False)
 
   def run_opt(self, a, b, f, global_max, start=None, steps=10, plot=False):
     sampler = DefaultSampler()
@@ -63,7 +63,6 @@ class BayesianOptimizerTest(unittest.TestCase):
     delta = abs(global_max) / 10.0
     self.assertAlmostEqual(self.optimizer.values[i], global_max, delta=delta)
 
-
   def _plot_1d(self, a, b, f, grid_size=1000):
     grid = np.linspace(a, b, num=grid_size).reshape((-1, 1))
     mu, sigma = self.optimizer.utility.mean_and_std(grid)
@@ -76,7 +75,6 @@ class BayesianOptimizerTest(unittest.TestCase):
     plt.xlim([a - 0.5, b + 0.5])
     # plt.legend()
     plt.show()
-
 
   def _plot_2d(self, a, b, f, grid_size=200):
     grid_x = np.linspace(a[0], b[0], num=grid_size).reshape((-1, 1))
@@ -107,6 +105,12 @@ class BayesianOptimizerTest(unittest.TestCase):
     # plt.legend()
     plt.show()
 
+  def _eval_max(self, a, b, f):
+    sampler = DefaultSampler()
+    sampler.add(lambda: np.random.uniform(a, b))
+    batch = sampler.sample(1000000)
+    batch = np.swapaxes(batch, 1, 0)
+    return np.max(f(batch))
 
   def _debug(self, val):
     log(self.optimizer.utility.compute_values(np.asarray([[val]])))
