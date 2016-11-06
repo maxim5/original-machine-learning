@@ -30,6 +30,11 @@ class BayesianOptimizerTest(unittest.TestCase):
     self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: x[0]+x[1], global_max=20, steps=10, plot=False)
     self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])+np.cos(x[1]), global_max=2, steps=10, plot=False)
 
+  def test_2d_multiple_local_maxima(self):
+    self.run_opt(a=(0, 0), b=(9, 9), start=None, f=(lambda x: (x[0]+x[1])/(np.exp(-np.sin(x[0])))), global_max=46, steps=20, plot=False)
+    self.run_opt(a=(0, 0), b=(9, 9), start=None, f=(lambda x: (x[0]+x[1])/((x[0]-1)**2-np.sin(x[1])+2)), global_max=8.95, steps=20, plot=False)
+    self.run_opt(a=(-10, -10), b=(15, 15), start=None, f=lambda x: np.sum(x*np.sin(x+1)/2, axis=0), global_max=13.175, steps=40, plot=False)
+
   def test_2d_complex(self):
     self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])*np.cos(x[1]), global_max=1, steps=30, plot=False)
     self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])/(np.cos(x[1])+2), global_max=1, steps=40, plot=False)
