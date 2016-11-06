@@ -13,13 +13,14 @@ from image_classification.tf.log import log
 
 
 class BayesianOptimizer(object):
-  def __init__(self, sampler):
+  def __init__(self, sampler, **params):
     self.sampler = sampler
     self.points = []
     self.values = []
     self.kernel = None
     self.utility = None
     self.maximizer = None
+    self.params = params
 
   def next_proposal(self):
     if not self.points:
@@ -32,7 +33,7 @@ class BayesianOptimizer(object):
 
     self.kernel = RadialBasisFunction()
     self.utility = UpperConfidenceBound(self.points, self.values, self.kernel, mu_prior=mu_prior)
-    self.maximizer = MonteCarloUtilityMaximizer(self.utility, self.sampler)
+    self.maximizer = MonteCarloUtilityMaximizer(self.utility, self.sampler, **self.params)
     return self.maximizer.compute_max_point()
 
   def add_point(self, point, value):
