@@ -17,29 +17,40 @@ from image_classification.tf.log import log
 
 class BayesianOptimizerTest(unittest.TestCase):
   def test_1d_simple(self):
-    self.run_opt(a=-10, b=10, start=5, f=lambda x: np.abs(np.sin(x)/x), global_max=1, steps=15, plot=False)
-    self.run_opt(a=-10, b=10, start=5, f=lambda x: x*x, global_max=100, steps=15, plot=False)
-    self.run_opt(a=-10, b=10, start=5, f=lambda x: np.sin(np.log(np.abs(x))), global_max=1, steps=15, plot=False)
-    self.run_opt(a=-8, b=8, start=3, f=lambda x: x/(np.sin(x)+2), global_max=4.8, steps=15, plot=False)
+    self.run_opt(a=-10, b=10, start=5, f=lambda x: np.abs(np.sin(x)/x), global_max=1, steps=10, plot=False)
+    self.run_opt(a=-10, b=10, start=5, f=lambda x: x*x, global_max=100, steps=10, plot=False)
+    self.run_opt(a=-10, b=10, start=5, f=lambda x: np.sin(np.log(np.abs(x))), global_max=1, steps=10, plot=False)
+    self.run_opt(a=-8, b=8, start=3, f=lambda x: x/(np.sin(x)+2), global_max=4.8, steps=10, plot=False)
 
   def test_1d_complex(self):
-    self.run_opt(a=-10, b=10, start=3, f=lambda x: x*np.sin(x), global_max=7.9, steps=50, plot=False)
-    self.run_opt(a=-12, b=16, start=3, f=lambda x: x*np.sin(x+1)/2, global_max=6.55, steps=50, plot=False)
-    self.run_opt(a=0, b=10, start=3, f=lambda x: np.exp(np.sin(x*5)*np.sqrt(x)), global_max=20.3, steps=50, plot=False)
+    self.run_opt(a=-10, b=10, start=3, f=lambda x: x*np.sin(x), global_max=7.9, steps=30, plot=False)
+    self.run_opt(a=-12, b=16, start=3, f=lambda x: x*np.sin(x+1)/2, global_max=6.55, steps=30, plot=False)
+    self.run_opt(a=0, b=10, start=3, f=lambda x: np.exp(np.sin(x*5)*np.sqrt(x)), global_max=20.3, steps=30, plot=False)
 
   def test_2d_simple(self):
-    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: x[0]+x[1], global_max=20, steps=15, plot=False)
-    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])+np.cos(x[1]), global_max=2, steps=15, plot=False)
+    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: x[0]+x[1], global_max=20, steps=10, plot=False)
+    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])+np.cos(x[1]), global_max=2, steps=10, plot=False)
 
   def test_2d_complex(self):
-    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])*np.cos(x[1]), global_max=1, steps=50, plot=False)
-    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])/(np.cos(x[1])+2), global_max=1, steps=50, plot=False)
+    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])*np.cos(x[1]), global_max=1, steps=30, plot=False)
+    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])/(np.cos(x[1])+2), global_max=1, steps=30, plot=False)
 
   def run_opt(self, a, b, f, global_max, start=None, steps=10, plot=False):
+    size_list = [1000, 10000, 50000, 100000]
+    for batch_size in size_list:
+      try:
+        self._attempt(a, b, f, global_max, start, steps, plot, batch_size)
+        return
+      except AssertionError as e:
+        log('Attempt for %d failed: %s' % (batch_size, str(e)))
+        if batch_size == size_list[-1]:
+          raise
+
+  def _attempt(self, a, b, f, global_max, start, steps, plot, batch_size):
     sampler = DefaultSampler()
     sampler.add(lambda: np.random.uniform(a, b))
 
-    self.optimizer = BayesianOptimizer(sampler, batch_size=10000)
+    self.optimizer = BayesianOptimizer(sampler, batch_size=batch_size)
 
     def add(x):
       self.optimizer.add_point(np.asarray(x), f(x))
