@@ -15,31 +15,114 @@ from sampler import DefaultSampler
 from image_classification.tf.log import log
 
 class BayesianOptimizerTest(unittest.TestCase):
-  def test_1d_simple(self):
-    self.run_opt(a=-10, b=10, start=5, f=lambda x: np.abs(np.sin(x)/x), global_max=1, steps=10, plot=False)
-    self.run_opt(a=-10, b=10, start=5, f=lambda x: x*x, global_max=100, steps=10, plot=False)
-    self.run_opt(a=-10, b=10, start=5, f=lambda x: np.sin(np.log(np.abs(x))), global_max=1, steps=10, plot=False)
-    self.run_opt(a=-8, b=8, start=3, f=lambda x: x/(np.sin(x)+2), global_max=4.8, steps=10, plot=False)
+  # 1-D
 
-  def test_1d_complex(self):
-    self.run_opt(a=-10, b=10, start=3, f=lambda x: x*np.sin(x), global_max=7.9, steps=30, plot=False)
-    self.run_opt(a=-12, b=16, start=3, f=lambda x: x*np.sin(x+1)/2, global_max=6.55, steps=30, plot=False)
-    self.run_opt(a=0, b=10, start=3, f=lambda x: np.exp(np.sin(x*5)*np.sqrt(x)), global_max=20.3, steps=30, plot=False)
+  def test_1d_simple(self):
+    self.run_opt(f=lambda x: np.abs(np.sin(x) / x), a=-10, b=10, start=5, global_max=1, steps=10, plot=False)
+    self.run_opt(f=lambda x: x * x, a=-10, b=10, start=5, global_max=100, steps=10, plot=False)
+    self.run_opt(f=lambda x: np.sin(np.log(np.abs(x))), a=-10, b=10, start=5, global_max=1, steps=10, plot=False)
+    self.run_opt(f=lambda x: x / (np.sin(x) + 2), a=-8, b=8, start=3, global_max=4.8, steps=10, plot=False)
+
+  def test_1d_periodic_max_1(self):
+    self.run_opt(f=lambda x: x * np.sin(x),
+                 a=-10, b=10, start=3,
+                 global_max=7.9, delta=0.3,
+                 steps=30,
+                 plot=False)
+
+  def test_1d_periodic_max_2(self):
+    self.run_opt(f=lambda x: x * np.sin(x + 1) / 2,
+                 a=-12, b=16, start=3,
+                 global_max=6.55, delta=0.5,
+                 steps=30,
+                 plot=False)
+
+  def test_1d_many_small_peaks(self):
+    self.run_opt(f=lambda x: np.exp(np.sin(x * 5) * np.sqrt(x)),
+                 a=0, b=10, start=3,
+                 global_max=20.3, delta=1.0,
+                 steps=30,
+                 plot=False)
+
+  # 2-D
 
   def test_2d_simple(self):
-    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: x[0]+x[1], global_max=20, steps=10, plot=False)
-    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])+np.cos(x[1]), global_max=2, steps=10, plot=False)
+    self.run_opt(f=lambda x: x[0] + x[1],
+                 a=(0, 0), b=(10, 10), start=(5, 5),
+                 global_max=20, delta=1.0,
+                 steps=10,
+                 plot=False)
 
-  def test_2d_multiple_local_maxima(self):
-    self.run_opt(a=(0, 0), b=(9, 9), start=None, f=(lambda x: (x[0]+x[1])/(np.exp(-np.sin(x[0])))), global_max=46, steps=20, plot=False)
-    self.run_opt(a=(0, 0), b=(9, 9), start=None, f=(lambda x: (x[0]+x[1])/((x[0]-1)**2-np.sin(x[1])+2)), global_max=8.95, steps=20, plot=False)
-    self.run_opt(a=(-10, -10), b=(15, 15), start=None, f=lambda x: np.sum(x*np.sin(x+1)/2, axis=0), global_max=13.175, steps=40, plot=False)
+  def test_2d_peak_1(self):
+    self.run_opt(f=(lambda x: (x[0] + x[1]) / ((x[0] - 1) ** 2 - np.sin(x[1]) + 2)),
+                 a=(0, 0), b=(9, 9), start=None,
+                 global_max=8.95,
+                 steps=20,
+                 plot=False)
 
-  def test_2d_complex(self):
-    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])*np.cos(x[1]), global_max=1, steps=30, plot=False)
-    self.run_opt(a=(0, 0), b=(10, 10), start=(5, 5), f=lambda x: np.sin(x[0])/(np.cos(x[1])+2), global_max=1, steps=40, plot=False)
+  def test_2d_irregular_max_1(self):
+    self.run_opt(f=(lambda x: (x[0] + x[1]) / (np.exp(-np.sin(x[0])))),
+                 a=(0, 0), b=(9, 9), start=None,
+                 global_max=46,
+                 steps=20,
+                 plot=False)
 
-  def run_opt(self, a, b, f, global_max, start=None, steps=10, plot=False):
+  def test_2d_irregular_max_2(self):
+    self.run_opt(f=lambda x: np.sum(x * np.sin(x + 1) / 2, axis=0),
+                 a=(-10, -10), b=(15, 15), start=None,
+                 global_max=13.175,
+                 steps=40,
+                 plot=False)
+
+  def test_2d_periodic_max_1(self):
+    self.run_opt(f=lambda x: np.sin(x[0]) + np.cos(x[1]),
+                 a=(0, 0), b=(10, 10), start=(5, 5),
+                 global_max=2,
+                 steps=10,
+                 plot=False)
+
+  def test_2d_periodic_max_2(self):
+    self.run_opt(f=lambda x: np.sin(x[0]) * np.cos(x[1]),
+                 a=(0, 0), b=(10, 10), start=(5, 5),
+                 global_max=1,
+                 steps=30,
+                 plot=False)
+
+  def test_2d_periodic_max_3(self):
+    self.run_opt(f=lambda x: np.sin(x[0]) / (np.cos(x[1]) + 2),
+                 a=(0, 0), b=(10, 10), start=(5, 5),
+                 global_max=1,
+                 steps=40,
+                 plot=False)
+
+  # 4-D
+
+  def test_4d_simple(self):
+    self.run_opt(f=lambda x: x[0] + np.sin(x[1]) - x[2] + x[3],
+                 a=(-10, -10, -1, -1), b=(10, 10, 1, 1), start=None,
+                 global_max=13, delta=1.0,
+                 steps=20)
+
+  # Realistic
+
+  def test_realistic_1(self):
+    def f(x):
+      init, size, reg, _ = x
+      result = 10 * np.cos(size - 3) * np.cos(reg - size / 2)
+      result = np.asarray(result)
+      result[size > 6] = 10 - size[size > 6]
+      result[size < 1] = size[size < 1]
+      result[init > 4] = 7 - init[init > 4]
+      return result
+
+    self.run_opt(f=f,
+                 a=(0, 0, 0, 0), b=(10, 10, 10, 1), start=None,
+                 global_max=10, delta=0.5,
+                 steps=20)
+
+  # Technical details
+
+  def run_opt(self, f, a, b, start=None, global_max=None, delta=None, steps=10, plot=False):
     if plot:
       self._run(a, b, f, start, steps, batch_size=100000, stop_condition=None)
       self._plot(a, b, f)
@@ -48,7 +131,8 @@ class BayesianOptimizerTest(unittest.TestCase):
     size_list = [1000, 10000, 50000, 100000]
     for batch_size in size_list:
       try:
-        delta = abs(global_max) / 10.0
+        if delta is None:
+          delta = abs(global_max) / 10.0
         max_value = self._run(a, b, f, start, steps, batch_size,
                               stop_condition=lambda x: abs(f(x) - global_max) <= delta)
         self.assertAlmostEqual(max_value, global_max, delta=delta)
@@ -126,7 +210,7 @@ class BayesianOptimizerTest(unittest.TestCase):
     # plt.legend()
     plt.show()
 
-  def _eval_max(self, a, b, f):
+  def _eval_max(self, f, a, b):
     sampler = DefaultSampler()
     sampler.add(lambda: np.random.uniform(a, b))
     batch = sampler.sample(1000000)
