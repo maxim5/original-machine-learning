@@ -145,7 +145,7 @@ class BayesianOptimizerTest(unittest.TestCase):
   def _run(self, a, b, f, start, steps, batch_size, stop_condition):
     sampler = DefaultSampler()
     sampler.add(lambda: np.random.uniform(a, b))
-    self.optimizer = BayesianOptimizer(sampler, batch_size=batch_size)
+    self.optimizer = BayesianOptimizer(sampler, mc_batch_size=batch_size)
 
     if start is not None:
       self.optimizer.add_point(np.asarray(start), f(start))
