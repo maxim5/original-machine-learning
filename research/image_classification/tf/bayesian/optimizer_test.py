@@ -124,8 +124,8 @@ class BayesianOptimizerTest(unittest.TestCase):
 
   def run_opt(self, f, a, b, start=None, global_max=None, delta=None, steps=10, plot=False):
     if plot:
-      self._run(a, b, f, start, steps, batch_size=100000, stop_condition=None)
-      self._plot(a, b, f)
+      self._run(f, a, b, start, steps, batch_size=100000, stop_condition=None)
+      self._plot(f, a, b)
       return
 
     size_list = [1000, 10000, 50000, 100000]
@@ -133,7 +133,7 @@ class BayesianOptimizerTest(unittest.TestCase):
       try:
         if delta is None:
           delta = abs(global_max) / 10.0
-        max_value = self._run(a, b, f, start, steps, batch_size,
+        max_value = self._run(f, a, b, start, steps, batch_size,
                               stop_condition=lambda x: abs(f(x) - global_max) <= delta)
         self.assertAlmostEqual(max_value, global_max, delta=delta)
         return
@@ -142,7 +142,7 @@ class BayesianOptimizerTest(unittest.TestCase):
         if batch_size == size_list[-1]:
           raise
 
-  def _run(self, a, b, f, start, steps, batch_size, stop_condition):
+  def _run(self, f, a, b, start, steps, batch_size, stop_condition):
     sampler = DefaultSampler()
     sampler.add(lambda: np.random.uniform(a, b))
     self.optimizer = BayesianOptimizer(sampler, mc_batch_size=batch_size)
@@ -161,14 +161,14 @@ class BayesianOptimizerTest(unittest.TestCase):
     log('Best found: %s -> %.6f' % (self.optimizer.points[i], self.optimizer.values[i]))
     return self.optimizer.values[i]
 
-  def _plot(self, a, b, f):
+  def _plot(self, f, a, b):
     if type(a) in [tuple, list]:
       assert len(a) == 2
-      self._plot_2d(a, b, f)
+      self._plot_2d(f, a, b)
     else:
-      self._plot_1d(a, b, f)
+      self._plot_1d(f, a, b)
 
-  def _plot_1d(self, a, b, f, grid_size=1000):
+  def _plot_1d(self, f, a, b, grid_size=1000):
     grid = np.linspace(a, b, num=grid_size).reshape((-1, 1))
     mu, sigma = self.optimizer.utility.mean_and_std(grid)
 
@@ -181,7 +181,7 @@ class BayesianOptimizerTest(unittest.TestCase):
     # plt.legend()
     plt.show()
 
-  def _plot_2d(self, a, b, f, grid_size=200):
+  def _plot_2d(self, f, a, b, grid_size=200):
     grid_x = np.linspace(a[0], b[0], num=grid_size).reshape((-1, 1))
     grid_y = np.linspace(a[1], b[1], num=grid_size).reshape((-1, 1))
     x, y = np.meshgrid(grid_x, grid_y)
@@ -217,7 +217,7 @@ class BayesianOptimizerTest(unittest.TestCase):
     batch = np.swapaxes(batch, 1, 0)
     return np.max(f(batch))
 
-  def _debug(self, val):
+  def _eval_at(self, val):
     log(self.optimizer.utility.compute_values(np.asarray([[val]])))
     log(self.optimizer.utility.compute_values(self.optimizer.utility.points))
 
