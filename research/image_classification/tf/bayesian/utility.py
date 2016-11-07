@@ -31,11 +31,16 @@ class BaseGaussianUtility(BaseUtility):
   def __init__(self, points, values, kernel, mu_prior=0, **params):
     super(BaseGaussianUtility, self).__init__(points, values, **params)
     self.kernel = kernel
-    self.mu_prior = mu_prior
+
+    mu_prior = np.array(mu_prior)
+    if len(mu_prior.shape) == 0:
+      mu_prior = np.repeat(mu_prior, self.values.shape[0] + 1)
+    mu_prior_values, mu_prior_star = mu_prior[:-1], mu_prior[-1]
 
     kernel_matrix = self.kernel.compute(self.points)
     self.k_inv = np.linalg.pinv(kernel_matrix)
-    self.k_inv_f = np.dot(self.k_inv, (self.values-self.mu_prior))
+    self.k_inv_f = np.dot(self.k_inv, (self.values - mu_prior_values))
+    self.mu_prior_star = mu_prior_star
 
   def mean_and_std(self, batch):
     assert len(batch.shape) == 2
@@ -44,7 +49,7 @@ class BaseGaussianUtility(BaseUtility):
     k_star = np.swapaxes(self.kernel.compute(self.points, batch), 0, 1)
     k_star_star = self.kernel.id(batch)
 
-    mu_star = self.mu_prior + np.dot(k_star, self.k_inv_f)
+    mu_star = self.mu_prior_star + np.dot(k_star, self.k_inv_f)
 
     t_star = np.dot(self.k_inv, k_star.T)
     t_star = np.einsum('ij,ji->i', k_star, t_star)
