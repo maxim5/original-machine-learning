@@ -42,10 +42,7 @@ class BayesianOptimizerTest(unittest.TestCase):
   def run_opt(self, a, b, f, global_max, start=None, steps=10, plot=False):
     if plot:
       self._run(a, b, f, start, steps, batch_size=100000, stop_condition=None)
-      if type(a) in [tuple, list]:
-        self._plot_2d(a, b, f)
-      else:
-        self._plot_1d(a, b, f)
+      self._plot(a, b, f)
       return
 
     size_list = [1000, 10000, 50000, 100000]
@@ -79,6 +76,13 @@ class BayesianOptimizerTest(unittest.TestCase):
     i = np.argmax(self.optimizer.values)
     log('Best found: %s -> %.6f' % (self.optimizer.points[i], self.optimizer.values[i]))
     return self.optimizer.values[i]
+
+  def _plot(self, a, b, f):
+    if type(a) in [tuple, list]:
+      assert len(a) == 2
+      self._plot_2d(a, b, f)
+    else:
+      self._plot_1d(a, b, f)
 
   def _plot_1d(self, a, b, f, grid_size=1000):
     grid = np.linspace(a, b, num=grid_size).reshape((-1, 1))
