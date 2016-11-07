@@ -98,17 +98,26 @@ class BayesianOptimizerTest(unittest.TestCase):
 
   # 4-D
 
-  def test_4d_simple(self):
+  def test_4d_simple_1(self):
+    self.run_opt(f=lambda x: x[0] + 2*x[1] - x[2] - 2*x[3],
+                 a=(-10, -10, -10, -10), b=(10, 10, 10, 10), start=None,
+                 global_max=60,
+                 steps=50,
+                 plot=False)
+
+  def test_4d_simple_2(self):
     self.run_opt(f=lambda x: x[0] + np.sin(x[1]) - x[2] + x[3],
                  a=(-10, -10, -1, -1), b=(10, 10, 1, 1), start=None,
                  global_max=13, delta=1.0,
-                 steps=20)
+                 steps=20,
+                 plot=False)
 
   def test_4d_irregular_max(self):
     self.run_opt(f=lambda x: (np.sin(x[0]**2) + np.exp((x[1] - x[2]) / 10)) / (x[3]**2 + 1),
                  a=(-10, -10, -10, -10), b=(10, 10, 10, 10), start=None,
                  global_max=math.e**2 + 1, delta=1.0,
-                 steps=80)
+                 steps=50,
+                 plot=False)
 
   # Realistic
 
@@ -170,8 +179,10 @@ class BayesianOptimizerTest(unittest.TestCase):
 
   def _plot(self, f, a, b):
     if type(a) in [tuple, list]:
-      assert len(a) == 2
-      self._plot_2d(f, a, b)
+      if len(a) == 2:
+        self._plot_2d(f, a, b)
+      else:
+        self._scatter_plot_per_dimension()
     else:
       self._plot_1d(f, a, b)
 
@@ -215,6 +226,33 @@ class BayesianOptimizerTest(unittest.TestCase):
     ax.plot_surface(x, y, mu - sigma, color='blue', alpha=0.3)
     ax.scatter(xs, ys, zs, color='red', marker='o', s=100)
     # plt.legend()
+    plt.show()
+
+  def _scatter_plot_per_dimension(self):
+    points = self.optimizer.utility.points
+    values = self.optimizer.utility.values
+    n, d = points.shape
+
+    _, axes = plt.subplots(1, d)
+    for j in xrange(d):
+      axes[j].scatter(points[:, j], values, s=100, alpha=0.5)
+    plt.show()
+
+  def _bar_plot_per_dimension(self):
+    points = self.optimizer.utility.points
+    values = self.optimizer.utility.values
+    n, d = points.shape
+
+    _, axes = plt.subplots(1, d)
+    for j in xrange(d):
+      p = points[:, j]
+      split = np.linspace(np.min(p), np.max(p), 10)
+      bar_values = np.zeros((len(split),))
+      for k in xrange(len(split) - 1):
+        interval = np.logical_and(split[k] < p, p < split[k+1])
+        if np.any(interval):
+          bar_values[k] = np.mean(values[interval])
+      axes[j].bar(split, height=bar_values, width=split[1]-split[0])
     plt.show()
 
   def _eval_max(self, f, a, b):
