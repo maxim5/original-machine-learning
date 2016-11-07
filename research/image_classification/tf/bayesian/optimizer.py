@@ -15,6 +15,7 @@ from image_classification.tf.log import log
 
 mu_priors = {
   'mean': lambda values: np.mean(values, axis=0),
+  'max': lambda values: np.max(values, axis=0),
 }
 
 kernels = {
