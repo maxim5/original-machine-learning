@@ -144,19 +144,20 @@ class BayesianOptimizerTest(unittest.TestCase):
       self._plot(f, a, b)
       return
 
+    errors = []
     size_list = [1000, 10000, 50000, 100000]
     for batch_size in size_list:
       try:
-        if delta is None:
-          delta = abs(global_max) / 10.0
+        delta = delta or abs(global_max) / 10.0
         max_value = self._run(f, a, b, start, steps, batch_size,
                               stop_condition=lambda x: abs(f(x) - global_max) <= delta)
         self.assertAlmostEqual(max_value, global_max, delta=delta)
         return
       except AssertionError as e:
+        errors.append(str(e))
         log('Attempt for %d failed: %s' % (batch_size, str(e)))
         if batch_size == size_list[-1]:
-          raise
+          self.fail(',\n                '.join(errors))
 
   def _run(self, f, a, b, start, steps, batch_size, stop_condition):
     sampler = DefaultSampler()
