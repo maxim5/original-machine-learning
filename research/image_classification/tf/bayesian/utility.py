@@ -73,6 +73,20 @@ class ProbabilityOfImprovement(BaseGaussianUtility):
     return cdf
 
 
+class ExpectedImprovement(BaseGaussianUtility):
+  def __init__(self, points, values, kernel, mu_prior=0, noise_sigma=0.0, **params):
+    super(ExpectedImprovement, self).__init__(points, values, kernel, mu_prior, noise_sigma, **params)
+    self.epsilon = params.get('epsilon', 1e-8)
+    self.max_value = np.max(self.values)
+
+  def compute_values(self, batch):
+    mu, sigma = self.mean_and_std(batch)
+    z = (mu - self.max_value - self.epsilon) / sigma
+    ei = (mu - self.max_value - self.epsilon) * stats.norm.cdf(z) + sigma * stats.norm.pdf(z)
+    ei[np.abs(mu - self.max_value) < self.epsilon] = 0.0
+    return ei
+
+
 class UpperConfidenceBound(BaseGaussianUtility):
   def __init__(self, points, values, kernel, mu_prior=0, **params):
     super(UpperConfidenceBound, self).__init__(points, values, kernel, mu_prior, **params)
