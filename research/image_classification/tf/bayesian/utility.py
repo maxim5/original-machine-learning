@@ -28,7 +28,7 @@ class BaseUtility(object):
 
 
 class BaseGaussianUtility(BaseUtility):
-  def __init__(self, points, values, kernel, mu_prior=0, **params):
+  def __init__(self, points, values, kernel, mu_prior=0, noise_sigma=0.0, **params):
     super(BaseGaussianUtility, self).__init__(points, values, **params)
     self.kernel = kernel
 
@@ -38,7 +38,7 @@ class BaseGaussianUtility(BaseUtility):
     else:
       mu_prior_values, mu_prior_star = mu_prior[:-1], mu_prior[-1]
 
-    kernel_matrix = self.kernel.compute(self.points)
+    kernel_matrix = self.kernel.compute(self.points) + np.eye(self.points.shape[0]) * noise_sigma
     self.k_inv = np.linalg.pinv(kernel_matrix)
     self.k_inv_f = np.dot(self.k_inv, (self.values - mu_prior_values))
     self.mu_prior_star = mu_prior_star
