@@ -60,8 +60,8 @@ class BaseGaussianUtility(BaseUtility):
 
 
 class ProbabilityOfImprovement(BaseGaussianUtility):
-  def __init__(self, points, values, kernel, mu_prior=0, **params):
-    super(ProbabilityOfImprovement, self).__init__(points, values, kernel, mu_prior, **params)
+  def __init__(self, points, values, kernel, mu_prior=0, noise_sigma=0.0, **params):
+    super(ProbabilityOfImprovement, self).__init__(points, values, kernel, mu_prior, noise_sigma, **params)
     self.epsilon = params.get('epsilon', 1e-8)
     self.max_value = np.max(self.values)
 
@@ -88,8 +88,8 @@ class ExpectedImprovement(BaseGaussianUtility):
 
 
 class UpperConfidenceBound(BaseGaussianUtility):
-  def __init__(self, points, values, kernel, mu_prior=0, **params):
-    super(UpperConfidenceBound, self).__init__(points, values, kernel, mu_prior, **params)
+  def __init__(self, points, values, kernel, mu_prior=0, noise_sigma=0.0, **params):
+    super(UpperConfidenceBound, self).__init__(points, values, kernel, mu_prior, noise_sigma, **params)
     delta = params.get('delta', 0.5)
     self.beta = np.sqrt(2 * np.log(self.dimension * self.iteration**2 * math.pi**2 / (6 * delta)))
 
