@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 __author__ = "maxim"
 
-import math
 import unittest
 
 import matplotlib.pyplot as plt
@@ -113,9 +112,9 @@ class BayesianOptimizerTest(unittest.TestCase):
                  plot=False)
 
   def test_4d_irregular_max(self):
-    self.run_opt(f=lambda x: (np.sin(x[0]**2) + np.exp((x[1] - x[2]) / 10)) / (x[3]**2 + 1),
+    self.run_opt(f=lambda x: (np.sin(x[0]**2) + np.power(2, (x[1] - x[2]) / 10)) / (x[3]**2 + 1),
                  a=(-10, -10, -10, -10), b=(10, 10, 10, 10), start=None,
-                 global_max=math.e**2 + 1, delta=1.0,
+                 global_max=5, delta=1.0,
                  steps=50,
                  plot=False)
 
