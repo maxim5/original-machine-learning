@@ -69,7 +69,7 @@ class ProbabilityOfImprovement(BaseGaussianUtility):
     mu, sigma = self.mean_and_std(batch)
     z = (mu - self.max_value - self.epsilon) / sigma
     cdf = stats.norm.cdf(z)
-    cdf[np.abs(mu - self.max_value) < self.epsilon] = 0.0
+    cdf[np.abs(sigma) < self.epsilon] = 0.0
     return cdf
 
 
@@ -83,7 +83,7 @@ class ExpectedImprovement(BaseGaussianUtility):
     mu, sigma = self.mean_and_std(batch)
     z = (mu - self.max_value - self.epsilon) / sigma
     ei = (mu - self.max_value - self.epsilon) * stats.norm.cdf(z) + sigma * stats.norm.pdf(z)
-    ei[np.abs(mu - self.max_value) < self.epsilon] = 0.0
+    ei[np.abs(sigma) < self.epsilon] = 0.0
     return ei
 
 
