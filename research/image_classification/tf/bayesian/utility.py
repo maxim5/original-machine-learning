@@ -34,8 +34,9 @@ class BaseGaussianUtility(BaseUtility):
 
     mu_prior = np.array(mu_prior)
     if len(mu_prior.shape) == 0:
-      mu_prior = np.repeat(mu_prior, self.values.shape[0] + 1)
-    mu_prior_values, mu_prior_star = mu_prior[:-1], mu_prior[-1]
+      mu_prior_values, mu_prior_star = mu_prior, mu_prior
+    else:
+      mu_prior_values, mu_prior_star = mu_prior[:-1], mu_prior[-1]
 
     kernel_matrix = self.kernel.compute(self.points)
     self.k_inv = np.linalg.pinv(kernel_matrix)
