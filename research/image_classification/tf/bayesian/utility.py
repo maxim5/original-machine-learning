@@ -38,7 +38,7 @@ class BaseGaussianUtility(BaseUtility):
     else:
       mu_prior_values, mu_prior_star = mu_prior[:-1], mu_prior[-1]
 
-    kernel_matrix = self.kernel.compute(self.points) + np.eye(self.points.shape[0]) * noise_sigma
+    kernel_matrix = self.kernel.compute(self.points) + np.eye(self.points.shape[0]) * noise_sigma**2
     self.k_inv = np.linalg.pinv(kernel_matrix)
     self.k_inv_f = np.dot(self.k_inv, (self.values - mu_prior_values))
     self.mu_prior_star = mu_prior_star
