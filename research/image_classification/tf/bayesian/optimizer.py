@@ -8,7 +8,7 @@ import numpy as np
 
 from kernel import RadialBasisFunction
 from maximizer import MonteCarloUtilityMaximizer
-from utility import ProbabilityOfImprovement, UpperConfidenceBound
+from utility import ProbabilityOfImprovement, ExpectedImprovement, UpperConfidenceBound
 
 from image_classification.tf.log import log
 
@@ -25,6 +25,8 @@ kernels = {
 utilities = {
   'pi': lambda points, values, kernel, mu_prior, params: ProbabilityOfImprovement(points, values, kernel, mu_prior,
                                                                                   **slice_dict(params, 'pi_')),
+  'ei': lambda points, values, kernel, mu_prior, params: ExpectedImprovement(points, values, kernel, mu_prior,
+                                                                             **slice_dict(params, 'ei_')),
   'ucb': lambda points, values, kernel, mu_prior, params: UpperConfidenceBound(points, values, kernel, mu_prior,
                                                                                **slice_dict(params, 'ucb_')),
 }
