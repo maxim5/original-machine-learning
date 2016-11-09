@@ -14,15 +14,18 @@ class DataSet(object):
     self.y = y
     self.step = 0
     self.epochs_completed = 0
-    self.index = 0
     self.index_in_epoch = 0
     self.just_completed = False
+
+
+  @property
+  def index(self):
+    return self.epochs_completed * self.size + self.index_in_epoch
 
 
   def reset_counters(self):
     self.step = 0
     self.epochs_completed = 0
-    self.index = 0
     self.index_in_epoch = 0
 
 
@@ -35,12 +38,10 @@ class DataSet(object):
       self.y = self.y[permutation]
 
     self.step += 1
-    self.index += batch_size
     start = self.index_in_epoch
     self.index_in_epoch += batch_size
     end = min(self.index_in_epoch, self.size)
     if self.index_in_epoch >= self.size:
-      self.index -= (self.index_in_epoch - self.size)
       self.index_in_epoch = 0
     self.just_completed = end == self.size
     self.epochs_completed += int(self.just_completed)
