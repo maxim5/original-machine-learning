@@ -118,9 +118,53 @@ class BayesianOptimizerTest(unittest.TestCase):
                  steps=50,
                  plot=False)
 
+  # 10-D
+
+  def test_10d_simple_1(self):
+    self.run_opt(f=lambda x: x[1] + 5 * x[5] - x[7],
+                 a=[-1]*10, b=[1]*10, start=None,
+                 global_max=7, delta=0.5,
+                 steps=30,
+                 plot=False)
+
+  def test_10d_simple_2(self):
+    self.run_opt(f=lambda x: np.cos(x[0]) + np.sin(x[1]) + np.exp(-x[2]) - np.exp(x[3]),
+                 a=[-1]*10, b=[1]*10, start=None,
+                 global_max=4.2, delta=0.3,
+                 steps=30,
+                 plot=False)
+
+  def test_10d_simple_3(self):
+    self.run_opt(f=lambda x: (x[0] * x[1] - x[2] * x[3]) * x[4],
+                 a=[0]*10, b=[1]*10, start=None,
+                 global_max=1, delta=0.2,
+                 steps=30,
+                 plot=False)
+
+  def test_10d_simple_4(self):
+    self.run_opt(f=lambda x: x[0]*x[1]*x[2]*x[3]*x[4]*x[5],
+                 a=[0]*10, b=[1]*10, start=None,
+                 global_max=1, delta=0.5,
+                 steps=50,
+                 plot=False)
+
+  def test_10d_simple_5(self):
+    self.run_opt(f=lambda x: np.sum(x, axis=0),
+                 a=[0]*10, b=[1]*10, start=None,
+                 global_max=10, delta=1.5,
+                 steps=30,
+                 plot=False)
+
+  def test_10d_irregular_max(self):
+    self.run_opt(f=lambda x: (np.sin(x[0]**2) + np.power(2, (x[1] - x[2]))) / (x[3]**2 + 1),
+                 a=[0]*10, b=[1]*10, start=None,
+                 global_max=2.8, delta=0.2,
+                 steps=30,
+                 plot=False)
+
   # Realistic
 
-  def test_realistic_1(self):
+  def test_realistic_4d(self):
     def f(x):
       init, size, reg, _ = x
       result = 10 * np.cos(size - 3) * np.cos(reg - size / 2)
@@ -145,18 +189,18 @@ class BayesianOptimizerTest(unittest.TestCase):
 
     errors = []
     size_list = [1000, 10000, 50000, 100000]
+
     for batch_size in size_list:
-      try:
-        delta = delta or abs(global_max) / 10.0
-        max_value = self._run(f, a, b, start, steps, batch_size,
-                              stop_condition=lambda x: abs(f(x) - global_max) <= delta)
-        self.assertAlmostEqual(max_value, global_max, delta=delta)
+      delta = delta or abs(global_max) / 10.0
+      max_value = self._run(f, a, b, start, steps, batch_size,
+                            stop_condition=lambda x: abs(f(x) - global_max) <= delta)
+      if abs(max_value - global_max) <= delta:
         return
-      except AssertionError as e:
-        errors.append(str(e))
-        log('Attempt for %d failed: %s' % (batch_size, str(e)))
-        if batch_size == size_list[-1]:
-          self.fail(',\n                '.join(errors))
+      msg = 'Failure %6d: max=%.3f, expected=%.3f within delta=%.3f' % (batch_size, max_value, global_max, delta)
+      errors.append(msg)
+
+    log('\n                      '.join(errors))
+    self.fail('\n                '.join(errors))
 
   def _run(self, f, a, b, start, steps, batch_size, stop_condition):
     sampler = DefaultSampler()
