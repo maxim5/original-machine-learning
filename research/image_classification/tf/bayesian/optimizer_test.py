@@ -104,14 +104,14 @@ class BayesianOptimizerTest(unittest.TestCase):
 
   def test_4d_simple_2(self):
     self.run_opt(f=lambda x: x[0] + np.sin(x[1]) - x[2] + x[3],
-                 a=(-10, -10, -1, -1), b=(10, 10, 1, 1), start=None,
-                 global_max=13, delta=1.0,
+                 a=(-5, -5, -5, -5), b=(5, 5, 5, 5), start=None,
+                 global_max=16, delta=1.0,
                  steps=20,
                  plot=False)
 
   def test_4d_irregular_max(self):
-    self.run_opt(f=lambda x: (np.sin(x[0]**2) + np.power(2, (x[1] - x[2]) / 10)) / (x[3]**2 + 1),
-                 a=(-10, -10, -10, -10), b=(10, 10, 10, 10), start=None,
+    self.run_opt(f=lambda x: (np.sin(x[0]**2) + np.power(2, (x[1] - x[2]) / 5)) / (x[3]**2 + 1),
+                 a=(-5, -5, -5, -5), b=(5, 5, 5, 5), start=None,
                  global_max=5, delta=1.0,
                  steps=50,
                  plot=False)
@@ -176,6 +176,23 @@ class BayesianOptimizerTest(unittest.TestCase):
                  a=(0, 0, 0, 0), b=(10, 10, 10, 1), start=None,
                  global_max=10, delta=0.5,
                  steps=20)
+
+  def test_realistic_10d(self):
+    def f(x):
+      init, num1, size1, activation1, dropout1, num2, size2, activation2, dropout2, fc_size = x
+      result = np.sin(num1 * size1 + activation1) + np.cos(num2 * size2 + activation2) + fc_size
+      result = np.asarray(result)
+      result[size1 > 0.5] = 1 - size1[size1 > 0.5]
+      result[size2 > 0.5] = 1 - size1[size2 > 0.5]
+      result[dropout1 < 0.3] = dropout1[dropout1 < 0.3]
+      result[dropout2 < 0.4] = dropout1[dropout2 < 0.4]
+      result[init > 0.5] = np.exp(-init[init > 0.5])
+      return result
+
+    self.run_opt(f=f,
+                 a=[0]*10, b=[1]*10, start=None,
+                 global_max=3, delta=0.3,
+                 steps=50)
 
   # Technical details
 
