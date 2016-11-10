@@ -6,29 +6,29 @@ __author__ = "maxim"
 import copy
 import numbers
 
-from nodes import BaseNode, MergeNode
+from nodes import BaseNode, AcceptsInputNode, JointNode
 
 
 class ParsedSpec(object):
   def __init__(self, spec):
     self._spec = spec
     self._leaves = {}
-    self._traverse_index = -1
     self._traverse_leaves_recursive(spec)
+
+  def size(self):
+    return len(self._leaves)
 
   def _traverse_leaves_recursive(self, spec):
     if isinstance(spec, BaseNode):
       node = spec
 
-      if isinstance(node, MergeNode):
+      if isinstance(node, JointNode):
         for child in node.children:
           self._traverse_leaves_recursive(child)
-        return
 
-      if not node in self._leaves:
-        self._traverse_index += 1
-        self._leaves[node] = self._traverse_index
-
+      if isinstance(node, AcceptsInputNode) and not node in self._leaves:
+        index = len(self._leaves)
+        self._leaves[node] = index
       return
 
     if isinstance(spec, numbers.Number):
@@ -50,11 +50,12 @@ class ParsedSpec(object):
       return
 
   def instantiate(self, points):
+    assert len(points) == self.size()
     for node, index in self._leaves.iteritems():
       node.set_point(points[index])
 
     spec_copy = copy.deepcopy(self._spec)
-    self._traverse_and_replace(spec_copy)
+    spec_copy = self._traverse_and_replace(spec_copy)
     return spec_copy
 
   def _traverse_and_replace(self, spec_copy):
@@ -70,7 +71,10 @@ class ParsedSpec(object):
       return spec_copy
 
     if isinstance(spec_copy, list) or isinstance(spec_copy, tuple):
-      return [self._traverse_and_replace(item_copy) for item_copy in spec_copy]
+      replaced = [self._traverse_and_replace(item_copy) for item_copy in spec_copy]
+      if isinstance(spec_copy, tuple):
+        replaced = tuple(replaced)
+      return replaced
 
     if isinstance(spec_copy, object):
       for key, value in spec_copy.__dict__.iteritems():

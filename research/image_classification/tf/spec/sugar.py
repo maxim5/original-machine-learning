@@ -16,7 +16,10 @@ def uniform(start=0.0, end=1.0, transform=None):
   return wrap(node, transform)
 
 def choice(array, transform=None):
-  node = ChoiceNode(array)
+  if not [item for item in array if isinstance(item, BaseNode)]:
+    node = ChoiceNode(*array)
+  else:
+    node = MergeChoiceNode(*array)
   return wrap(node, transform)
 
 def merge(function, *nodes):
