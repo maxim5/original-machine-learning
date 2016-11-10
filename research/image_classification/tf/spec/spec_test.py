@@ -33,6 +33,15 @@ class SpecTest(unittest.TestCase):
     self.assertEqual(1.0, parsed.instantiate([1.0]))
 
 
+  def test_uniform_rev(self):
+    spec = uniform(4, 0)
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 1)
+    self.assertEqual(0.0, parsed.instantiate([0.0]))
+    self.assertEqual(2.0, parsed.instantiate([0.5]))
+    self.assertEqual(4.0, parsed.instantiate([1.0]))
+
+
   def test_choice(self):
     spec = choice([10, 20, 30])
     parsed = ParsedSpec(spec)
@@ -40,6 +49,14 @@ class SpecTest(unittest.TestCase):
     self.assertEqual(10, parsed.instantiate([0.0]))
     self.assertEqual(20, parsed.instantiate([0.5]))
     self.assertEqual(30, parsed.instantiate([1.0]))
+
+
+  def test_choice_str(self):
+    spec = choice(['foo', 'bar'])
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 1)
+    self.assertEqual('foo', parsed.instantiate([0.0]))
+    self.assertEqual('bar', parsed.instantiate([1.0]))
 
 
   def test_merge(self):
@@ -81,3 +98,22 @@ class SpecTest(unittest.TestCase):
     parsed = ParsedSpec(spec)
     self.assertEqual(parsed.size(), 3)
     self.assertEqual(0.0, parsed.instantiate([0.0, 0.0, 0.0]))
+    self.assertEqual(1.0, parsed.instantiate([1.0, 0.0, 0.0]))
+    self.assertEqual(2.0, parsed.instantiate([0.0, 0.0, 0.9]))
+    self.assertEqual(3.0, parsed.instantiate([0.0, 1.0, 0.9]))
+
+
+  def test_if_condition(self):
+    def if_cond(switch, size, num):
+      if switch > 0.5:
+        return [size, num, num]
+      return [size, num]
+
+    spec = merge(if_cond, uniform(0, 1), uniform(1, 2), uniform(2, 3))
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 3)
+
+    self.assertEqual([1, 2],    parsed.instantiate([0, 0, 0]))
+    self.assertEqual([2, 3],    parsed.instantiate([0, 1, 1]))
+    self.assertEqual([1, 2, 2], parsed.instantiate([1, 0, 0]))
+    self.assertEqual([2, 3, 3], parsed.instantiate([1, 1, 1]))
