@@ -28,8 +28,8 @@ class AcceptsInputNode(BaseNode):
 class UniformNode(AcceptsInputNode):
   def __init__(self, start=0.0, end=1.0):
     super(UniformNode, self).__init__()
-    self.shift = start
-    self.scale = end - start
+    self.shift = min(start, end)
+    self.scale = abs(end - start)
 
   def to_domain_value(self, point):
     return point * self.scale + self.shift
