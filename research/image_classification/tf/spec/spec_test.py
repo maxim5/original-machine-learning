@@ -42,6 +42,24 @@ class SpecTest(unittest.TestCase):
     self.assertEqual(4.0, parsed.instantiate([1.0]))
 
 
+  def test_uniform_negative(self):
+    spec = uniform(-4, -2)
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 1)
+    self.assertEqual(-4.0, parsed.instantiate([0.0]))
+    self.assertEqual(-3.0, parsed.instantiate([0.5]))
+    self.assertEqual(-2.0, parsed.instantiate([1.0]))
+
+
+  def test_uniform_negative_rev(self):
+    spec = uniform(-2, -4)
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 1)
+    self.assertEqual(-4.0, parsed.instantiate([0.0]))
+    self.assertEqual(-3.0, parsed.instantiate([0.5]))
+    self.assertEqual(-2.0, parsed.instantiate([1.0]))
+
+
   def test_choice(self):
     spec = choice([10, 20, 30])
     parsed = ParsedSpec(spec)
