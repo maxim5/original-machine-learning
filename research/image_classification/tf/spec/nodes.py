@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 __author__ = "maxim"
 
+import operator
 
 class BaseNode(object):
   def __init__(self):
@@ -10,6 +11,63 @@ class BaseNode(object):
 
   def value(self):
     return self._domain_value
+
+  def __add__(self, other):  return _op2(self, other, operator.add)
+  def __radd__(self, other): return _op2(self, other, operator.add, rev=True)
+
+  def __sub__(self, other):  return _op2(self, other, operator.sub)
+  def __rsub__(self, other): return _op2(self, other, operator.sub, rev=True)
+
+  def __mul__(self, other):  return _op2(self, other, operator.mul)
+  def __rmul__(self, other): return _op2(self, other, operator.mul, rev=True)
+
+  def __div__(self, other):  return _op2(self, other, operator.div)
+  def __rdiv__(self, other): return _op2(self, other, operator.div, rev=True)
+
+  def __mod__(self, other):  return _op2(self, other, operator.mod)
+  def __rmod__(self, other): return _op2(self, other, operator.mod, rev=True)
+
+  def __floordiv__(self, other):  return _op2(self, other, operator.floordiv)
+  def __rfloordiv__(self, other): return _op2(self, other, operator.floordiv, rev=True)
+
+  def __pow__(self, other):  return _op2(self, other, operator.pow)
+  def __rpow__(self, other): return _op2(self, other, operator.pow, rev=True)
+
+  def __and__(self, other):  return _op2(self, other, operator.and_)
+  def __rand__(self, other):  return _op2(self, other, operator.and_, rev=True)
+
+  def __or__(self, other):  return _op2(self, other, operator.or_)
+  def __ror__(self, other):  return _op2(self, other, operator.or_, rev=True)
+
+  def __xor__(self, other):  return _op2(self, other, operator.__xor__)
+  def __rxor__(self, other):  return _op2(self, other, operator.__xor__, rev=True)
+
+  def __lshift__(self, other):  return _op2(self, other, operator.lshift)
+  def __rlshift__(self, other): return _op2(self, other, operator.lshift, rev=True)
+
+  def __rshift__(self, other):  return _op2(self, other, operator.rshift)
+  def __rrshift__(self, other): return _op2(self, other, operator.rshift, rev=True)
+
+  def __neg__(self):  return _op1(self, operator.neg)
+  def __pos__(self):  return _op1(self, operator.pos)
+  def __abs__(self):  return _op1(self, operator.abs)
+  def __invert__(self):  return _op1(self, operator.invert)
+
+
+def _op1(this, _operator):
+  return MergeNode(_operator, this)
+
+def _op2(this, other, _operator, rev=False):
+  if isinstance(other, BaseNode):
+    if rev:
+      return MergeNode(_operator, other, this)
+    else:
+      return MergeNode(_operator, this, other)
+
+  if rev:
+    return MergeNode(lambda x: _operator(other, x), this)
+  else:
+    return MergeNode(lambda x: _operator(x, other), this)
 
 
 class AcceptsInputNode(BaseNode):
