@@ -160,3 +160,34 @@ class SpecTest(unittest.TestCase):
     self.assertEqual(parsed.size(), 3)
     self.assertEqual({1: 0.0, 2: 'foo', 3:  0.0}, parsed.instantiate([0, 0, 0]))
     self.assertEqual({1: 1.0, 2: 'bar', 3: -1.0}, parsed.instantiate([1, 1, 1]))
+
+
+  def test_math_operations_1(self):
+    spec = uniform() + 1
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 1)
+    self.assertEqual(2.0, parsed.instantiate([1.0]))
+
+
+  def test_math_operations_2(self):
+    spec = uniform() * (uniform() ** 2 + 1) / uniform()
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 3)
+    self.assertEqual(2.0, parsed.instantiate([1.0, 1.0, 1.0]))
+    self.assertEqual(1.0, parsed.instantiate([0.5, 1.0, 1.0]))
+    self.assertEqual(1.0, parsed.instantiate([0.5, 0.0, 0.5]))
+
+
+  def test_math_operations_3(self):
+    spec = 2 / (1 + uniform()) * (3 - uniform() + 4 ** uniform())
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 3)
+    self.assertEqual(6.0, parsed.instantiate([1.0, 1.0, 1.0]))
+
+
+  def test_math_operations_4(self):
+    spec = choice(['foo', 'bar']) + '-' + choice(['abc', 'def'])
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 2)
+    self.assertEqual('foo-abc', parsed.instantiate([0.0, 0.0]))
+    self.assertEqual('bar-def', parsed.instantiate([1.0, 1.0]))
