@@ -3,6 +3,7 @@
 __author__ = "maxim"
 
 
+import math
 from nodes import *
 
 
@@ -24,3 +25,32 @@ def choice(array, transform=None):
 
 def merge(function, *nodes):
   return MergeNode(function, *nodes)
+
+def exp(node): return merge(math.exp, node)
+def expm1(node): return merge(math.expm1, node)
+def frexp(node): return merge(math.frexp, node)
+def ldexp(node, i): return merge(lambda x: math.ldexp(x, i), node)
+
+def sqrt(node): return merge(math.sqrt, node)
+def pow(a, b): return a ** b
+
+def log(node, base=None): return merge(lambda x: math.log(x, base), node)
+def log1p(node): return merge(math.log1p, node)
+def log10(node): return merge(math.log10, node)
+
+def sin(node): return merge(math.sin, node)
+def cos(node): return merge(math.cos, node)
+def tan(node): return merge(math.tan, node)
+
+def sinh(node): return merge(math.sinh, node)
+def cosh(node): return merge(math.cosh, node)
+def tanh(node): return merge(math.tanh, node)
+
+def asin(node): return merge(math.asin, node)
+def acos(node): return merge(math.acos, node)
+def atan(node): return merge(math.atan, node)
+def atan2(node): return merge(math.atan2, node)
+
+def asinh(node): return merge(math.asinh, node)
+def acosh(node): return merge(math.acosh, node)
+def atanh(node): return merge(math.atanh, node)
