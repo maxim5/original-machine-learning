@@ -152,3 +152,11 @@ class SpecTest(unittest.TestCase):
     self.assertEqual(0, instance.value)
     self.assertEqual('bar', instance.foo)
     self.assertEqual(instance, instance.ref)
+
+
+  def test_dict(self):
+    spec = {1: uniform(), 2: choice(['foo', 'bar']), 3: merge(lambda x: -x, uniform())}
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 3)
+    self.assertEqual({1: 0.0, 2: 'foo', 3:  0.0}, parsed.instantiate([0, 0, 0]))
+    self.assertEqual({1: 1.0, 2: 'bar', 3: -1.0}, parsed.instantiate([1, 1, 1]))
