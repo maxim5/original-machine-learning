@@ -135,3 +135,20 @@ class SpecTest(unittest.TestCase):
     self.assertEqual([2, 3],    parsed.instantiate([0, 1, 1]))
     self.assertEqual([1, 2, 2], parsed.instantiate([1, 0, 0]))
     self.assertEqual([2, 3, 3], parsed.instantiate([1, 1, 1]))
+
+
+  def test_object(self):
+    class Dummy: pass
+    dummy = Dummy
+    dummy.value = uniform()
+    dummy.foo = 'bar'
+    dummy.ref = dummy
+
+    spec = dummy
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 1)
+
+    instance = parsed.instantiate([0])
+    self.assertEqual(0, instance.value)
+    self.assertEqual('bar', instance.foo)
+    self.assertEqual(instance, instance.ref)
