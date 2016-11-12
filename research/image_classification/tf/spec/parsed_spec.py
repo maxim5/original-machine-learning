@@ -6,6 +6,8 @@ __author__ = "maxim"
 import copy
 import numbers
 
+import numpy as np
+
 from nodes import BaseNode, AcceptsInputNode, JointNode
 
 
@@ -109,3 +111,9 @@ class ParsedSpec(object):
       return spec_copy
 
     return spec_copy
+
+
+def get_instance(spec):
+  parsed = spec if isinstance(spec, ParsedSpec) else ParsedSpec(spec)
+  points = np.random.uniform(0, 1, size=(parsed.size(),))
+  return parsed.instantiate(points)
