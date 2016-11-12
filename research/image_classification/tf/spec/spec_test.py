@@ -191,3 +191,51 @@ class SpecTest(unittest.TestCase):
     self.assertEqual(parsed.size(), 2)
     self.assertEqual('foo-abc', parsed.instantiate([0.0, 0.0]))
     self.assertEqual('bar-def', parsed.instantiate([1.0, 1.0]))
+
+
+  def test_min_1(self):
+    spec = min_(uniform(), uniform(), 0.5)
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 2)
+    self.assertEqual(0.5, parsed.instantiate([1.0, 0.7]))
+    self.assertEqual(0.5, parsed.instantiate([1.0, 0.5]))
+    self.assertEqual(0.0, parsed.instantiate([0.0, 0.5]))
+
+
+  def test_min_2(self):
+    spec = min_(uniform(), 0.8, 0.5)
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 1)
+    self.assertEqual(0.5, parsed.instantiate([1.0]))
+    self.assertEqual(0.5, parsed.instantiate([0.5]))
+    self.assertEqual(0.2, parsed.instantiate([0.2]))
+
+
+  def test_min_3(self):
+    spec = min_(uniform(), uniform())
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 2)
+    self.assertEqual(0.5, parsed.instantiate([1.0, 0.5]))
+    self.assertEqual(0.2, parsed.instantiate([0.2, 0.5]))
+
+
+  def test_max_1(self):
+    spec = max_(0.5)
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 0)
+    self.assertEqual(0.5, parsed.instantiate([]))
+
+
+  def test_max_2(self):
+    spec = max_(0.5, 1.0)
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 0)
+    self.assertEqual(1.0, parsed.instantiate([]))
+
+
+  def test_max_3(self):
+    spec = max_(uniform())
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 1)
+    self.assertEqual(1.0, parsed.instantiate([1.0]))
+    self.assertEqual(0.0, parsed.instantiate([0.0]))

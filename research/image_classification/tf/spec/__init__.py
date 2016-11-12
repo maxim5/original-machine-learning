@@ -2,4 +2,5 @@
 # -*- coding: utf-8 -*-
 __author__ = "maxim"
 
-from sugar import wrap, choice, uniform, merge
+from sugar import wrap, choice, uniform, merge, \
+                  min_, max_
