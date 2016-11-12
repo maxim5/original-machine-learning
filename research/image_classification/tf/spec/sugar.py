@@ -54,3 +54,25 @@ def atan2(node): return merge(math.atan2, node)
 def asinh(node): return merge(math.asinh, node)
 def acosh(node): return merge(math.acosh, node)
 def atanh(node): return merge(math.atanh, node)
+
+def min_(*array):
+  nodes = [item for item in array if isinstance(item, BaseNode)]
+  if len(nodes) == 0:
+    return min(*array) if len(array) > 1 else array[0]
+  node = merge(min, *nodes) if len(nodes) > 1 else nodes[0]
+
+  rest = [item for item in array if not isinstance(item, BaseNode)]
+  if rest:
+    node = merge(lambda x: min(x, *rest), node)
+  return node
+
+def max_(*array):
+  nodes = [item for item in array if isinstance(item, BaseNode)]
+  if len(nodes) == 0:
+    return max(*array) if len(array) > 1 else array[0]
+  node = merge(max, *nodes) if len(nodes) > 1 else nodes[0]
+
+  rest = [item for item in array if not isinstance(item, BaseNode)]
+  if rest:
+    node = merge(lambda x: max(x, *rest), node)
+  return node
