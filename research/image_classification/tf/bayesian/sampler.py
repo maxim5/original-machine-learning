@@ -19,6 +19,10 @@ class DefaultSampler(BaseSampler):
     assert callable(func)
     self.random_functions.append(func)
 
+  def add_uniform(self, size):
+    func = lambda : np.random.uniform(0, 1, size=(size,))
+    self.random_functions.append(func)
+
   def sample(self, size):
     result = []
     for i in xrange(size):

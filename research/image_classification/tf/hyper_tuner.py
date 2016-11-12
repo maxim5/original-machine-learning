@@ -7,6 +7,9 @@ from log import Logger
 from util import *
 from image_classification.tf.spec.parsed_spec import ParsedSpec
 
+from bayesian.sampler import DefaultSampler
+from bayesian.optimizer import BayesianOptimizer
+
 
 def tf_reset_all():
   import tensorflow as tf
@@ -31,15 +34,19 @@ class HyperTuner(Logger):
     self.info('Start hyper-tuner')
 
     parsed = ParsedSpec(hyper_params_spec)
-    size = parsed.size()
-    self.info('Spec size=%d' % size)
+    self.info('Spec size=%d' % parsed.size())
+
+    sampler = DefaultSampler()
+    sampler.add_uniform(parsed.size())
+    optimizer = BayesianOptimizer(sampler, mc_batch_size=100000)
 
     trial = 0
     while True:
-      point = np.random.uniform(0, 1, size=(parsed.size(),))
+      point = optimizer.next_proposal()
       hyper_params = parsed.instantiate(point)
       solver = solver_generator(hyper_params)
       trial += 1
       tf_reset_all()
       accuracy = solver.train()
       self._update_accuracy(trial, accuracy, hyper_params)
+      optimizer.add_point(point, accuracy)
