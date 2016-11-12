@@ -12,10 +12,12 @@ from conv_model import ConvModel
 from data_set import Data, DataSet
 from hyper_tuner import HyperTuner
 from interaction import read_model
-from mnist_spec import hyper_params_generator
+from mnist_spec import hyper_params
 from log import log
 from tensorflow_impl import *
 from util import random_id, dict_to_str
+
+from image_classification.tf import spec
 
 
 def get_mnist_data():
@@ -111,7 +113,7 @@ def hyper_tune_ground_up():
     return solver
 
   tuner = HyperTuner()
-  tuner.tune(solver_generator, hyper_params_generator)
+  tuner.tune(solver_generator, hyper_params)
 
 
 def fine_tune(path=None, random_fork=True, only_test=False):
@@ -134,7 +136,7 @@ def fine_tune(path=None, random_fork=True, only_test=False):
   model_io = TensorflowModelIO(**solver_params)
   hyper_params = model_io.load_hyper_params() or {}
   if random_fork and not only_test:
-    random_hyper_params = hyper_params_generator()
+    random_hyper_params = spec.get_instance(hyper_params)
     hyper_params.update({key: value for key, value in random_hyper_params.iteritems() if key == 'augment'})
 
   model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)

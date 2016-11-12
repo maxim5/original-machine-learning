@@ -3,4 +3,8 @@
 __author__ = "maxim"
 
 from sugar import wrap, choice, uniform, merge, \
-                  min_, max_
+                  min_, max_, \
+                  exp, expm1, frexp, ldexp, \
+                  sqrt, pow, \
+                  log, log1p, log10
+from parsed_spec import ParsedSpec, get_instance

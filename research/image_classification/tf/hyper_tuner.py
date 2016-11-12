@@ -5,6 +5,7 @@ __author__ = "maxim"
 
 from log import Logger
 from util import *
+from image_classification.tf.spec.parsed_spec import ParsedSpec
 
 
 def tf_reset_all():
@@ -26,12 +27,17 @@ class HyperTuner(Logger):
     self.info('%s [%d] accuracy=%.4f, params: %s' % (marker, trial, accuracy, dict_to_str(tuned_params)))
 
 
-  def tune(self, solver_generator, tuned_params_generator):
+  def tune(self, solver_generator, hyper_params_spec):
     self.info('Start hyper-tuner')
+
+    parsed = ParsedSpec(hyper_params_spec)
+    size = parsed.size()
+    self.info('Spec size=%d' % size)
 
     trial = 0
     while True:
-      hyper_params = tuned_params_generator()
+      point = np.random.uniform(0, 1, size=(parsed.size(),))
+      hyper_params = parsed.instantiate(point)
       solver = solver_generator(hyper_params)
       trial += 1
       tf_reset_all()
