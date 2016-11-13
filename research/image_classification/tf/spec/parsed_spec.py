@@ -84,13 +84,13 @@ class ParsedSpec(object):
     return spec_copy
 
   def _traverse_and_replace_recursive(self, spec_copy):
-    if self._visit(spec_copy):
-      return spec_copy
-
     if isinstance(spec_copy, BaseNode):
       return spec_copy.value()
 
     if isinstance(spec_copy, numbers.Number):
+      return spec_copy
+
+    if self._visit(spec_copy):
       return spec_copy
 
     if isinstance(spec_copy, dict):
