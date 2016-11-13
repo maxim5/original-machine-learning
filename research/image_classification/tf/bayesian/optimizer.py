@@ -8,6 +8,7 @@ import numpy as np
 
 from kernel import RadialBasisFunction
 from maximizer import MonteCarloUtilityMaximizer
+from strategy_io import StrategyIO
 from utility import ProbabilityOfImprovement, ExpectedImprovement, UpperConfidenceBound
 
 from image_classification.tf.log import log
@@ -38,8 +39,6 @@ maximizers = {
 class BayesianOptimizer(object):
   def __init__(self, sampler, **params):
     self.sampler = sampler
-    self.points = []
-    self.values = []
     self.kernel = None
     self.utility = None
     self.maximizer = None
@@ -49,6 +48,9 @@ class BayesianOptimizer(object):
     self.kernel_gen = as_function(params.get('kernel_gen', 'rbf'), presets=kernels)
     self.utility_gen = as_function(params.get('utility_gen', 'ucb'), presets=utilities)
     self.maximizer_gen = as_function(params.get('maximizer_gen', 'mc'), presets=maximizers)
+
+    self.strategy_io = StrategyIO(self, **slice_dict(params, 'io_'))
+    self.points, self.values = self.strategy_io.load()
 
   def next_proposal(self):
     if not self.points:
@@ -66,6 +68,8 @@ class BayesianOptimizer(object):
   def add_point(self, point, value):
     self.points.append(point)
     self.values.append(value)
+    self.strategy_io.save()
+
 
 def as_function(val, presets, default=None):
   if callable(val):
