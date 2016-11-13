@@ -4,15 +4,13 @@ __author__ = "maxim"
 
 
 import os
-from log import Logger
+from base_io import BaseIO
 from util import *
 
 
-class ModelIO(Logger):
+class ModelIO(BaseIO):
   def __init__(self, log_level=1, **params):
-    super(ModelIO, self).__init__(log_level)
-    self.load_dir = params.get('load_dir')
-    self.save_dir = params.get('save_dir')
+    super(ModelIO, self).__init__(log_level, **params)
     self.data_saver = params.get('data_saver')
 
 
@@ -71,24 +69,3 @@ class ModelIO(Logger):
       self.debug('Misclassified data saved to %s' % actual_destination)
     else:
       self.warn('Data saver can not be not called or returns None')
-
-
-  @staticmethod
-  def _prepare(directory):
-    if directory is None:
-      return False
-    if not os.path.exists(directory):
-      os.makedirs(directory)
-    return True
-
-
-  @staticmethod
-  def _load_dict(from_file):
-    if not os.path.exists(from_file):
-      return {}
-    try:
-      with open(from_file, 'r') as file_:
-        line = file_.readline()
-        return str_to_dict(line)
-    except:
-      return {}
