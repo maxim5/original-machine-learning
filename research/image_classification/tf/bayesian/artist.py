@@ -13,11 +13,11 @@ class Artist(object):
     if len(args) == 3:
       self.points, self.values, self.utility = args
     else:
-      optimizer = kwargs.get('optimizer')
-      if optimizer is not None:
-        self.points = optimizer.points
-        self.values = optimizer.values
-        self.utility = optimizer.utility
+      strategy = kwargs.get('strategy')
+      if strategy is not None:
+        self.points = strategy.points
+        self.values = strategy.values
+        self.utility = strategy.utility
 
   def plot_1d(self, f, a, b, grid_size=1000):
     grid = np.linspace(a, b, num=grid_size).reshape((-1, 1))
