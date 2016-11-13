@@ -102,13 +102,21 @@ class SpecTest(unittest.TestCase):
     self.assertEqual(4.0, parsed.instantiate([1.0, 1.0]))
 
 
-  def test_duplicate_nodes(self):
+  def test_duplicate_nodes_1(self):
     node = uniform()
     spec = merge(lambda x, y, z: x+y+z, node, node, node)
     parsed = ParsedSpec(spec)
     self.assertEqual(parsed.size(), 1)
     self.assertEqual(3.0, parsed.instantiate([1.0]))
     self.assertEqual(9.0, parsed.instantiate([3.0]))
+
+
+  def test_duplicate_nodes_2(self):
+    node = uniform()
+    spec = [[node, node]]
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 1)
+    self.assertEqual([[1.0, 1.0]], parsed.instantiate([1.0]))
 
 
   def test_merge_choice(self):
