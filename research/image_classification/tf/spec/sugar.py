@@ -4,6 +4,8 @@ __author__ = "maxim"
 
 
 import math
+from scipy import stats
+
 from nodes import *
 
 
@@ -15,6 +17,9 @@ def wrap(node, transform):
 def uniform(start=0.0, end=1.0, transform=None):
   node = UniformNode(start, end)
   return wrap(node, transform)
+
+def normal(mean=0.0, stdev=1.0):
+  return NonUniformNode(ppf=stats.norm.ppf, loc=mean, scale=stdev)
 
 def choice(array, transform=None):
   if not [item for item in array if isinstance(item, BaseNode)]:

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 __author__ = "maxim"
 
-from sugar import wrap, choice, uniform, merge, \
+from sugar import wrap, choice, uniform, normal, merge, \
                   min_, max_, \
                   exp, expm1, frexp, ldexp, \
                   sqrt, pow, \

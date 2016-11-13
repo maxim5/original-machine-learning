@@ -60,6 +60,17 @@ class SpecTest(unittest.TestCase):
     self.assertEqual(-2.0, parsed.instantiate([1.0]))
 
 
+  def test_normal(self):
+    spec = normal()
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 1)
+    self.assertAlmostEqual(-1.0, parsed.instantiate([0.1587]), delta=0.001)
+    self.assertAlmostEqual(-0.5, parsed.instantiate([0.3085]), delta=0.001)
+    self.assertAlmostEqual( 0.0, parsed.instantiate([0.5000]), delta=0.001)
+    self.assertAlmostEqual( 0.7, parsed.instantiate([0.7580]), delta=0.001)
+    self.assertAlmostEqual( 0.9, parsed.instantiate([0.8159]), delta=0.001)
+
+
   def test_choice(self):
     spec = choice([10, 20, 30])
     parsed = ParsedSpec(spec)

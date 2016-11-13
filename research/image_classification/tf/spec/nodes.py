@@ -93,6 +93,16 @@ class UniformNode(AcceptsInputNode):
     return point * self.scale + self.shift
 
 
+class NonUniformNode(AcceptsInputNode):
+  def __init__(self, ppf, **args):
+    super(NonUniformNode, self).__init__()
+    self.ppf = ppf
+    self.args = args
+
+  def to_domain_value(self, point):
+    return self.ppf(point, **self.args)
+
+
 class ChoiceNode(AcceptsInputNode):
   def __init__(self, *array):
     super(ChoiceNode, self).__init__()
