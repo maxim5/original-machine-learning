@@ -8,7 +8,7 @@ from util import *
 from image_classification.tf.spec.parsed_spec import ParsedSpec
 
 from bayesian.sampler import DefaultSampler
-from bayesian.optimizer import BayesianOptimizer
+from bayesian.strategy import BayesianStrategy
 
 
 def tf_reset_all():
@@ -27,7 +27,7 @@ class HyperTuner(Logger):
 
     sampler = DefaultSampler()
     sampler.add_uniform(self.parsed.size())
-    self.strategy = BayesianOptimizer(sampler, **strategy_params)
+    self.strategy = BayesianStrategy(sampler, **strategy_params)
 
 
   def tune(self, ):

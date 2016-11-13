@@ -36,7 +36,7 @@ maximizers = {
   'mc': lambda utility, sampler, params: MonteCarloUtilityMaximizer(utility, sampler, **slice_dict(params, 'mc_')),
 }
 
-class BayesianOptimizer(object):
+class BayesianStrategy(object):
   def __init__(self, sampler, **params):
     self.sampler = sampler
     self.kernel = None

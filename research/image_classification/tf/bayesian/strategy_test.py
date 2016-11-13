@@ -7,12 +7,12 @@ import unittest
 import numpy as np
 
 from artist import Artist
-from optimizer import BayesianOptimizer
+from strategy import BayesianStrategy
 from sampler import DefaultSampler
 
 from image_classification.tf.log import log
 
-class BayesianOptimizerTest(unittest.TestCase):
+class BayesianStrategyTest(unittest.TestCase):
   # 1-D
 
   def test_1d_simple(self):
@@ -220,24 +220,24 @@ class BayesianOptimizerTest(unittest.TestCase):
   def _run(self, f, a, b, start, steps, batch_size, stop_condition):
     sampler = DefaultSampler()
     sampler.add(lambda: np.random.uniform(a, b))
-    self.optimizer = BayesianOptimizer(sampler, mc_batch_size=batch_size)
+    self.strategy = BayesianStrategy(sampler, mc_batch_size=batch_size)
 
     if start is not None:
-      self.optimizer.add_point(np.asarray(start), f(start))
+      self.strategy.add_point(np.asarray(start), f(start))
 
     for i in xrange(steps):
-      x = self.optimizer.next_proposal()
+      x = self.strategy.next_proposal()
       log('selected_point=%s -> true=%.6f' % (x, f(x)))
-      self.optimizer.add_point(x, f(x))
+      self.strategy.add_point(x, f(x))
       if stop_condition is not None and stop_condition(x):
         break
 
-    i = np.argmax(self.optimizer.values)
-    log('Best found: %s -> %.6f' % (self.optimizer.points[i], self.optimizer.values[i]))
-    return self.optimizer.values[i]
+    i = np.argmax(self.strategy.values)
+    log('Best found: %s -> %.6f' % (self.strategy.points[i], self.strategy.values[i]))
+    return self.strategy.values[i]
 
   def _plot(self, f, a, b):
-    artist = Artist(optimizer=self.optimizer)
+    artist = Artist(strategy=self.strategy)
     if type(a) in [tuple, list]:
       if len(a) == 2:
         artist.plot_2d(f, a, b)
@@ -254,8 +254,8 @@ class BayesianOptimizerTest(unittest.TestCase):
     return np.max(f(batch))
 
   def _eval_at(self, val):
-    log(self.optimizer.utility.compute_values(np.asarray([[val]])))
-    log(self.optimizer.utility.compute_values(self.optimizer.utility.points))
+    log(self.strategy.utility.compute_values(np.asarray([[val]])))
+    log(self.strategy.utility.compute_values(self.strategy.utility.points))
 
 
 if __name__ == "__main__":
