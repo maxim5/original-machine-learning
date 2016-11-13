@@ -98,7 +98,7 @@ def hyper_tune_ground_up():
       'batch_size': 256,
       'eval_batch_size': 5000,
       'epochs': 12,
-      'dynamic_epochs': lambda acc: 3 if acc < 0.8000 else 5 if acc < 0.9800 else 15 if acc < 0.9920 else 25,
+      'dynamic_epochs': lambda acc: 5 if acc < 0.9800 else 8 if acc < 0.9920 else 12,
       'evaluate_test': True,
       'eval_flexible': False,
       'save_dir': 'model-zoo/%s-%s' % (datetime.datetime.now().strftime('%Y-%m-%d'), random_id()),
@@ -108,12 +108,17 @@ def hyper_tune_ground_up():
 
     model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
     runner = TensorflowRunner(model=model)
-    augmentation = init_augmentation(**hyper_params.get('augment'))
+    augmentation = init_augmentation(**hyper_params.get('augment', {}))
     solver = TensorflowSolver(data=mnist, runner=runner, augmentation=augmentation, **solver_params)
     return solver
 
-  tuner = HyperTuner()
-  tuner.tune(solver_generator, hyper_params)
+  strategy_params = {
+    'io_load_dir': 'mnist-conv-3',
+    'io_save_dir': 'mnist-conv-3',
+  }
+
+  tuner = HyperTuner(hyper_params, solver_generator, **strategy_params)
+  tuner.tune()
 
 
 def fine_tune(path=None, random_fork=True, only_test=False):
