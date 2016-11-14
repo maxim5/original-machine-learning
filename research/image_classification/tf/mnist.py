@@ -129,7 +129,7 @@ def fine_tune(path=None, random_fork=True, only_test=False):
   solver_params = {
     'batch_size': 1000,
     'eval_batch_size': 5000,
-    'epochs': 0 if only_test else 50,
+    'epochs': 0 if only_test else 20,
     'evaluate_test': True,
     'save_dir': model_path,
     'load_dir': model_path,
