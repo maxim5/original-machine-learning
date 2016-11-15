@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 __author__ = "maxim"
 
+import math
+
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -62,21 +64,27 @@ class Artist(object):
     plt.show()
 
   def scatter_plot_per_dimension(self):
-    points = self.utility.points
-    values = self.utility.values
+    points = np.array(self.points)
+    values = np.array(self.values)
     n, d = points.shape
+    rows = int(math.sqrt(d))
+    cols = (d + rows - 1) / rows
 
-    _, axes = plt.subplots(1, d)
+    _, axes = plt.subplots(rows, cols)
+    axes = axes.reshape(-1)
     for j in xrange(d):
       axes[j].scatter(points[:, j], values, s=100, alpha=0.5)
     plt.show()
 
   def bar_plot_per_dimension(self):
-    points = self.utility.points
-    values = self.utility.values
+    points = np.array(self.points)
+    values = np.array(self.values)
     n, d = points.shape
+    rows = int(math.sqrt(d))
+    cols = (d + rows - 1) / rows
 
-    _, axes = plt.subplots(1, d)
+    _, axes = plt.subplots(rows, cols)
+    axes = axes.reshape(-1)
     for j in xrange(d):
       p = points[:, j]
       split = np.linspace(np.min(p), np.max(p), 10)
