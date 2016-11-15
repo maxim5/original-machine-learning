@@ -20,6 +20,7 @@ class Artist(object):
         self.points = strategy.points
         self.values = strategy.values
         self.utility = strategy.utility
+      self.names = kwargs.get('names', {})
 
   def plot_1d(self, f, a, b, grid_size=1000):
     grid = np.linspace(a, b, num=grid_size).reshape((-1, 1))
@@ -74,6 +75,7 @@ class Artist(object):
     axes = axes.reshape(-1)
     for j in xrange(d):
       axes[j].scatter(points[:, j], values, s=100, alpha=0.5)
+      axes[j].set_title(self.names.get(j, str(j)))
     plt.show()
 
   def bar_plot_per_dimension(self):
