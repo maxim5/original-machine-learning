@@ -89,7 +89,7 @@ class SpecTest(unittest.TestCase):
 
 
   def test_merge(self):
-    spec = merge(lambda x, y: x+y, uniform(), uniform())
+    spec = merge([uniform(), uniform()], lambda x, y: x+y)
     parsed = ParsedSpec(spec)
     self.assertEqual(parsed.size(), 2)
     self.assertEqual(0.5, parsed.instantiate([0.0, 0.5]))
@@ -106,7 +106,7 @@ class SpecTest(unittest.TestCase):
 
 
   def test_transform_merge(self):
-    spec = wrap(merge(lambda x, y: x+y, uniform(), uniform()), lambda x: x*x)
+    spec = wrap(merge([uniform(), uniform()], lambda x, y: x+y), lambda x: x*x)
     parsed = ParsedSpec(spec)
     self.assertEqual(parsed.size(), 2)
     self.assertEqual(1.0, parsed.instantiate([0.0, 1.0]))
@@ -115,7 +115,7 @@ class SpecTest(unittest.TestCase):
 
   def test_duplicate_nodes_1(self):
     node = uniform()
-    spec = merge(lambda x, y, z: x+y+z, node, node, node)
+    spec = merge([node, node, node], lambda x, y, z: x+y+z)
     parsed = ParsedSpec(spec)
     self.assertEqual(parsed.size(), 1)
     self.assertEqual(3.0, parsed.instantiate([1.0]))
@@ -146,7 +146,7 @@ class SpecTest(unittest.TestCase):
         return [size, num, num]
       return [size, num]
 
-    spec = merge(if_cond, uniform(0, 1), uniform(1, 2), uniform(2, 3))
+    spec = merge([uniform(0, 1), uniform(1, 2), uniform(2, 3)], if_cond)
     parsed = ParsedSpec(spec)
     self.assertEqual(parsed.size(), 3)
 
@@ -179,6 +179,18 @@ class SpecTest(unittest.TestCase):
     self.assertEqual(parsed.size(), 3)
     self.assertEqual({1: 0.0, 2: 'foo', 3:  0.0}, parsed.instantiate([0, 0, 0]))
     self.assertEqual({1: 1.0, 2: 'bar', 3: -1.0}, parsed.instantiate([1, 1, 1]))
+
+
+  def test_dict_deep_1(self):
+    spec = {1: {'foo': uniform() } }
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 1)
+
+
+  def test_dict_deep_2(self):
+    spec = {'a': {'b': {'c': { 'd': uniform() } } } }
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 1)
 
 
   def test_math_operations_1(self):
@@ -258,3 +270,35 @@ class SpecTest(unittest.TestCase):
     self.assertEqual(parsed.size(), 1)
     self.assertEqual(1.0, parsed.instantiate([1.0]))
     self.assertEqual(0.0, parsed.instantiate([0.0]))
+
+
+  def test_name_1(self):
+    aaa = uniform()
+    bbb = choice(['foo'])
+    ccc = uniform(-1, 1)
+    ddd = uniform()
+    spec = {'aaa': aaa, 'bbb': bbb, 'ccc': ccc **2, 'ddd': [ddd, ddd]}
+
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 4)
+    self.assertTrue('aaa' in aaa.name())
+    self.assertTrue('uniform' in aaa.name())
+    self.assertTrue('bbb' in bbb.name())
+    self.assertTrue('choice' in bbb.name())
+    self.assertTrue('ccc' in ccc.name())
+    self.assertTrue('uniform' in ccc.name())
+    self.assertTrue('ddd' in ddd.name())
+    self.assertTrue('uniform' in ddd.name())
+
+
+  def test_name_2(self):
+    norm_node = normal()
+    choice_node = choice([uniform(), uniform(), uniform()])
+    spec = {'a': {'b': {'c': { 'd': norm_node, 0: choice_node } } } }
+
+    parsed = ParsedSpec(spec)
+    self.assertEqual(parsed.size(), 5)
+    self.assertTrue('a-b-c-d' in norm_node.name())
+    self.assertTrue('norm_gen' in norm_node.name())
+    self.assertTrue('a-b-c-0' in choice_node.name())
+    self.assertTrue('choice' in choice_node.name())

@@ -5,12 +5,23 @@ __author__ = "maxim"
 import operator
 
 class BaseNode(object):
-  def __init__(self):
+  def __init__(self, name=None):
     super(BaseNode, self).__init__()
     self._domain_value = None
+    self._name = name
 
   def value(self):
     return self._domain_value
+
+  def name(self):
+    return self._name
+
+  def with_name(self, name):
+    self._name = name
+    return self
+
+  def describe(self):
+    return None
 
   def __add__(self, other):  return _op2(self, other, operator.add)
   def __radd__(self, other): return _op2(self, other, operator.add, rev=True)
@@ -86,37 +97,58 @@ class AcceptsInputNode(BaseNode):
 class UniformNode(AcceptsInputNode):
   def __init__(self, start=0.0, end=1.0):
     super(UniformNode, self).__init__()
-    self.shift = min(start, end)
-    self.scale = abs(end - start)
+    self._shift = min(start, end)
+    self._scale = abs(end - start)
+    self._describe = 'uniform(%f, %f)' % (start, end)
 
   def to_domain_value(self, point):
-    return point * self.scale + self.shift
+    return point * self._scale + self._shift
+
+  def describe(self):
+    return self._describe
 
 
 class NonUniformNode(AcceptsInputNode):
   def __init__(self, ppf, **args):
     super(NonUniformNode, self).__init__()
-    self.ppf = ppf
-    self.args = args
+    self._ppf = ppf
+    self._args = args
 
   def to_domain_value(self, point):
-    return self.ppf(point, **self.args)
+    return self._ppf(point, **self._args)
+
+  def describe(self):
+    return func_to_str(self._ppf) or 'complex'
+
+def func_to_str(func):
+  try:
+    if hasattr(func, 'im_self'):
+      self = func.im_self
+      if hasattr(self, '__class__'):
+        self = self.__class__
+      return self.__name__
+    return func.__name__
+  except:
+    return None
 
 
 class ChoiceNode(AcceptsInputNode):
   def __init__(self, *array):
     super(ChoiceNode, self).__init__()
-    self.array = array
+    self._array = array
 
   def to_domain_value(self, point):
-    index = int(point * len(self.array))
-    return self.array[min(index, len(self.array) - 1)]
+    index = int(point * len(self._array))
+    return self._array[min(index, len(self._array) - 1)]
+
+  def describe(self):
+    return 'choice(%d)' % len(self._array)
 
 
 class JointNode(BaseNode):
   def __init__(self, *children):
     super(JointNode, self).__init__()
-    self.children = children
+    self._children = children
 
 
 class MergeNode(JointNode):
@@ -127,7 +159,7 @@ class MergeNode(JointNode):
 
   def value(self):
     if self._domain_value is None:
-      self._domain_value = self.function(*[child.value() for child in self.children])
+      self._domain_value = self.function(*[child.value() for child in self._children])
     return self._domain_value
 
 
@@ -137,10 +169,13 @@ class MergeChoiceNode(JointNode, AcceptsInputNode):
 
   def value(self):
     if self._domain_value is None and self._point is not None:
-      values = [child.value() if isinstance(child, BaseNode) else child for child in self.children]
+      values = [child.value() if isinstance(child, BaseNode) else child for child in self._children]
       index = int(self._point * len(values))
       self._domain_value = values[min(index, len(values) - 1)]
     return self._domain_value
 
   def to_domain_value(self, point):
     return None
+
+  def describe(self):
+    return 'choice(%d)' % len(self._children)

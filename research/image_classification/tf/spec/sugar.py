@@ -14,70 +14,74 @@ def wrap(node, transform):
     return MergeNode(transform, node)
   return node
 
-def uniform(start=0.0, end=1.0, transform=None):
-  node = UniformNode(start, end)
+def uniform(start=0.0, end=1.0, transform=None, name=None):
+  node = UniformNode(start, end).with_name(name)
   return wrap(node, transform)
 
-def normal(mean=0.0, stdev=1.0):
-  return NonUniformNode(ppf=stats.norm.ppf, loc=mean, scale=stdev)
+def normal(mean=0.0, stdev=1.0, name=None):
+  return NonUniformNode(ppf=stats.norm.ppf, loc=mean, scale=stdev).with_name(name)
 
-def choice(array, transform=None):
+def choice(array, transform=None, name=None):
   if not [item for item in array if isinstance(item, BaseNode)]:
-    node = ChoiceNode(*array)
+    node = ChoiceNode(*array).with_name(name)
   else:
-    node = MergeChoiceNode(*array)
+    node = MergeChoiceNode(*array).with_name(name)
   return wrap(node, transform)
 
-def merge(function, *nodes):
-  return MergeNode(function, *nodes)
+def merge(nodes, function, name=None):
+  if callable(nodes) and not callable(function):
+    nodes, function = function, nodes
+  if isinstance(nodes, BaseNode):
+    nodes = [nodes]
+  return MergeNode(function, *nodes).with_name(name)
 
-def exp(node): return merge(math.exp, node)
-def expm1(node): return merge(math.expm1, node)
-def frexp(node): return merge(math.frexp, node)
-def ldexp(node, i): return merge(lambda x: math.ldexp(x, i), node)
+def exp(node): return merge([node], math.exp)
+def expm1(node): return merge([node], math.expm1)
+def frexp(node): return merge([node], math.frexp)
+def ldexp(node, i): return merge([node], lambda x: math.ldexp(x, i))
 
-def sqrt(node): return merge(math.sqrt, node)
+def sqrt(node): return merge([node], math.sqrt)
 def pow(a, b): return a ** b
 
-def log(node, base=None): return merge(lambda x: math.log(x, base), node)
-def log1p(node): return merge(math.log1p, node)
-def log10(node): return merge(math.log10, node)
+def log(node, base=None): return merge([node], lambda x: math.log(x, base))
+def log1p(node): return merge([node], math.log1p)
+def log10(node): return merge([node], math.log10)
 
-def sin(node): return merge(math.sin, node)
-def cos(node): return merge(math.cos, node)
-def tan(node): return merge(math.tan, node)
+def sin(node): return merge([node], math.sin)
+def cos(node): return merge([node], math.cos)
+def tan(node): return merge([node], math.tan)
 
-def sinh(node): return merge(math.sinh, node)
-def cosh(node): return merge(math.cosh, node)
-def tanh(node): return merge(math.tanh, node)
+def sinh(node): return merge([node], math.sinh)
+def cosh(node): return merge([node], math.cosh)
+def tanh(node): return merge([node], math.tanh)
 
-def asin(node): return merge(math.asin, node)
-def acos(node): return merge(math.acos, node)
-def atan(node): return merge(math.atan, node)
-def atan2(node): return merge(math.atan2, node)
+def asin(node): return merge([node], math.asin)
+def acos(node): return merge([node], math.acos)
+def atan(node): return merge([node], math.atan)
+def atan2(node): return merge([node], math.atan2)
 
-def asinh(node): return merge(math.asinh, node)
-def acosh(node): return merge(math.acosh, node)
-def atanh(node): return merge(math.atanh, node)
+def asinh(node): return merge([node], math.asinh)
+def acosh(node): return merge([node], math.acosh)
+def atanh(node): return merge([node], math.atanh)
 
 def min_(*array):
   nodes = [item for item in array if isinstance(item, BaseNode)]
   if len(nodes) == 0:
     return min(*array) if len(array) > 1 else array[0]
-  node = merge(min, *nodes) if len(nodes) > 1 else nodes[0]
+  node = merge(nodes, min) if len(nodes) > 1 else nodes[0]
 
   rest = [item for item in array if not isinstance(item, BaseNode)]
   if rest:
-    node = merge(lambda x: min(x, *rest), node)
+    node = merge([node], lambda x: min(x, *rest))
   return node
 
 def max_(*array):
   nodes = [item for item in array if isinstance(item, BaseNode)]
   if len(nodes) == 0:
     return max(*array) if len(array) > 1 else array[0]
-  node = merge(max, *nodes) if len(nodes) > 1 else nodes[0]
+  node = merge(nodes, max) if len(nodes) > 1 else nodes[0]
 
   rest = [item for item in array if not isinstance(item, BaseNode)]
   if rest:
-    node = merge(lambda x: max(x, *rest), node)
+    node = merge([node], lambda x: max(x, *rest))
   return node
