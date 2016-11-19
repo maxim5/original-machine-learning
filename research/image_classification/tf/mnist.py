@@ -12,7 +12,7 @@ from conv_model import ConvModel
 from data_set import Data, DataSet
 from hyper_tuner import HyperTuner
 from interaction import read_model
-from mnist_spec import hyper_params
+from mnist_spec import hyper_params_spec
 from log import log
 from tensorflow_impl import *
 from util import random_id, dict_to_str
@@ -98,12 +98,12 @@ def hyper_tune_ground_up():
       'batch_size': 256,
       'eval_batch_size': 5000,
       'epochs': 12,
-      'dynamic_epochs': lambda acc: 5 if acc < 0.9800 else 8 if acc < 0.9920 else 12,
+      'dynamic_epochs': lambda acc: 5 if acc < 0.9800 else 10 if acc < 0.9920 else 15,
       'evaluate_test': True,
       'eval_flexible': False,
       'save_dir': 'model-zoo/%s-%s' % (datetime.datetime.now().strftime('%Y-%m-%d'), random_id()),
       'data_saver': plot_images,
-      'save_accuracy_limit': 0.9930,
+      'save_accuracy_limit': 0.9940,
     }
 
     model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
@@ -113,12 +113,21 @@ def hyper_tune_ground_up():
     return solver
 
   strategy_params = {
-    'io_load_dir': 'mnist-conv-3',
-    'io_save_dir': 'mnist-conv-3',
+    'io_load_dir': 'mnist-conv-3.1',
+    'io_save_dir': 'mnist-conv-3.1',
   }
 
-  tuner = HyperTuner(hyper_params, solver_generator, **strategy_params)
+  tuner = HyperTuner(hyper_params_spec, solver_generator, **strategy_params)
   tuner.tune()
+
+
+def fine_tune_all():
+  all = ["2016-10-24-SE5DZ8", "2016-10-24-C3IKA1", "2016-10-27-PWOECJ",
+         "2016-10-28-O86890", "2016-11-03-02CSRV", "2016-11-17-7V3AD0", ]
+  for path in all:
+    from hyper_tuner import tf_reset_all
+    tf_reset_all()
+    fine_tune(path)
 
 
 def fine_tune(path=None, random_fork=True, only_test=False):
@@ -141,7 +150,7 @@ def fine_tune(path=None, random_fork=True, only_test=False):
   model_io = TensorflowModelIO(**solver_params)
   hyper_params = model_io.load_hyper_params() or {}
   if random_fork and not only_test:
-    random_hyper_params = spec.get_instance(hyper_params)
+    random_hyper_params = spec.get_instance(hyper_params_spec)
     hyper_params.update({key: value for key, value in random_hyper_params.iteritems() if key == 'augment'})
 
   model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)

@@ -39,7 +39,7 @@ class HyperTuner(Logger):
       tf_reset_all()
       accuracy = solver.train()
 
-      previous_max = max(self.strategy.values)
+      previous_max = max(self.strategy.values) if len(self.strategy.values) > 0 else 0
       self.strategy.add_point(point, accuracy)
       index = len(self.strategy.values)
 
