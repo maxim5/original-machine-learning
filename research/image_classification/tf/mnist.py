@@ -160,10 +160,38 @@ def fine_tune(path=None, random_fork=True, only_test=False):
   solver.train()
 
 
+def polish(path=None):
+  if not path:
+    path = read_model('model-zoo-polish')
+
+  model_path = 'model-zoo/%s' % path
+  solver_params = {
+    'batch_size': 1000,
+    'eval_batch_size': 5000,
+    'epochs': 50,
+    'evaluate_test': False,
+    'save_dir': model_path,
+    'load_dir': model_path,
+  }
+
+  mnist = get_mnist_data()
+  mnist.merge_validation_to_train()
+
+  model_io = TensorflowModelIO(**solver_params)
+  hyper_params = model_io.load_hyper_params() or {}
+
+  model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
+  runner = TensorflowRunner(model=model)
+  augmentation = init_augmentation(**hyper_params.get('augment', {}))
+  solver = TensorflowSolver(data=mnist, runner=runner, augmentation=augmentation, **solver_params)
+  solver.train()
+
+
 if __name__ == "__main__":
   run_config = {
-    'fine_tune': fine_tune,
     'hyper_tune_ground_up': hyper_tune_ground_up,
+    'fine_tune': fine_tune,
+    'polish': polish,
   }
 
   arguments = sys.argv
