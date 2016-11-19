@@ -195,7 +195,7 @@ if __name__ == "__main__":
   run_config = {
     'hyper_tune_ground_up': hyper_tune_ground_up,
     'fine_tune': fine_tune,
-    'polish': fine_tune_all,
+    'polish': polish,
   }
 
   arguments = sys.argv
