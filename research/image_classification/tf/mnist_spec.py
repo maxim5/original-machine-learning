@@ -21,11 +21,11 @@ hyper_params_spec = {
   'init_stdev': spec.uniform(0.04, 0.06),
 
   'augment': {
-  #   'scale': [spec.min_(spec.uniform(0.9, 1.1), 1.0),
-  #             spec.max_(spec.uniform(0.9, 1.1), 1.0)],
-  #   'rotation_angle': spec.choice([0, spec.uniform(0, 20)]),
-  #   'blur_sigma': spec.choice([0, 10**spec.uniform(-2, 0.2)]),
-     'crop_size': spec.choice(range(2)),
+    # 'scale': [spec.min_(spec.uniform(0.9, 1.1), 1.0),
+    #           spec.max_(spec.uniform(0.9, 1.1), 1.0)],
+    'rotation_angle': spec.choice([0, spec.uniform(0, 6)]),
+    # 'blur_sigma': spec.choice([0, 10**spec.uniform(-2, 0.2)]),
+    'crop_size': spec.choice(range(3)),
   },
 
   'optimizer': {
