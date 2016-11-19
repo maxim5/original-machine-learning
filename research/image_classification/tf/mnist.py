@@ -122,12 +122,13 @@ def hyper_tune_ground_up():
 
 
 def fine_tune_all():
-  all = ["2016-10-24-SE5DZ8", "2016-10-24-C3IKA1", "2016-10-27-PWOECJ",
-         "2016-10-28-O86890", "2016-11-03-02CSRV", "2016-11-17-7V3AD0", ]
-  for path in all:
+  all = ["2016-10-24-SE5DZ8", ]
+  for path in all * 100:
     from hyper_tuner import tf_reset_all
     tf_reset_all()
-    fine_tune(path)
+    polish(path)
+    import time
+    time.sleep(30)
 
 
 def fine_tune(path=None, random_fork=True, only_test=False):
@@ -160,15 +161,15 @@ def fine_tune(path=None, random_fork=True, only_test=False):
   solver.train()
 
 
-def polish(path=None):
+def polish(path=None, random_fork=True):
   if not path:
     path = read_model('model-zoo-polish')
 
-  model_path = 'model-zoo/%s' % path
+  model_path = 'model-zoo-polish/%s' % path
   solver_params = {
-    'batch_size': 1000,
+    'batch_size': 2000,
     'eval_batch_size': 5000,
-    'epochs': 50,
+    'epochs': 20,
     'evaluate_test': False,
     'save_dir': model_path,
     'load_dir': model_path,
@@ -179,6 +180,9 @@ def polish(path=None):
 
   model_io = TensorflowModelIO(**solver_params)
   hyper_params = model_io.load_hyper_params() or {}
+  if random_fork:
+    random_hyper_params = spec.get_instance(hyper_params_spec)
+    hyper_params.update({key: value for key, value in random_hyper_params.iteritems() if key == 'augment'})
 
   model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
   runner = TensorflowRunner(model=model)
@@ -191,7 +195,7 @@ if __name__ == "__main__":
   run_config = {
     'hyper_tune_ground_up': hyper_tune_ground_up,
     'fine_tune': fine_tune,
-    'polish': polish,
+    'polish': fine_tune_all,
   }
 
   arguments = sys.argv
