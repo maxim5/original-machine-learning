@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tflearn.datasets.mnist import read_data_sets
 
-from augmentor import MyImageAugmentation
+from augmentor import ImageAugmentationPlus
 from data_set import Data, DataSet
 from mnist import plot_images
 
@@ -36,7 +36,7 @@ def plot_one(image, label=None):
 ########################################################################################################################
 
 
-augmentation = MyImageAugmentation()
+augmentation = ImageAugmentationPlus()
 augmentation.add_random_scale(downscale_limit=(1.6, 1.6), upscale_limit=(1.3, 1.3))
 augmentation.add_random_crop(crop_shape=(28, 28), padding=2)
 #augmentation.add_random_rotation(max_angle=15)

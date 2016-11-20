@@ -3,7 +3,6 @@
 __author__ = "maxim"
 
 
-import numbers
 import numpy as np
 
 from kernel import RadialBasisFunction
@@ -12,6 +11,7 @@ from strategy_io import StrategyIO
 from utility import ProbabilityOfImprovement, ExpectedImprovement, UpperConfidenceBound
 
 from image_classification.tf.log import log
+from image_classification.tf.util import as_function, as_numeric_function, slice_dict
 
 
 mu_priors = {
@@ -69,25 +69,3 @@ class BayesianStrategy(object):
     self.points.append(point)
     self.values.append(value)
     self.strategy_io.save()
-
-
-def as_function(val, presets, default=None):
-  if callable(val):
-    return val
-
-  preset = presets.get(val, default)
-  if preset is not None:
-    return preset
-
-  raise ValueError('Value is not recognized: ', val)
-
-def as_numeric_function(val, presets, default=None):
-  if isinstance(val, numbers.Number):
-    def const(*_):
-      return val
-    return const
-
-  return as_function(val, presets, default)
-
-def slice_dict(d, key_prefix):
-  return {key[len(key_prefix):]: value for key, value in d.iteritems() if key.startswith(key_prefix)}

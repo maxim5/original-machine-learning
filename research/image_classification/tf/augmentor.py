@@ -12,7 +12,7 @@ import skimage.util
 from tflearn import ImageAugmentation
 
 
-class MyImageAugmentation(ImageAugmentation):
+class ImageAugmentationPlus(ImageAugmentation):
   def add_random_scale(self, downscale_limit=1.0, upscale_limit=1.0, fix_aspect_ratio=False):
     if isinstance(downscale_limit, numbers.Number):
       downscale_limit = (downscale_limit, downscale_limit)

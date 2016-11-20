@@ -7,12 +7,12 @@ import datetime
 import math
 import sys
 
-from augmentor import MyImageAugmentation
+from augmentor import ImageAugmentationPlus
 from conv_model import ConvModel
 from data_set import Data, DataSet
 from hyper_tuner import HyperTuner
 from interaction import read_model
-from mnist_spec import hyper_params_spec
+from mnist_spec import hyper_params_spec, augment_spec
 from log import log
 from tensorflow_impl import *
 from util import random_id, dict_to_str
@@ -67,7 +67,7 @@ def init_augmentation(**params):
   if params:
     log('Using augmentation params: %s' % dict_to_str(params))
 
-    augmentation = MyImageAugmentation()
+    augmentation = ImageAugmentationPlus()
     scale = params.get('scale')
     if scale:
       if isinstance(scale, float):
@@ -90,7 +90,7 @@ def init_augmentation(**params):
   return augmentation
 
 
-def hyper_tune_ground_up():
+def stage1():
   mnist = get_mnist_data()
 
   def solver_generator(hyper_params):
@@ -113,25 +113,15 @@ def hyper_tune_ground_up():
     return solver
 
   strategy_params = {
-    'io_load_dir': 'mnist-conv-3.1',
-    'io_save_dir': 'mnist-conv-3.1',
+    'io_load_dir': 'mnist/stage1-2.0',
+    'io_save_dir': 'mnist/stage1-2.0',
   }
 
   tuner = HyperTuner(hyper_params_spec, solver_generator, **strategy_params)
   tuner.tune()
 
 
-def fine_tune_all():
-  all = ["2016-10-24-SE5DZ8", ]
-  for path in all * 100:
-    from hyper_tuner import tf_reset_all
-    tf_reset_all()
-    polish(path)
-    import time
-    time.sleep(30)
-
-
-def fine_tune(path=None, random_fork=True, only_test=False):
+def stage2(path=None, random_fork=True, only_test=False):
   if not path:
     path = read_model('model-zoo')
 
@@ -151,8 +141,7 @@ def fine_tune(path=None, random_fork=True, only_test=False):
   model_io = TensorflowModelIO(**solver_params)
   hyper_params = model_io.load_hyper_params() or {}
   if random_fork and not only_test:
-    random_hyper_params = spec.get_instance(hyper_params_spec)
-    hyper_params.update({key: value for key, value in random_hyper_params.iteritems() if key == 'augment'})
+    hyper_params.update({'augment': spec.get_instance(augment_spec)})
 
   model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
   runner = TensorflowRunner(model=model)
@@ -161,7 +150,7 @@ def fine_tune(path=None, random_fork=True, only_test=False):
   solver.train()
 
 
-def polish(path=None, random_fork=True):
+def stage3(path='2016-10-24-SE5DZ8'):
   if not path:
     path = read_model('model-zoo-polish')
 
@@ -169,33 +158,41 @@ def polish(path=None, random_fork=True):
   solver_params = {
     'batch_size': 2000,
     'eval_batch_size': 5000,
-    'epochs': 20,
+    'epochs': 5,
     'evaluate_test': False,
+    'eval_flexible': False,
     'save_dir': model_path,
     'load_dir': model_path,
   }
 
+  model_io = TensorflowModelIO(**solver_params)
+  hyper_params = model_io.load_hyper_params() or {}
+
   mnist = get_mnist_data()
   mnist.merge_validation_to_train()
 
-  model_io = TensorflowModelIO(**solver_params)
-  hyper_params = model_io.load_hyper_params() or {}
-  if random_fork:
-    random_hyper_params = spec.get_instance(hyper_params_spec)
-    hyper_params.update({key: value for key, value in random_hyper_params.iteritems() if key == 'augment'})
+  def solver_generator(augment_params):
+    hyper_params['augment'] = augment_params
+    model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
+    runner = TensorflowRunner(model=model)
+    augmentation = init_augmentation(**augment_params)
+    solver = TensorflowSolver(data=mnist, runner=runner, augmentation=augmentation, result_metric='avg', **solver_params)
+    return solver
 
-  model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
-  runner = TensorflowRunner(model=model)
-  augmentation = init_augmentation(**hyper_params.get('augment', {}))
-  solver = TensorflowSolver(data=mnist, runner=runner, augmentation=augmentation, **solver_params)
-  solver.train()
+  strategy_params = {
+    'io_load_dir': 'mnist/stage3-1.0',
+    'io_save_dir': 'mnist/stage3-1.0',
+  }
+
+  tuner = HyperTuner(augment_spec, solver_generator, **strategy_params)
+  tuner.tune()
 
 
 if __name__ == "__main__":
   run_config = {
-    'hyper_tune_ground_up': hyper_tune_ground_up,
-    'fine_tune': fine_tune,
-    'polish': polish,
+    'stage1': stage1,
+    'stage2': stage2,
+    'stage3': stage3,
   }
 
   arguments = sys.argv
