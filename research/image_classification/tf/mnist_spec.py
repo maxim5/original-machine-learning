@@ -74,9 +74,10 @@ def uniform_snap(start, end):
   return spec.wrap(node, snap_to_ends)
 
 augment_spec = {
-  'scale': [spec.min_(spec.uniform(0.9, 1.1), 1.0),
-            spec.max_(spec.uniform(0.9, 1.1), 1.0)],
-  'rotation_angle': uniform_snap(0, 10) ,
-  'blur_sigma': uniform_snap(0, 1.5),
-  'crop_size': spec.choice(range(3)),
+  'scale': [spec.min_(spec.uniform(0.5, 1.5), 1.0),
+            spec.max_(spec.uniform(0.5, 1.5), 1.0)],
+  'swirl': [uniform_snap(0, 1), uniform_snap(0, 50)],
+  'rotation_angle': uniform_snap(0, 15),
+  'blur_sigma': uniform_snap(0, 2),
+  'crop_size': spec.choice(range(5)),
 }

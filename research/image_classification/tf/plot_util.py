@@ -37,10 +37,11 @@ def plot_one(image, label=None):
 
 
 augmentation = ImageAugmentationPlus()
-augmentation.add_random_scale(downscale_limit=(1.6, 1.6), upscale_limit=(1.3, 1.3))
-augmentation.add_random_crop(crop_shape=(28, 28), padding=2)
-#augmentation.add_random_rotation(max_angle=15)
-#augmentation.add_random_blur(sigma_max=0.1)
+# augmentation.add_random_scale(downscale_limit=(1.6, 1.6), upscale_limit=(1.3, 1.3))
+# augmentation.add_random_crop(crop_shape=(28, 28), padding=2)
+# augmentation.add_random_rotation(max_angle=15)
+# augmentation.add_random_blur(sigma_max=0.1)
+augmentation.add_random_swirl(strength_limit=1.0, radius_limit=50)
 
 
 def experiment(x0):
@@ -53,11 +54,31 @@ def experiment(x0):
   plot_one(x1)
   plot_one(x2)
 
+def experiment2():
+  import matplotlib.pyplot as plt
+
+  from skimage import data
+  from skimage.transform import swirl
+
+  image = data.checkerboard()
+  swirled = swirl(image, rotation=0, strength=0.5, radius=180)
+
+  fig, (ax0, ax1) = plt.subplots(nrows=1, ncols=2, figsize=(8, 3),
+                                 sharex=True, sharey=True,
+                                 subplot_kw={'adjustable': 'box-forced'})
+
+  ax0.imshow(image, cmap=plt.cm.gray, interpolation='none')
+  ax0.axis('off')
+  ax1.imshow(swirled, cmap=plt.cm.gray, interpolation='none')
+  ax1.axis('off')
+
+  plt.show()
 
 ########################################################################################################################
 
 data = get_mnist_data()
-x, y = data.train.next_batch(64)
+data.train.just_completed = True
+x, y = data.train.next_batch(36)
 # x, y = filter_just(x, y, 8)
 
 z = np.array(x)

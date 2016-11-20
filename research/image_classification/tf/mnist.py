@@ -78,6 +78,10 @@ def init_augmentation(**params):
     if rotation_angle:
       augmentation.add_random_rotation(max_angle=rotation_angle)
 
+    swirl = params.get('swirl')
+    if swirl:
+      augmentation.add_random_swirl(strength_limit=swirl[0], radius_limit=swirl[1])
+
     blur_sigma = params.get('blur_sigma')
     if blur_sigma:
       augmentation.add_random_blur(sigma_max=blur_sigma)
@@ -158,7 +162,7 @@ def stage3(path='2016-10-24-SE5DZ8'):
   solver_params = {
     'batch_size': 2000,
     'eval_batch_size': 5000,
-    'epochs': 5,
+    'epochs': 8,
     'evaluate_test': False,
     'eval_flexible': False,
     'save_dir': model_path,
@@ -180,8 +184,8 @@ def stage3(path='2016-10-24-SE5DZ8'):
     return solver
 
   strategy_params = {
-    'io_load_dir': 'mnist/stage3-1.0',
-    'io_save_dir': 'mnist/stage3-1.0',
+    'io_load_dir': 'mnist/stage3-2.0',
+    'io_save_dir': 'mnist/stage3-2.0',
   }
 
   tuner = HyperTuner(augment_spec, solver_generator, **strategy_params)
