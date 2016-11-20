@@ -13,6 +13,9 @@ from tflearn import ImageAugmentation
 
 
 class ImageAugmentationPlus(ImageAugmentation):
+  def apply(self, batch):
+    return super(ImageAugmentationPlus, self).apply(np.copy(batch))
+
   def add_random_scale(self, downscale_limit=1.0, upscale_limit=1.0, fix_aspect_ratio=False):
     if isinstance(downscale_limit, numbers.Number):
       downscale_limit = (downscale_limit, downscale_limit)
@@ -26,6 +29,9 @@ class ImageAugmentationPlus(ImageAugmentation):
       self.methods.append(self._random_scale)
       self.args.append([downscale_limit, upscale_limit, fix_aspect_ratio])
 
+  def add_random_swirl(self, strength_limit=1.0, radius_limit=100.0):
+    self.methods.append(self._random_swirl)
+    self.args.append([strength_limit, radius_limit])
 
   def _random_scale(self, batch, downscale_limit, upscale_limit, fix_aspect_ratio):
     for i in range(len(batch)):
@@ -40,6 +46,17 @@ class ImageAugmentationPlus(ImageAugmentation):
         if scale[0] > 1 or scale[1] > 1:
           image = skimage.transform.rescale(image, scale=t_max(scale, (1, 1)), preserve_range=True)
           image = crop_to_shape(image, batch[i].shape)
+        batch[i] = image
+    return batch
+
+  def _random_swirl(self, batch, strength_limit, radius_limit):
+    for i in range(len(batch)):
+      if bool(random.getrandbits(1)):
+        image = batch[i]
+        strength = np.random.uniform(0, strength_limit)
+        radius = np.random.uniform(0, radius_limit)
+        if strength > 0 and radius > 0:
+          image = skimage.transform.swirl(image, strength=strength, radius=radius, rotation=0, preserve_range=True)
         batch[i] = image
     return batch
 
