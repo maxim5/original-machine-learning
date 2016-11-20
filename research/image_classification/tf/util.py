@@ -5,6 +5,7 @@ __author__ = "maxim"
 
 import ast
 import collections
+import numbers
 import random
 import string
 
@@ -62,7 +63,6 @@ def safe_concat(list_):
     return np.concatenate(list_)
   return list_
 
-
 def call(obj, *args):
   if callable(obj):
     return obj(*args)
@@ -70,3 +70,24 @@ def call(obj, *args):
   apply = getattr(obj, 'apply', None)
   if callable(apply):
     return apply(*args)
+
+def slice_dict(d, key_prefix):
+  return {key[len(key_prefix):]: value for key, value in d.iteritems() if key.startswith(key_prefix)}
+
+def as_function(val, presets, default=None):
+  if callable(val):
+    return val
+
+  preset = presets.get(val, default)
+  if preset is not None:
+    return preset
+
+  raise ValueError('Value is not recognized: ', val)
+
+def as_numeric_function(val, presets, default=None):
+  if isinstance(val, numbers.Number):
+    def const(*_):
+      return val
+    return const
+
+  return as_function(val, presets, default)

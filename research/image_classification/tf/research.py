@@ -17,7 +17,7 @@ sampler = DefaultSampler()
 sampler.add_uniform(parsed.size())
 
 strategy_params = {
-  'io_load_dir': 'mnist-conv-3.1',
+  'io_load_dir': 'mnist/stage1-2.0',
 }
 strategy = BayesianStrategy(sampler, **strategy_params)
 print strategy.points

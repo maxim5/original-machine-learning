@@ -7,8 +7,13 @@ from log import Logger
 from util import *
 
 
+metrics = {
+  'max': lambda solver: solver.max_val_accuracy,
+  'avg': lambda solver: sum(solver.val_accuracy_history) / len(solver.val_accuracy_history)
+}
+
 class BaseSolver(Logger):
-  def __init__(self, data, runner, augmentation=None, log_level=1, **params):
+  def __init__(self, data, runner, augmentation=None, result_metric='max', log_level=1, **params):
     super(BaseSolver, self).__init__(log_level)
 
     data.reset_counters()
@@ -17,7 +22,9 @@ class BaseSolver(Logger):
     self.test_set = data.test
     self.augmentation = augmentation
     self.runner = runner
+    self.result_metric = as_numeric_function(result_metric, presets=metrics)
     self.max_val_accuracy = 0
+    self.val_accuracy_history = []
 
     self.epochs = params.get('epochs', 1)
     self.dynamic_epochs = params.get('dynamic_epochs')
@@ -41,14 +48,16 @@ class BaseSolver(Logger):
 
         eval_result = self._evaluate_validation(batch_x, batch_y)
         val_accuracy = eval_result.get('accuracy') if eval_result is not None else None
-        if val_accuracy is not None and val_accuracy > self.max_val_accuracy:
-          self.max_val_accuracy = val_accuracy
-          self.on_best_accuracy(val_accuracy, eval_result)
+        if val_accuracy is not None:
+          self.val_accuracy_history.append(val_accuracy)
+          if val_accuracy > self.max_val_accuracy:
+            self.max_val_accuracy = val_accuracy
+            self.on_best_accuracy(val_accuracy, eval_result)
 
       if self.eval_test:
         self._evaluate_test()
 
-    return self.max_val_accuracy
+    return self.result_metric(self)
 
 
   def create_session(self):
