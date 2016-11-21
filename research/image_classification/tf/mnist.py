@@ -192,11 +192,40 @@ def stage3(path='2016-10-24-SE5DZ8'):
   tuner.tune()
 
 
+def stage4(path='2016-10-24-SE5DZ8'):
+  if not path:
+    path = read_model('model-zoo')
+
+  model_path = 'model-zoo-polish/%s' % path
+  solver_params = {
+    'batch_size': 2000,
+    'eval_batch_size': 5000,
+    'epochs': 80,
+    'evaluate_test': False,
+    'eval_flexible': False,
+    'save_dir': model_path,
+    'load_dir': model_path,
+  }
+
+  mnist = get_mnist_data()
+  mnist.merge_validation_to_train()
+
+  model_io = TensorflowModelIO(**solver_params)
+  hyper_params = model_io.load_hyper_params() or {}
+
+  model = ConvModel(input_shape=(28, 28, 1), num_classes=10, **hyper_params)
+  runner = TensorflowRunner(model=model)
+  augmentation = init_augmentation(**hyper_params.get('augment', {}))
+  solver = TensorflowSolver(data=mnist, runner=runner, augmentation=augmentation, **solver_params)
+  solver.train()
+
+
 if __name__ == "__main__":
   run_config = {
     'stage1': stage1,
     'stage2': stage2,
     'stage3': stage3,
+    'stage4': stage4,
   }
 
   arguments = sys.argv
