@@ -66,7 +66,7 @@ def uniform_snap(start, end):
   node = spec.uniform(start, end)
 
   def snap_to_ends(value):
-    delta = (end - start) / 8.0
+    delta = (end - start) / 10.0
     if abs(value - start) < delta: return start
     if abs(value - end) < delta: return end
     return value
@@ -74,10 +74,9 @@ def uniform_snap(start, end):
   return spec.wrap(node, snap_to_ends)
 
 augment_spec = {
-  'scale': [spec.min_(spec.uniform(0.5, 1.5), 1.0),
-            spec.max_(spec.uniform(0.5, 1.5), 1.0)],
-  'swirl': [uniform_snap(0, 1), uniform_snap(0, 50)],
+  'scale': [uniform_snap(0.75, 1.0), uniform_snap(1.0, 1.6)],
+  'swirl': [uniform_snap(0, 1), uniform_snap(1, 50)],
   'rotation_angle': uniform_snap(0, 15),
-  'blur_sigma': uniform_snap(0, 2),
-  'crop_size': spec.choice(range(5)),
+  'blur_sigma': spec.uniform(0, 1),
+  'crop_size': spec.choice(range(1, 4)),
 }
