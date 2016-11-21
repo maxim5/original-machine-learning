@@ -162,7 +162,7 @@ def stage3(path='2016-10-24-SE5DZ8'):
   solver_params = {
     'batch_size': 2000,
     'eval_batch_size': 5000,
-    'epochs': 8,
+    'epochs': 12,
     'evaluate_test': False,
     'eval_flexible': False,
     'save_dir': model_path,
@@ -184,8 +184,8 @@ def stage3(path='2016-10-24-SE5DZ8'):
     return solver
 
   strategy_params = {
-    'io_load_dir': 'mnist/stage3-2.0',
-    'io_save_dir': 'mnist/stage3-2.0',
+    'io_load_dir': 'mnist/stage3-2.1',
+    'io_save_dir': 'mnist/stage3-2.1',
   }
 
   tuner = HyperTuner(augment_spec, solver_generator, **strategy_params)
