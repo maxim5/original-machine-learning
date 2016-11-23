@@ -160,11 +160,13 @@ def stage3(path='2016-10-24-SE5DZ8'):
 
   model_path = 'model-zoo-polish/%s' % path
   solver_params = {
-    'batch_size': 2000,
+    'batch_size': 2500,
     'eval_batch_size': 5000,
-    'epochs': 12,
+    'epochs': 5,
     'evaluate_test': False,
     'eval_flexible': False,
+    'eval_train_every': 2,
+    'eval_validation_every': 2,
     'save_dir': model_path,
     'load_dir': model_path,
   }
