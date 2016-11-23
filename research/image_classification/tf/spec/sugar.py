@@ -35,6 +35,12 @@ def merge(nodes, function, name=None):
     nodes = [nodes]
   return MergeNode(function, *nodes).with_name(name)
 
+def random_bit():
+  return choice([0, 1])
+
+def random_int(n):
+  return choice(range(n))
+
 def exp(node): return merge([node], math.exp)
 def expm1(node): return merge([node], math.expm1)
 def frexp(node): return merge([node], math.frexp)
