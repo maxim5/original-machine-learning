@@ -28,14 +28,14 @@ def get_cifar10_data(validation_size=5000):
               test=DataSet(x_test, y_test))
 
 
-def stage0():
+def stage1():
   data = get_cifar10_data()
 
   def solver_generator(hyper_params):
     solver_params = {
       'batch_size': 256,
       'eval_batch_size': 5000,
-      'epochs': 3,
+      'epochs': 8,
       'evaluate_test': True,
       'save_dir': '_models/cifar10/model-zoo/%s-%s' % (datetime.datetime.now().strftime('%Y-%m-%d'), random_id()),
       'save_accuracy_limit': 0.90,
@@ -47,8 +47,8 @@ def stage0():
     return solver
 
   strategy_params = {
-    'io_load_dir': '_models/cifar10/hyper/stage0-1.0',
-    'io_save_dir': '_models/cifar10/hyper/stage0-1.0',
+    'io_load_dir': '_models/cifar10/hyper/stage1-1.0',
+    'io_save_dir': '_models/cifar10/hyper/stage1-1.0',
   }
 
   tuner = HyperTuner(hyper_params_spec, solver_generator, **strategy_params)
@@ -56,4 +56,4 @@ def stage0():
 
 
 if __name__ == "__main__":
-  stage0()
+  stage1()
