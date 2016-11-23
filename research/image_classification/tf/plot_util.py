@@ -37,11 +37,11 @@ def plot_one(image, label=None):
 
 
 augmentation = ImageAugmentationPlus()
-# augmentation.add_random_scale(downscale_limit=(1.6, 1.6), upscale_limit=(1.3, 1.3))
-# augmentation.add_random_crop(crop_shape=(28, 28), padding=2)
-# augmentation.add_random_rotation(max_angle=15)
-# augmentation.add_random_blur(sigma_max=0.1)
-augmentation.add_random_swirl(strength_limit=1.0, radius_limit=50)
+augmentation.add_random_scale(downscale_limit=(0.7, 0.7), upscale_limit=(1.5, 1.5), fix_aspect_ratio=True)
+augmentation.add_random_crop(crop_shape=(28, 28), padding=2)
+augmentation.add_random_rotation(max_angle=10)
+augmentation.add_random_blur(sigma_max=0.5)
+augmentation.add_random_swirl(strength_limit=1.0, radius_limit=100)
 
 
 def experiment(x0):
@@ -74,6 +74,28 @@ def experiment2():
 
   plt.show()
 
+def experiment3(inp):
+  import skimage
+  from skimage.morphology import disk
+  from skimage import exposure, filters, restoration, transform
+
+  # return filters.rank.median(x0.reshape((28, 28)), disk(1)).reshape((28, 28, 1))
+  # return filters.gaussian_filter(x0, sigma=1)
+  # return restoration.denoise_tv_chambolle(inp, weight=1)
+  # return restoration.denoise_bilateral(inp).reshape((28, 28, 1))
+
+  # from skimage.transform import ProjectiveTransform
+  # generator = np.matrix('1,0,3; 0,1,6; -0.0007,0.0005,1')
+  # homography = ProjectiveTransform(matrix=generator)
+  # return transform.warp(inp, homography)
+
+  from skimage.transform import warp, AffineTransform
+  operation = AffineTransform(scale=(np.random.uniform(0.9, 1.1), np.random.uniform(0.9, 1.1)),
+                              rotation=np.random.uniform(0, np.pi/8),
+                              shear=np.random.uniform(-np.pi/12, np.pi/12))
+  return warp(inp, operation)
+
+
 ########################################################################################################################
 
 data = get_mnist_data()
@@ -83,6 +105,9 @@ x, y = data.train.next_batch(36)
 
 z = np.array(x)
 z = augmentation.apply(z)
+
+# for i in xrange(len(x)):
+#   z[i] = experiment3(x[i])
 
 plot_images(data=(x, y, y), destination=None)
 plot_images(data=(z, y, y), destination=None)
