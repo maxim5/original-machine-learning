@@ -19,7 +19,7 @@ class Artist(object):
       if strategy is not None:
         self.points = strategy.points
         self.values = strategy.values
-        self.utility = strategy.utility
+        self.utility = strategy._method
       self.names = kwargs.get('names', {})
 
   def plot_1d(self, f, a, b, grid_size=1000):

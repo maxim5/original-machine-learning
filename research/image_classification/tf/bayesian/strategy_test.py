@@ -254,8 +254,8 @@ class BayesianStrategyTest(unittest.TestCase):
     return np.max(f(batch))
 
   def _eval_at(self, val):
-    log(self.strategy.utility.compute_values(np.asarray([[val]])))
-    log(self.strategy.utility.compute_values(self.strategy.utility.points))
+    log(self.strategy._method.compute_values(np.asarray([[val]])))
+    log(self.strategy._method.compute_values(self.strategy._method.points))
 
 
 if __name__ == "__main__":

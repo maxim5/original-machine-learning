@@ -16,16 +16,15 @@ class StrategyIO(BaseIO):
 
   def load(self):
     directory = self.load_dir
-    if directory is None:
-      return [], []
+    if not directory is None:
+      destination = os.path.join(directory, 'strategy-session.xjson')
+      if os.path.exists(destination):
+        data = StrategyIO._load_dict(destination)
+        self.debug('Loaded strategy data: %s from %s' % (dict_to_str(data), destination))
+        self.strategy.import_from(data)
+        return
 
-    destination = os.path.join(directory, 'strategy-session.xjson')
-    if os.path.exists(destination):
-      data = StrategyIO._load_dict(destination)
-      self.debug('Loaded strategy data: %s from %s' % (dict_to_str(data), destination))
-      return data.get('points', []), data.get('values', [])
-
-    return [], []
+    self.strategy.import_from({})
 
   def save(self):
     directory = self.save_dir
@@ -34,9 +33,5 @@ class StrategyIO(BaseIO):
 
     destination = os.path.join(directory, 'strategy-session.xjson')
     with open(destination, 'w') as file_:
-      data = {
-        'points': [list(point) for point in self.strategy.points],
-        'values': self.strategy.values,
-      }
-      file_.write(dict_to_str(data))
+      file_.write(dict_to_str(self.strategy.export_to()))
       self.debug('Strategy data saved to %s' % destination)
