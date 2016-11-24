@@ -115,4 +115,5 @@ plt.show()
 
 
 # Image warp:
+# https://www.packtpub.com/books/content/mathematical-imaging
 # http://stackoverflow.com/questions/5071063/is-there-a-library-for-image-warping-image-morphing-for-python-with-controlled
