@@ -14,7 +14,7 @@ from tflearn import ImageAugmentation
 
 class ImageAugmentationPlus(ImageAugmentation):
   def apply(self, batch):
-    return super(ImageAugmentationPlus, self).apply(np.copy(batch))
+    return super(ImageAugmentationPlus, self).apply(list(batch))
 
   def add_random_scale(self, downscale_limit=1.0, upscale_limit=1.0, fix_aspect_ratio=False):
     if isinstance(downscale_limit, numbers.Number):
