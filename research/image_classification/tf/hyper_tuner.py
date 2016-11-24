@@ -8,12 +8,13 @@ from util import *
 from image_classification.tf.spec.parsed_spec import ParsedSpec
 
 from bayesian.sampler import DefaultSampler
-from bayesian.strategy import BayesianStrategy
+from bayesian.strategy import BayesianStrategy, BayesianPortfolioStrategy
 
 
-def tf_reset_all():
-  import tensorflow as tf
-  tf.reset_default_graph()
+strategies = {
+  'bayesian': lambda sampler, params: BayesianStrategy(sampler, **params),
+  'portfolio': lambda sampler, params: BayesianPortfolioStrategy(sampler, **params),
+}
 
 
 class HyperTuner(Logger):
@@ -26,7 +27,9 @@ class HyperTuner(Logger):
 
     sampler = DefaultSampler()
     sampler.add_uniform(self.parsed.size())
-    self.strategy = BayesianStrategy(sampler, **strategy_params)
+
+    strategy_gen = as_function(strategy_params.get('strategy', 'bayesian'), presets=strategies)
+    self.strategy = strategy_gen(sampler, strategy_params)
 
   def tune(self):
     self.info('Start hyper-tuner')
@@ -48,3 +51,8 @@ class HyperTuner(Logger):
       self.info('Current top-5:')
       for value in sorted(self.strategy.values, reverse=True)[:5]:
         self.info('  accuracy=%.4f' % value)
+
+
+def tf_reset_all():
+  import tensorflow as tf
+  tf.reset_default_graph()

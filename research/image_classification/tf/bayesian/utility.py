@@ -24,7 +24,7 @@ class BaseUtility(object):
     self.iteration = params.get('iteration', self.points.shape[0])
 
   def compute_values(self, batch):
-    pass
+    raise NotImplementedError()
 
 
 class BaseGaussianUtility(BaseUtility):
@@ -96,3 +96,11 @@ class UpperConfidenceBound(BaseGaussianUtility):
   def compute_values(self, batch):
     mu, sigma = self.mean_and_std(batch)
     return mu + self.beta * sigma
+
+
+class RandomPoint(BaseUtility):
+  def __init__(self, points, values, **params):
+    super(RandomPoint, self).__init__(points, values, **params)
+
+  def compute_values(self, batch):
+    return np.zeros(len(batch))
