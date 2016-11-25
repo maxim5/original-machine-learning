@@ -76,7 +76,7 @@ class BaseStrategy(object):
   def export_to(self):
     return {
       'points': [list(point) for point in self._points],
-      'values': self._values,
+      'values': list(self._values),
     }
 
 
@@ -119,12 +119,13 @@ class BayesianStrategy(BaseBayesianStrategy):
 
 class BayesianPortfolioStrategy(BaseBayesianStrategy):
   def __init__(self, sampler, methods, **params):
-    super(BayesianPortfolioStrategy, self).__init__(sampler, **params)
     self._methods = [as_function(gen, presets=utilities) for gen in methods]
     self._probabilities = params.get('probabilities')
     self._scores = np.zeros(shape=len(methods))
     self._index = None
     self._alpha = params.get('alpha', 0.9)
+
+    super(BayesianPortfolioStrategy, self).__init__(sampler, **params)
 
   def next_proposal(self):
     if self.iteration < self._burn_in:
@@ -152,8 +153,8 @@ class BayesianPortfolioStrategy(BaseBayesianStrategy):
   def export_to(self):
     return {
       'points': [list(point) for point in self._points],
-      'values': self._values,
-      'scores': self._scores,
+      'values': list(self._values),
+      'scores': list(self._scores),
     }
 
 
