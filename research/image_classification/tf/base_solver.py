@@ -9,8 +9,8 @@ from util import *
 
 
 metrics = {
-  'max': lambda solver: solver.max_val_accuracy,
-  'avg': lambda solver: sum(solver.val_accuracy_history) / len(solver.val_accuracy_history)
+  'max': lambda curve: max(curve),
+  'avg': lambda curve: sum(curve) / len(curve)
 }
 
 class BaseSolver(Logger):
@@ -29,6 +29,7 @@ class BaseSolver(Logger):
 
     self._epochs = params.get('epochs', 1)
     self._dynamic_epochs = params.get('dynamic_epochs')
+    self._stop_condition = params.get('stop_condition')
     self._batch_size = params.get('batch_size', 16)
     self._eval_batch_size = params.get('eval_batch_size', self._val_set.size)
     self._eval_flexible = params.get('eval_flexible', True)
@@ -56,10 +57,14 @@ class BaseSolver(Logger):
             self._max_val_accuracy = val_accuracy
             self.on_best_accuracy(val_accuracy, eval_result)
 
+          if self._stop_condition and self._stop_condition(self._val_accuracy_curve):
+            self.info('Solver stopped due to the stop condition')
+            break
+
       if self._eval_test:
         self._evaluate_test()
 
-    return self._result_metric(self)
+    return self._result_metric(self._val_accuracy_curve)
 
   def create_session(self):
     return None
