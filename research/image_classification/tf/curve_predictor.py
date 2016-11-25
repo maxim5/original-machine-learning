@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from image_classification.tf.log import log
 
 __author__ = "maxim"
 
@@ -36,6 +37,8 @@ class BaseCurvePredictor(object):
       self._x = np.concatenate([self._x, curve], axis=0)
       self._y = np.concatenate([self._y, value], axis=0)
 
+    log('Adding curve. Current data shape: ', self._x.shape)
+
   def predict(self, curve):
     raise NotImplementedError()
 
@@ -64,6 +67,7 @@ class LinearCurvePredictor(BaseCurvePredictor):
 
     w, error = self._build_model(size)
     value_prediction = curve[:size].dot(w)
+    log('Prediction for curve %s: %.4f (error=%.4f)' % (str(curve), value_prediction, error))
     return value_prediction-error, value_prediction, value_prediction+error
 
   def stop_condition(self):
