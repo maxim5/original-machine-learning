@@ -19,10 +19,10 @@ def random_conv_layer_plus(size, num, prob=0.8):
 activations = ['relu', 'relu6', 'elu', 'prelu', 'leaky_relu']
 
 hyper_params_spec = {
-  'init_stdev': 10**spec.uniform(-2, -1),
+  'init_stdev': 10**spec.uniform(-1.5, -1),
 
   'optimizer': {
-    'learning_rate': 10**spec.uniform(-3.5, -3),
+    'learning_rate': 10**spec.uniform(-3.2, -3),
     'beta1': 0.9,
     'beta2': 0.999,
     'epsilon': 1e-8,
