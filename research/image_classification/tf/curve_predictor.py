@@ -1,10 +1,42 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+
 import numpy as np
+from image_classification.tf.base_io import BaseIO
 from image_classification.tf.log import log
+from image_classification.tf.util import dict_to_str
 
 __author__ = "maxim"
+
+
+class CurvePredictorIO(BaseIO):
+  def __init__(self, predictor, log_level=1, **params):
+    super(CurvePredictorIO, self).__init__(log_level, **params)
+    self.predictor = predictor
+
+  def load(self):
+    directory = self.load_dir
+    if not directory is None:
+      destination = os.path.join(directory, 'curve-data.xjson')
+      if os.path.exists(destination):
+        data = CurvePredictorIO._load_dict(destination)
+        self.debug('Loaded curve data: %s from %s' % (dict_to_str(data), destination))
+        self.predictor.import_from(data)
+        return
+
+    self.predictor.import_from({})
+
+  def save(self):
+    directory = self.save_dir
+    if not CurvePredictorIO._prepare(directory):
+      return
+
+    destination = os.path.join(directory, 'curve-data.xjson')
+    with open(destination, 'w') as file_:
+      file_.write(dict_to_str(self.predictor.export_to()))
+      self.debug('Curve data saved to %s' % destination)
 
 
 class BaseCurvePredictor(object):
@@ -13,6 +45,9 @@ class BaseCurvePredictor(object):
     self._y = np.array([])
     self._burn_in = params.get('burn_in', 10)
     self._min_input_size = params.get('min_input_size', 3)
+
+    self._curve_io = CurvePredictorIO(**params)
+    self._curve_io.load()
 
   @property
   def curves_number(self):
@@ -38,6 +73,7 @@ class BaseCurvePredictor(object):
       self._y = np.concatenate([self._y, value], axis=0)
 
     log('Adding curve. Current data shape: ', self._x.shape)
+    self._curve_io.save()
 
   def predict(self, curve):
     raise NotImplementedError()
@@ -47,6 +83,16 @@ class BaseCurvePredictor(object):
 
   def result_metric(self):
     raise NotImplementedError()
+
+  def import_from(self, data):
+    self._x = data.get('x', np.array([]))
+    self._y = data.get('y', np.array([]))
+
+  def export_to(self):
+    return {
+      'x': self._x,
+      'y': self._y,
+    }
 
 
 class LinearCurvePredictor(BaseCurvePredictor):
