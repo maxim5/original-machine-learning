@@ -85,13 +85,13 @@ class BaseCurvePredictor(object):
     raise NotImplementedError()
 
   def import_from(self, data):
-    self._x = data.get('x', np.array([]))
-    self._y = data.get('y', np.array([]))
+    self._x = np.array(data.get('x', []))
+    self._y = np.array(data.get('y', []))
 
   def export_to(self):
     return {
-      'x': self._x,
-      'y': self._y,
+      'x': self._x.tolist(),
+      'y': self._y.tolist(),
     }
 
 
