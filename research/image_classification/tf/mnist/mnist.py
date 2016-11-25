@@ -7,15 +7,15 @@ import datetime
 import math
 import sys
 
-from augmentor import ImageAugmentationPlus
-from conv_model import ConvModel
-from data_set import Data, DataSet
-from hyper_tuner import HyperTuner
-from interaction import read_model
+from image_classification.tf.augmentor import ImageAugmentationPlus
+from image_classification.tf.conv_model import ConvModel
+from image_classification.tf.data_set import Data, DataSet
+from image_classification.tf.hyper_tuner import HyperTuner
+from image_classification.tf.interaction import read_model
 from mnist_spec import hyper_params_spec, augment_spec
-from log import log
-from tensorflow_impl import *
-from util import random_id, dict_to_str
+from image_classification.tf.log import log
+from image_classification.tf.tensorflow_impl import *
+from image_classification.tf.util import random_id, dict_to_str
 
 from image_classification.tf import spec
 

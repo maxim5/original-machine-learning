@@ -12,7 +12,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <module name="research" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/image_classification/tf/mnist.py" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/image_classification/tf/mnist/mnist.py" />
     <option name="PARAMETERS" value="stage4" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <method />
