@@ -111,7 +111,7 @@ class BaseSolver(Logger):
       self._log_iteration('train_accuracy', eval_.get('cost', 0), eval_.get('accuracy', 0), False)
 
     if (self._train_set.step % self._eval_validation_every == 0) or \
-        (self._train_set.just_completed and not self._eval_flexible):
+        (self._train_set.just_completed and self._eval_flexible):
       eval_ = self._evaluate(batch_x=self._val_set.x, batch_y=self._val_set.y)
       self._log_iteration('validation_accuracy', eval_.get('cost', 0), eval_.get('accuracy', 0), True)
       return eval_
