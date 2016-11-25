@@ -11,6 +11,7 @@ from image_classification.tf.hyper_tuner import HyperTuner
 from image_classification.tf.tensorflow_impl import TensorflowRunner, TensorflowSolver
 from image_classification.tf.data_set import Data, DataSet
 from image_classification.tf.util import *
+from image_classification.tf.curve_predictor import LinearCurvePredictor
 
 from cifar_spec import hyper_params_spec
 
@@ -28,19 +29,31 @@ def get_cifar10_data(validation_size=5000):
               test=DataSet(x_test, y_test))
 
 
-# # {'conv': {1: {'activation': 'relu', 'dropout': 0.973845, 'filters': [[6, 6, 25]], 'pools': [2, 2]}, 2: {'activation': 'relu', 'dropout': 0.993991, 'filters': [[6, 6, 99]], 'pools': [2, 2]}, 3: {'activation': 'leaky_relu', 'dropout': 0.744906, 'filters': [[3, 3, 234]], 'pools': [2, 2]}, 'layers_num': 3}, 'fc': {'activation': 'elu', 'dropout': 0.788669, 'size': 355}, 'init_stdev': 0.096934, 'optimizer': {'beta1': 0.900000, 'beta2': 0.999000, 'epsilon': 1.000000e-08, 'learning_rate': 0.000959}}
+# {'conv': {1: {'activation': 'relu', 'dropout': 0.973845, 'filters': [[6, 6, 25]], 'pools': [2, 2]}, 2: {'activation': 'relu', 'dropout': 0.993991, 'filters': [[6, 6, 99]], 'pools': [2, 2]}, 3: {'activation': 'leaky_relu', 'dropout': 0.744906, 'filters': [[3, 3, 234]], 'pools': [2, 2]}, 'layers_num': 3}, 'fc': {'activation': 'elu', 'dropout': 0.788669, 'size': 355}, 'init_stdev': 0.096934, 'optimizer': {'beta1': 0.900000, 'beta2': 0.999000, 'epsilon': 1.000000e-08, 'learning_rate': 0.000959}}
+# {'conv': {1: {'activation': 'relu6', 'dropout': 0.972565, 'filters': [[3, 1, 39], [1, 3, 39]], 'pools': [2, 2]}, 2: {'activation': 'prelu', 'dropout': 0.913473, 'filters': [[7, 7, 108]], 'pools': [2, 2]}, 3: {'activation': 'prelu', 'dropout': 0.901391, 'filters': [[3, 3, 243]], 'pools': [2, 2]}, 'layers_num': 3}, 'fc': {'activation': 'relu6', 'dropout': 0.629564, 'size': 662}, 'init_stdev': 0.063919, 'optimizer': {'beta1': 0.900000, 'beta2': 0.999000, 'epsilon': 1.000000e-08, 'learning_rate': 0.000990}}
 def stage1():
   data = get_cifar10_data()
 
+  curve_params = {
+    'burn_in': 20,
+    'min_input_size': 6,
+    'value_limit': 0.5,
+    'io_load_dir': '_models/cifar10/hyper/stage1-2.0',
+    'io_save_dir': '_models/cifar10/hyper/stage1-2.0',
+  }
+  curve_predictor = LinearCurvePredictor(**curve_params)
+
   def solver_generator(hyper_params):
     solver_params = {
-      'batch_size': 256,
+      'batch_size': 250,
       'eval_batch_size': 2500,
-      'epochs': 10,
-      'dynamic_epochs': lambda acc: 3 if acc < 0.5 else 7 if acc < 0.6 else 10 if acc < 0.7 else 15 if acc < 0.75 else 20,
+      'epochs': 15,
+      'stop_condition': curve_predictor.stop_condition(),
+      'result_metric': curve_predictor.result_metric(),
       'evaluate_test': True,
+      'eval_flexible': False,
       'save_dir': '_models/cifar10/model-zoo/%s-%s' % (datetime.datetime.now().strftime('%Y-%m-%d'), random_id()),
-      'save_accuracy_limit': 0.75,
+      'save_accuracy_limit': 0.77,
     }
 
     model = ConvModel(input_shape=(32, 32, 3), num_classes=10, **hyper_params)
@@ -52,8 +65,8 @@ def stage1():
     'strategy': 'portfolio',
     'methods': ['ucb', 'pi', 'rand'],
     'probabilities': [0.3, 0.4, 0.3],
-    'io_load_dir': '_models/cifar10/hyper/stage1-1.1',
-    'io_save_dir': '_models/cifar10/hyper/stage1-1.1',
+    'io_load_dir': '_models/cifar10/hyper/stage1-2.0',
+    'io_save_dir': '_models/cifar10/hyper/stage1-2.0',
   }
 
   tuner = HyperTuner(hyper_params_spec, solver_generator, **strategy_params)
