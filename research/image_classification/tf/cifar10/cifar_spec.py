@@ -19,10 +19,10 @@ def random_conv_layer_plus(size, num, prob=0.8):
 activations = ['relu', 'relu6', 'elu', 'prelu', 'leaky_relu']
 
 hyper_params_spec = {
-  'init_stdev': 10**spec.uniform(-3, -1),
+  'init_stdev': 10**spec.uniform(-2, -1),
 
   'optimizer': {
-    'learning_rate': 10**spec.uniform(-4, -3),
+    'learning_rate': 10**spec.uniform(-3.5, -3),
     'beta1': 0.9,
     'beta2': 0.999,
     'epsilon': 1e-8,
@@ -31,27 +31,27 @@ hyper_params_spec = {
   'conv': {
     'layers_num': 3,
     1: {
-      'filters': random_conv_layer(size=spec.choice(range(3, 8)), num=spec.choice(range(24, 41))),
+      'filters': random_conv_layer_plus(size=spec.choice(range(3, 8)), num=spec.choice(range(24, 41))),
       'pools': [2, 2],
       'activation': spec.choice(activations),
-      'dropout': spec.uniform(0.8, 1.0),
+      'dropout': spec.uniform(0.9, 1.0),
     },
     2: {
-      'filters': random_conv_layer(size=spec.choice(range(3, 8)), num=spec.choice(range(64, 141))),
+      'filters': random_conv_layer_plus(size=spec.choice(range(3, 8)), num=spec.choice(range(64, 121))),
       'pools': [2, 2],
       'activation': spec.choice(activations),
       'dropout': spec.uniform(0.8, 1.0),
     },
     3: {
-      'filters': random_conv_layer(size=spec.choice(range(3, 6)), num=spec.choice(range(128, 513))),
+      'filters': random_conv_layer(size=3, num=spec.choice(range(128, 257))),
       'pools': [2, 2],
       'activation': spec.choice(activations),
-      'dropout': spec.uniform(0.6, 1.0),
+      'dropout': spec.uniform(0.7, 1.0),
     }
   },
 
   'fc': {
-    'size': spec.choice(range(512, 1025)),
+    'size': spec.choice(range(320, 765)),
     'activation': spec.choice(activations),
     'dropout': spec.uniform(0.5, 1.0),
   },
