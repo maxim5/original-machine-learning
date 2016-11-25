@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 __author__ = "maxim"
 
-
 import datetime
 
 import numpy as np
-
 import theano
 from theano import tensor as T
 from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 
-from image_classification.benchmark import load
+from image_classification._old.benchmark import load
 
 
 ########################################################################################################################
