@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="cifar-10: stage1" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="cifar-10: list-all" type="PythonConfigurationType" factoryName="Python">
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
@@ -12,7 +12,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <module name="research" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/image_classification/tf/cifar10/main.py" />
-    <option name="PARAMETERS" value="stage1" />
+    <option name="PARAMETERS" value="list" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <method />
   </configuration>
