@@ -53,6 +53,27 @@ class LinearCurvePredictorTest(unittest.TestCase):
     self.check_prediction(size=9, max_diff=2.5, avg_diff=1.2)
 
   def test_cifar10_1(self):
+    self.set = self.read_curve_data(train_size=20, test_size=10)
+    self.check_prediction(size=3,  max_diff=0.07, avg_diff=0.03, check_between=False)
+    self.check_prediction(size=4,  max_diff=0.05, avg_diff=0.03, check_between=False)
+    self.check_prediction(size=5,  max_diff=0.05, avg_diff=0.03, check_between=False)
+    self.check_prediction(size=6,  max_diff=0.05, avg_diff=0.03, check_between=False)
+    self.check_prediction(size=7,  max_diff=0.05, avg_diff=0.03, check_between=False)
+    self.check_prediction(size=8,  max_diff=0.05, avg_diff=0.03, check_between=False)
+    self.check_prediction(size=9,  max_diff=0.05, avg_diff=0.03, check_between=False)
+    self.check_prediction(size=10, max_diff=0.05, avg_diff=0.03, check_between=False)
+    self.check_prediction(size=11, max_diff=0.05, avg_diff=0.03, check_between=False)
+    self.check_prediction(size=12, max_diff=0.05, avg_diff=0.03, check_between=False)
+    self.check_prediction(size=13, max_diff=0.07, avg_diff=0.04, check_between=False)
+    self.check_prediction(size=14, max_diff=0.07, avg_diff=0.04, check_between=False)
+    self.check_prediction(size=15, max_diff=0.06, avg_diff=0.04, check_between=False)
+    self.check_prediction(size=16, max_diff=0.08, avg_diff=0.04, check_between=False)
+    self.check_prediction(size=17, max_diff=0.06, avg_diff=0.04, check_between=False)
+    self.check_prediction(size=18, max_diff=0.06, avg_diff=0.04, check_between=False)
+    self.check_prediction(size=19, max_diff=0.20, avg_diff=0.08, check_between=False)
+    self.check_prediction(size=20, max_diff=0.07, avg_diff=0.03, check_between=False)
+
+  def test_cifar10_2(self):
     self.set = self.read_curve_data(train_size=29, test_size=10)
     self.check_prediction(size=3,  max_diff=0.04, avg_diff=0.02, check_between=False)
     self.check_prediction(size=4,  max_diff=0.04, avg_diff=0.02, check_between=False)
