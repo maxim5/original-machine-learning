@@ -107,24 +107,27 @@ class LinearCurvePredictor(BaseCurvePredictor):
 
   def predict(self, curve):
     size = curve.shape[0]
-    if self.curves_number < self._burn_in or size < self._min_input_size or size >= self.curves_number:
+    if self.curves_number < self._burn_in or \
+       size < self._min_input_size or \
+       size >= max(self.curves_number, self.curve_length):
       return None
 
     w, error = self._build_model(size)
-    value_prediction = curve[:size].dot(w)
+    value_prediction = self._eval(curve[:size], w)
     log('Prediction for the curve: %.4f (error=%.4f)' % (value_prediction, error))
-    return value_prediction - 2*error, value_prediction, value_prediction + 2*error
+    return value_prediction, error
 
   def stop_condition(self):
     def condition(curve):
       curve = np.array(curve)
       interval = self.predict(curve)
       if interval:
-        _, _, right = interval
+        expected, error = interval
+        upper_bound = expected + 2 * error
         limit = self._value_limit or np.max(self._y)
-        if right < limit:
-          log('Max expected value for the curve is %.4f. Stop now (curve size = %d / %d)' %
-              (right, curve.shape[0], self.curve_length))
+        if upper_bound < limit:
+          log('Max expected value for the curve is %.4f. Stop now (curve size=%d/%d)' %
+              (upper_bound, curve.shape[0], self.curve_length))
           return True
       return False
     return condition
@@ -133,7 +136,7 @@ class LinearCurvePredictor(BaseCurvePredictor):
     def metric(curve):
       curve = np.array(curve)
       if curve.shape[0] < self.curve_length:
-        _, expected, _ = self.predict(curve)
+        expected, _ = self.predict(curve)
         log('Expected value for the curve is %.4f' % expected)
         return expected
       value = max(curve)
@@ -145,19 +148,27 @@ class LinearCurvePredictor(BaseCurvePredictor):
     result = self._model.get(size)
     if result is None:
       w = self._compute_matrix(size)
-      error = self._std_error(w)
+      error = self._error(w, size)
       result = (w, error)
       self._model[size] = result
     return result
 
   def _compute_matrix(self, size):
-    x = self._x[:,:size]
+    bias = np.ones(self.curves_number)
+    x = np.column_stack([bias, self._x[:,:size]])
     y = self._y
     return np.linalg.pinv(x.T.dot(x)).dot(x.T).dot(y)
 
-  def _std_error(self, w):
-    size = w.shape[0]
+  def _error(self, w, size):
     x = self._x[:,:size]
     y = self._y
-    predictions = x.dot(w)
+    predictions = self._eval(x, w)
     return np.max(np.abs(predictions - y))
+
+  def _eval(self, x, w):
+    if len(x.shape) > 1:
+      bias = np.ones(x.shape[0])
+      x = np.column_stack([bias, x])
+    else:
+      x = np.insert(x, 0, 1)
+    return x.dot(w)
