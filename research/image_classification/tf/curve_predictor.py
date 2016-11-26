@@ -123,7 +123,7 @@ class LinearCurvePredictor(BaseCurvePredictor):
       interval = self.predict(curve)
       if interval:
         expected, error = interval
-        upper_bound = expected + 2 * error
+        upper_bound = expected + error
         limit = self._value_limit or np.max(self._y)
         if upper_bound < limit:
           log('Max expected value for the curve is %.4f. Stop now (curve size=%d/%d)' %
