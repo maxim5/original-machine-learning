@@ -15,7 +15,7 @@ from image_classification.tf.util import *
 from image_classification.tf.curve_predictor import LinearCurvePredictor
 from image_classification.tf.interaction import list_models
 
-from cifar_spec import hyper_params_spec
+from cifar_spec import hyper_params_spec_2_0, hyper_params_spec_2_5
 
 
 def get_cifar10_data(validation_size=5000):
@@ -36,10 +36,10 @@ def stage1():
 
   curve_params = {
     'burn_in': 20,
-    'min_input_size': 3,
-    'value_limit': 0.75,
-    'io_load_dir': '_models/cifar10/hyper/stage1-2.0',
-    'io_save_dir': '_models/cifar10/hyper/stage1-2.0',
+    'min_input_size': 5,
+    'value_limit': 0.5,
+    'io_load_dir': '_models/cifar10/hyper/stage1-2.5',
+    'io_save_dir': '_models/cifar10/hyper/stage1-2.5',
   }
   curve_predictor = LinearCurvePredictor(**curve_params)
 
@@ -64,12 +64,12 @@ def stage1():
   strategy_params = {
     'strategy': 'portfolio',
     'methods': ['ucb', 'pi', 'rand'],
-    'probabilities': [0.05, 0.9, 0.05],
-    'io_load_dir': '_models/cifar10/hyper/stage1-2.0',
-    'io_save_dir': '_models/cifar10/hyper/stage1-2.0',
+    'probabilities': [0.6, 0.1, 0.3],
+    'io_load_dir': '_models/cifar10/hyper/stage1-2.5',
+    'io_save_dir': '_models/cifar10/hyper/stage1-2.5',
   }
 
-  tuner = HyperTuner(hyper_params_spec, solver_generator, **strategy_params)
+  tuner = HyperTuner(hyper_params_spec_2_5, solver_generator, **strategy_params)
   tuner.tune()
 
 
