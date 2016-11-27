@@ -32,3 +32,69 @@ for i in xrange(X.shape[0]):
   predictor.predict(X[i])
   print 'true=%.3f' % Y[i]
   predictor.add_curve(X[i], Y[i])
+
+
+
+
+
+if __name__ == "__main__":
+  from kernel import *
+  p = np.random.standard_normal((5, 3))
+  v = np.random.standard_normal(5)
+  mean = np.mean(v)
+  mean = np.append(v, mean)
+  ucb = UpperConfidenceBound(p, v, kernel=RadialBasisFunction(), mu_prior=mean)
+
+
+if __name__ == "__main__":
+  def conv_layer(size, num):
+    return [[size, size, num]]
+
+  my_spec = {
+    1: {
+      1: {
+        'filters': conv_layer(size=choice([3, 5, 7]), num=choice([24, 32, 36])),
+        'pools': [2, 2],
+        'activation': choice(['relu', 'relu6', 'elu', 'prelu', 'leaky_relu']),
+        'dropout': uniform(0.85, 1.0),
+      },
+    }
+  }
+
+  parsed = ParsedSpec(my_spec)
+  leaves = parsed._leaves
+  print leaves
+  num = len(leaves)
+
+  import numpy as np
+  points = np.random.uniform(size=(num, ))
+  print points
+
+  print parsed.instantiate(points)
+
+
+
+
+
+
+from image_classification.tf.spec.parsed_spec import ParsedSpec
+import numpy as np
+
+parsed = ParsedSpec(hyper_params_generator)
+print parsed.size()
+
+for i in xrange(10):
+  value = np.random.uniform(0, 1, size=(parsed.size(),))
+  print parsed.instantiate(value)
+
+
+from image_classification.tf.spec.parsed_spec import ParsedSpec
+import numpy as np
+
+parsed = ParsedSpec(augment_spec)
+print parsed.size()
+
+for i in xrange(10):
+  value = np.random.uniform(0, 1, size=(parsed.size(),))
+  print parsed.instantiate(value)
+
