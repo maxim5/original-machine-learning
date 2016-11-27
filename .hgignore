@@ -13,3 +13,5 @@ gist/cs231n-convnets-2016/**/*.o
 gist/cs231n-convnets-2016/**/*.so
 gist/cs231n-convnets-2016/**/coco_captioning/*
 gist/cs231n-convnets-2016/**/tiny-imagenet-100-A
+
+_models
