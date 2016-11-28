@@ -9,7 +9,7 @@ from tflearn.datasets.mnist import read_data_sets
 
 from image_classification.tf.augmentor import ImageAugmentationPlus
 from image_classification.tf.data_set import Data, DataSet
-from image_classification.tf.mnist import plot_images
+from image_classification.tf.mnist.mnist import plot_images
 
 
 def get_mnist_data():
