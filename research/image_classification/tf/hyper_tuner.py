@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = "maxim"
+
+__author__ = 'maxim'
 
 
-from log import Logger
+from log import *
 from util import *
 from image_classification.tf.spec.parsed_spec import ParsedSpec
 
@@ -17,13 +18,12 @@ strategies = {
 }
 
 
-class HyperTuner(Logger):
+class HyperTuner(object):
   def __init__(self, hyper_params_spec, solver_generator, **strategy_params):
-    super(HyperTuner, self).__init__(1)
     self.solver_generator = solver_generator
 
     self.parsed = ParsedSpec(hyper_params_spec)
-    self.info('Spec size=%d' % self.parsed.size())
+    info('Spec size=%d' % self.parsed.size())
 
     sampler = DefaultSampler()
     sampler.add_uniform(self.parsed.size())
@@ -32,7 +32,7 @@ class HyperTuner(Logger):
     self.strategy = strategy_gen(sampler, strategy_params)
 
   def tune(self):
-    self.info('Start hyper-tuner')
+    info('Start hyper-tuner')
 
     while True:
       point = self.strategy.next_proposal()
@@ -47,10 +47,10 @@ class HyperTuner(Logger):
       index = len(self.strategy.values)
 
       marker = '!' if accuracy > previous_max else ' '
-      self.info('%s [%d] accuracy=%.4f, params: %s' % (marker, index, accuracy, dict_to_str(hyper_params)))
-      self.info('Current top-5:')
+      info('%s [%d] accuracy=%.4f, params: %s' % (marker, index, accuracy, dict_to_str(hyper_params)))
+      info('Current top-5:')
       for value in sorted(self.strategy.values, reverse=True)[:5]:
-        self.info('  accuracy=%.4f' % value)
+        info('  accuracy=%.4f' % value)
 
 
 def tf_reset_all():

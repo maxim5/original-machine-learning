@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = "maxim"
 
+__author__ = 'maxim'
 
 import tensorflow as tf
 from tensorflow.python.client import device_lib
@@ -9,15 +9,14 @@ from tensorflow.python.client import device_lib
 from image_classification.tf.base_solver import BaseSolver
 from tensorflow_model_io import TensorflowModelIO
 
-
 class TensorflowSolver(BaseSolver):
-  def __init__(self, data, runner, augmentation=None, model_io=None, result_metric='max', log_level=1, **params):
+  def __init__(self, data, runner, augmentation=None, model_io=None, result_metric='max', **params):
     self._session = None
-    self._model_io = model_io if model_io is not None else TensorflowModelIO(log_level, **params)
+    self._model_io = model_io if model_io is not None else TensorflowModelIO(**params)
     self._save_accuracy_limit = params.get('save_accuracy_limit', 0)
 
     params['eval_flexible'] = params.get('eval_flexible', True) and _is_gpu_available
-    super(TensorflowSolver, self).__init__(data, runner, augmentation, result_metric, log_level, **params)
+    super(TensorflowSolver, self).__init__(data, runner, augmentation, result_metric, **params)
 
   def create_session(self):
     self._session = tf.Session()

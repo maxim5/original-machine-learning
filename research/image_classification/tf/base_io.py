@@ -1,16 +1,14 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__author__ = 'maxim'
+
 import os
-from log import Logger
 from util import str_to_dict
 
-__author__ = "maxim"
 
-
-class BaseIO(Logger):
-  def __init__(self, log_level=1, **params):
-    super(BaseIO, self).__init__(log_level)
+class BaseIO(object):
+  def __init__(self, **params):
     self.load_dir = params.get('load_dir')
     self.save_dir = params.get('save_dir')
 

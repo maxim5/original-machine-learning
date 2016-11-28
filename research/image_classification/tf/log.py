@@ -1,47 +1,44 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = "maxim"
+
+__author__ = 'maxim'
 
 
-import datetime
-
+LOG_LEVEL = 1
 
 def log(*msg):
-  print '[%s]' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ' '.join([str(it) for it in msg])
+  import datetime
+  print('[%s]' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ' '.join([str(it) for it in msg]))
 
+def set_silence():
+  global LOG_LEVEL
+  LOG_LEVEL = 10
 
-class Logger(object):
-  def __init__(self, log_level=1):
-    assert type(log_level) == int
-    self.log_level = log_level
+def set_verbose(level=1):
+  global LOG_LEVEL
+  LOG_LEVEL = -level
 
-  def silence(self):
-    self.log_level = 10
+def is_info_logged():
+  return LOG_LEVEL >= 1
 
-  def verbose(self, level=1):
-    self.log_level = -level
+def debug(*msg):
+  log_at_level(0, *msg)
 
-  def debug(self, *msg):
-    self._log(0, *msg)
+def info(*msg):
+  log_at_level(1, *msg)
 
-  def info(self, *msg):
-    self._log(1, *msg)
+def warn(*msg):
+  log_at_level(2, *msg)
 
-  def warn(self, *msg):
-    self._log(2, *msg)
+def vlog(*msg):
+  log_at_level(-1, *msg)
 
-  def vlog(self, *msg):
-    self._log(-1, *msg)
+def vlog2(*msg):
+  log_at_level(-2, *msg)
 
-  def vlog2(self, *msg):
-    self._log(-2, *msg)
+def vlog3(*msg):
+  log_at_level(-3, *msg)
 
-  def vlog3(self, *msg):
-    self._log(-3, *msg)
-
-  def _log(self, level, *msg):
-    if level >= self.log_level:
-      log(*msg)
-
-  def is_info_logged(self):
-    return self.log_level >= 1
+def log_at_level(level, *msg):
+  if level >= LOG_LEVEL:
+    log(*msg)

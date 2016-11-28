@@ -1,19 +1,18 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__author__ = 'maxim'
+
 import os
 
 import numpy as np
 from image_classification.tf.base_io import BaseIO
-from image_classification.tf.log import log
+from image_classification.tf.log import *
 from image_classification.tf.util import dict_to_str, slice_dict
 
-__author__ = "maxim"
-
-
 class CurvePredictorIO(BaseIO):
-  def __init__(self, predictor, log_level=1, **params):
-    super(CurvePredictorIO, self).__init__(log_level, **params)
+  def __init__(self, predictor, **params):
+    super(CurvePredictorIO, self).__init__(**params)
     self.predictor = predictor
 
   def load(self):
@@ -22,7 +21,7 @@ class CurvePredictorIO(BaseIO):
       destination = os.path.join(directory, 'curve-data.xjson')
       if os.path.exists(destination):
         data = CurvePredictorIO._load_dict(destination)
-        self.debug('Loaded curve data: %s from %s' % (dict_to_str(data), destination))
+        debug('Loaded curve data: %s from %s' % (dict_to_str(data), destination))
         self.predictor.import_from(data)
         return
 
@@ -36,7 +35,7 @@ class CurvePredictorIO(BaseIO):
     destination = os.path.join(directory, 'curve-data.xjson')
     with open(destination, 'w') as file_:
       file_.write(dict_to_str(self.predictor.export_to()))
-      self.debug('Curve data saved to %s' % destination)
+      debug('Curve data saved to %s' % destination)
 
 
 class BaseCurvePredictor(object):
@@ -72,7 +71,7 @@ class BaseCurvePredictor(object):
       self._x = np.concatenate([self._x, curve], axis=0)
       self._y = np.concatenate([self._y, value], axis=0)
 
-    log('Adding curve (value=%.4f). Current data shape: ' % value[0], self._x.shape)
+    info('Adding curve (value=%.4f). Current data shape: ' % value[0], self._x.shape)
     self._curve_io.save()
 
   def predict(self, curve):
@@ -114,7 +113,7 @@ class LinearCurvePredictor(BaseCurvePredictor):
 
     w, error = self._build_model(size)
     value_prediction = self._eval(curve[:size], w)
-    log('Prediction for the curve: %.4f (error=%.4f)' % (value_prediction, error))
+    info('Prediction for the curve: %.4f (error=%.4f)' % (value_prediction, error))
     return value_prediction, error
 
   def stop_condition(self):
@@ -126,8 +125,8 @@ class LinearCurvePredictor(BaseCurvePredictor):
         upper_bound = expected + error
         limit = self._value_limit or np.max(self._y)
         if upper_bound < limit:
-          log('Max expected value for the curve is %.4f. Stop now (curve size=%d/%d)' %
-              (upper_bound, curve.shape[0], self.curve_length))
+          info('Max expected value for the curve is %.4f. Stop now (curve size=%d/%d)' %
+               (upper_bound, curve.shape[0], self.curve_length))
           return True
       return False
     return condition

@@ -1,12 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__author__ = 'maxim'
+
 import os
 
 from image_classification.tf.base_io import BaseIO
+from image_classification.tf.log import *
 from image_classification.tf.util import dict_to_str
-
-__author__ = "maxim"
 
 
 class StrategyIO(BaseIO):
@@ -20,7 +21,7 @@ class StrategyIO(BaseIO):
       destination = os.path.join(directory, 'strategy-session.xjson')
       if os.path.exists(destination):
         data = StrategyIO._load_dict(destination)
-        self.debug('Loaded strategy data: %s from %s' % (dict_to_str(data), destination))
+        debug('Loaded strategy data: %s from %s' % (dict_to_str(data), destination))
         self.strategy.import_from(data)
         return
 
@@ -34,4 +35,4 @@ class StrategyIO(BaseIO):
     destination = os.path.join(directory, 'strategy-session.xjson')
     with open(destination, 'w') as file_:
       file_.write(dict_to_str(self.strategy.export_to()))
-      self.debug('Strategy data saved to %s' % destination)
+      debug('Strategy data saved to %s' % destination)
