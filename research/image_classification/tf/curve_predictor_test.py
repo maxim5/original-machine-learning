@@ -1,13 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__author__ = 'maxim'
 
 import numpy as np
 import unittest
 from image_classification.tf.curve_predictor import LinearCurvePredictor, CurvePredictorIO
-
-__author__ = "maxim"
-
 
 SYNTHETIC_TRAIN = [
   ([40, 50, 55, 60, 63, 65, 68, 67, 69, 70, 72], 72),
@@ -93,6 +91,27 @@ class LinearCurvePredictorTest(unittest.TestCase):
     self.check_prediction(size=18, max_diff=0.04, avg_diff=0.02, check_between=False)
     self.check_prediction(size=19, max_diff=0.04, avg_diff=0.02, check_between=False)
     self.check_prediction(size=20, max_diff=0.04, avg_diff=0.02, check_between=False)
+
+  def test_cifar10_3(self):
+    self.set = self.read_curve_data(train_size=50, test_size=10)
+    self.check_prediction(size=3,  max_diff=0.03, avg_diff=0.02, check_between=False)
+    self.check_prediction(size=4,  max_diff=0.04, avg_diff=0.02, check_between=False)
+    self.check_prediction(size=5,  max_diff=0.04, avg_diff=0.02, check_between=False)
+    self.check_prediction(size=6,  max_diff=0.04, avg_diff=0.02, check_between=False)
+    self.check_prediction(size=7,  max_diff=0.04, avg_diff=0.02, check_between=False)
+    self.check_prediction(size=8,  max_diff=0.03, avg_diff=0.02, check_between=False)
+    self.check_prediction(size=9,  max_diff=0.03, avg_diff=0.01, check_between=False)
+    self.check_prediction(size=10, max_diff=0.03, avg_diff=0.01, check_between=False)
+    self.check_prediction(size=11, max_diff=0.03, avg_diff=0.02, check_between=False)
+    self.check_prediction(size=12, max_diff=0.03, avg_diff=0.02, check_between=False)
+    self.check_prediction(size=13, max_diff=0.03, avg_diff=0.02, check_between=False)
+    self.check_prediction(size=14, max_diff=0.02, avg_diff=0.01, check_between=False)
+    self.check_prediction(size=15, max_diff=0.02, avg_diff=0.01, check_between=False)
+    self.check_prediction(size=16, max_diff=0.02, avg_diff=0.01, check_between=False)
+    self.check_prediction(size=17, max_diff=0.02, avg_diff=0.01, check_between=False)
+    self.check_prediction(size=18, max_diff=0.02, avg_diff=0.01, check_between=False)
+    self.check_prediction(size=19, max_diff=0.03, avg_diff=0.01, check_between=False)
+    self.check_prediction(size=20, max_diff=0.02, avg_diff=0.01, check_between=False)
 
   def check_prediction(self, size, max_diff, avg_diff, check_between=True):
     train, test = self.set
