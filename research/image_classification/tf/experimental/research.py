@@ -1,16 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+
+__author__ = 'maxim'
+
 from image_classification.tf.bayesian.artist import Artist
 from image_classification.tf.bayesian.sampler import DefaultSampler
 from image_classification.tf.bayesian.strategy import BayesianStrategy
-from image_classification.tf.cifar10.cifar_spec import hyper_params_spec
-from image_classification.tf.log import log
+from image_classification.tf.cifar10.cifar_spec import hyper_params_spec_2_0
+from image_classification.tf.logging import log
 from image_classification.tf.spec import ParsedSpec
 
-__author__ = "maxim"
-
-
-parsed = ParsedSpec(hyper_params_spec)
+parsed = ParsedSpec(hyper_params_spec_2_0)
 log('Spec size=%d' % parsed.size())
 
 sampler = DefaultSampler()

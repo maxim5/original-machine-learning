@@ -4,7 +4,7 @@ __author__ = "maxim"
 
 
 import numpy as np
-from image_classification.tf.log import log
+from image_classification.tf.logging import log
 
 
 class BaseUtilityMaximizer(object):

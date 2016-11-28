@@ -9,7 +9,7 @@ import os
 import tensorflow as tf
 
 from image_classification.tf.model_io import ModelIO
-from image_classification.tf.log import *
+from image_classification.tf.logging import *
 
 
 class TensorflowModelIO(ModelIO):

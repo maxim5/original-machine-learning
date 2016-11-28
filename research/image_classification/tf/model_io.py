@@ -6,7 +6,7 @@ __author__ = 'maxim'
 
 import os
 from base_io import BaseIO
-from log import *
+from logging import *
 from util import *
 
 

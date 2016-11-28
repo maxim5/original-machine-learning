@@ -5,7 +5,7 @@ __author__ = 'maxim'
 
 
 import inspect
-from log import *
+from logging import *
 from util import *
 
 

@@ -10,7 +10,7 @@ from artist import Artist
 from strategy import BayesianStrategy
 from sampler import DefaultSampler
 
-from image_classification.tf.log import log
+from image_classification.tf.logging import log
 
 class BayesianStrategyTest(unittest.TestCase):
   # 1-D
