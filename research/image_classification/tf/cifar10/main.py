@@ -18,8 +18,8 @@ from image_classification.tf.interaction import list_models
 from cifar_spec import hyper_params_spec_2_0, hyper_params_spec_2_5
 
 
-def get_cifar10_data(validation_size=5000):
-  (x_train, y_train), (x_test, y_test) = cifar10.load_data('../../../dat/cifar-10-tf', one_hot=True)
+def get_cifar10_data(validation_size=5000, one_hot=True):
+  (x_train, y_train), (x_test, y_test) = cifar10.load_data('../../../dat/cifar-10-tf', one_hot=one_hot)
 
   x_val = x_train[:validation_size]
   y_val = y_train[:validation_size]

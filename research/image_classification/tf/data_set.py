@@ -6,7 +6,10 @@ import numpy as np
 
 class DataSet(object):
   def __init__(self, x, y):
+    x = np.array(x)
+    y = np.array(y)
     assert x.shape[0] == y.shape[0]
+
     self.size = x.shape[0]
     self.x = x
     self.y = y
