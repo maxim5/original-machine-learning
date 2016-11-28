@@ -7,7 +7,7 @@ import os
 import pathlib2
 import sys
 
-from log import log
+from logging import log
 
 
 def list_models(directory):

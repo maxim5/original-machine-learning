@@ -7,7 +7,7 @@ import os
 
 import numpy as np
 from image_classification.tf.base_io import BaseIO
-from image_classification.tf.log import *
+from image_classification.tf.logging import *
 from image_classification.tf.util import dict_to_str, slice_dict
 
 class CurvePredictorIO(BaseIO):

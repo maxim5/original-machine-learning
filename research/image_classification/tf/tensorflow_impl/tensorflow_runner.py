@@ -5,7 +5,7 @@ __author__ = 'maxim'
 
 
 from image_classification.tf.base_runner import BaseRunner
-from image_classification.tf.log import *
+from image_classification.tf.logging import *
 from image_classification.tf.util import *
 
 

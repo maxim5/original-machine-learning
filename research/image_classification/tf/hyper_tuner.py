@@ -4,7 +4,7 @@
 __author__ = 'maxim'
 
 
-from log import *
+from logging import *
 from util import *
 from image_classification.tf.spec.parsed_spec import ParsedSpec
 

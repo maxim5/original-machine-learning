@@ -10,7 +10,7 @@ from maximizer import MonteCarloUtilityMaximizer
 from strategy_io import StrategyIO
 from utility import ProbabilityOfImprovement, ExpectedImprovement, UpperConfidenceBound, RandomPoint
 
-from image_classification.tf.log import log
+from image_classification.tf.logging import log
 from image_classification.tf.util import as_function, as_numeric_function, slice_dict
 
 
