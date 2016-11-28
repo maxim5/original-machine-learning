@@ -1,13 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = "maxim"
 
+__author__ = 'maxim'
 
 import math
 from scipy import stats
 
 from nodes import *
-
 
 def wrap(node, transform):
   if transform is not None:

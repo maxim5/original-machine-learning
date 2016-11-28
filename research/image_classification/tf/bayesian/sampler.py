@@ -1,10 +1,9 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = "maxim"
 
+__author__ = 'maxim'
 
 import numpy as np
-
 
 class BaseSampler(object):
   def sample(self, size):

@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = "maxim"
+
+__author__ = 'maxim'
 
 
 from image_classification.tf import spec

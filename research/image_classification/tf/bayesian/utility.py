@@ -1,12 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = "maxim"
 
+__author__ = 'maxim'
 
 import math
 import numpy as np
 from scipy import stats
-
 
 class BaseUtility(object):
   def __init__(self, points, values, **params):
