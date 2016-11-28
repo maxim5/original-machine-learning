@@ -1,10 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = "maxim"
+
+__author__ = 'maxim'
 
 
 import inspect
-from log import Logger
+from log import *
 from util import *
 
 
@@ -13,10 +14,8 @@ metrics = {
   'avg': lambda curve: sum(curve) / len(curve)
 }
 
-class BaseSolver(Logger):
-  def __init__(self, data, runner, augmentation=None, result_metric='max', log_level=1, **params):
-    super(BaseSolver, self).__init__(log_level)
-
+class BaseSolver(object):
+  def __init__(self, data, runner, augmentation=None, result_metric='max', **params):
     data.reset_counters()
     self._train_set = data.train
     self._val_set = data.validation
@@ -58,7 +57,7 @@ class BaseSolver(Logger):
             self.on_best_accuracy(val_accuracy, eval_result)
 
           if self._stop_condition and self._stop_condition(self._val_accuracy_curve):
-            self.info('Solver stopped due to the stop condition')
+            info('Solver stopped due to the stop condition')
             break
 
       if self._eval_test:
@@ -98,15 +97,15 @@ class BaseSolver(Logger):
       elif args == 2:
         new_epochs = self._dynamic_epochs(curve)
       else:
-        self.warn('Invalid \"dynamic_epochs\" parameter: '
-                  'expected a function with either one or two arguments, but got %s' % args_spec)
+        warn('Invalid \"dynamic_epochs\" parameter: '
+             'expected a function with either one or two arguments, but got %s' % args_spec)
 
     if self._epochs != new_epochs:
       self._epochs = new_epochs or self._epochs
-      self.debug('Update epochs=%d' % new_epochs)
+      debug('Update epochs=%d' % new_epochs)
 
   def _evaluate_validation(self, batch_x, batch_y):
-    if (self._train_set.step % self._eval_train_every == 0) and self.is_info_logged():
+    if (self._train_set.step % self._eval_train_every == 0) and is_info_logged():
       eval_ = self._runner.evaluate(batch_x, batch_y)
       self._log_iteration('train_accuracy', eval_.get('cost', 0), eval_.get('accuracy', 0), False)
 
@@ -118,13 +117,13 @@ class BaseSolver(Logger):
 
   def _evaluate_test(self):
     eval_ = self._evaluate(batch_x=self._test_set.x, batch_y=self._test_set.y)
-    self.info('Final test_accuracy=%.4f' % eval_.get('accuracy', 0))
+    info('Final test_accuracy=%.4f' % eval_.get('accuracy', 0))
     return eval_
 
   def _log_iteration(self, name, loss, accuracy, mark_best):
     marker = ' *' if mark_best and (accuracy > self._max_val_accuracy) else ''
-    self.info('Epoch %2d, iteration %7d: loss=%.6f, %s=%.4f%s' %
-              (self._train_set.epochs_completed, self._train_set.index, loss, name, accuracy, marker))
+    info('Epoch %2d, iteration %7d: loss=%.6f, %s=%.4f%s' %
+         (self._train_set.epochs_completed, self._train_set.index, loss, name, accuracy, marker))
 
   def _evaluate(self, batch_x, batch_y):
     size = len(batch_x)
