@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = "maxim"
+__author__ = 'maxim'
 
 from sugar import wrap, choice, uniform, normal, merge, \
                   min_, max_, \

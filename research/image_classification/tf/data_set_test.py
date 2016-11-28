@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = "maxim"
+
+__author__ = 'maxim'
 
 import numpy as np
 from image_classification.tf.data_set import DataSet, merge_data_sets

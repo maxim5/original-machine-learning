@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+
+__author__ = 'maxim'
+
 import unittest
 
 from image_classification.tf.spec import *
 from image_classification.tf.spec.parsed_spec import ParsedSpec
-
-__author__ = "maxim"
-
 
 class SpecTest(unittest.TestCase):
   def test_zero_nodes(self):

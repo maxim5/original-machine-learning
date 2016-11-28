@@ -1,12 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__author__ = 'maxim'
+
 import numpy as np
 import tflearn
 import tensorflow as tf
-
-__author__ = "maxim"
-
 
 data = [
   ([40, 50, 55, 60, 63, 65, 68, 67, 69, 70, 72], 72),

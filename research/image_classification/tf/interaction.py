@@ -1,14 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = "maxim"
 
+__author__ = 'maxim'
 
 import os
 import pathlib2
 import sys
 
 from logging import log
-
 
 def list_models(directory):
   result = {}
@@ -20,7 +19,6 @@ def list_models(directory):
     log('  %2d: %s -> %s' % (idx+1, model, contents))
     result[str(idx+1)] = model
   return result
-
 
 def read_model(directory):
   index = list_models(directory)

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = "maxim"
 
+__author__ = 'maxim'
 
 import copy
 
@@ -11,7 +11,6 @@ import tflearn
 # See https://github.com/tflearn/tflearn/issues/367
 tf.python.control_flow_ops = tf
 
-
 class ConvModel:
   def __init__(self, input_shape, num_classes, **hyper_params):
     self.input_shape = input_shape
@@ -19,18 +18,14 @@ class ConvModel:
     self.hyper_params = hyper_params
     self.cache = {}
 
-
   def init(self, shape):
     return tf.random_normal(shape) * self.hyper_params['init_stdev']
-
 
   def train_or_test(self, train_func, test_func):
     return tf.cond(tf.equal(self.mode, 'train'), train_func, test_func)
 
-
   def _get_activation_function(self, name):
     return getattr(tflearn.activations, name, None)
-
 
   def conv2d_activation(self, image, W, b, strides, params, cache):
     activation_func = self._get_activation_function(params.get('activation', 'relu'))
@@ -51,7 +46,6 @@ class ConvModel:
     layer = activation_func(layer)
     return layer
 
-
   def conv_layer(self, image, params, cache):
     conv = image
     for filter in params['filters_adapted']:
@@ -63,12 +57,10 @@ class ConvModel:
     layer = self.train_or_test(lambda: tf.nn.dropout(layer, keep_prob=params['dropout']), lambda: layer)
     return layer
 
-
   def reduce_layer(self, input):
     input_shape = input.get_shape()
     layer = tf.nn.avg_pool(input, ksize=[1, input_shape[1].value, input_shape[2].value, 1], strides=[1, 1, 1, 1], padding='VALID')
     return layer
-
 
   def fully_connected_layer(self, input, size, params):
     input_shape = input.get_shape()
@@ -83,13 +75,11 @@ class ConvModel:
     layer = self.train_or_test(lambda: tf.nn.dropout(layer, keep_prob=params['dropout']), lambda: layer)
     return layer
 
-
   def output_layer(self, input, shape):
     W_out = tf.Variable(self.init(shape))
     b_out = tf.Variable(self.init(shape[-1:]))
     layer = tf.add(tf.matmul(input, W_out), b_out)
     return layer
-
 
   def _adapt_conv_shapes(self, conv_params, conv_layers_num):
     channels = self.input_shape[-1]
@@ -104,7 +94,6 @@ class ConvModel:
 
       pools = layer_params['pools']
       layer_params['pools_adapted'] = [1, pools[0], pools[1], 1]
-
 
   def conv_net(self):
     # Input
@@ -127,7 +116,6 @@ class ConvModel:
     layer_out = self.output_layer(layer_fc, shape=[fc_params['size'], self.num_classes])
 
     return layer_out
-
 
   def build_graph(self):
     self.mode = tf.placeholder(tf.string)
@@ -155,7 +143,6 @@ class ConvModel:
 
     return init, optimizer, cost, accuracy, x_misclassified, y_predicted, y_expected
 
-
   def params_num(self):
     total_parameters = 0
     for variable in tf.trainable_variables():
@@ -165,7 +152,6 @@ class ConvModel:
             variable_parameters *= dim.value
         total_parameters += variable_parameters
     return total_parameters
-
 
   def feed_dict(self, data_set=None, x=None, y=None, mode='test'):
     if x is None and data_set is not None:
