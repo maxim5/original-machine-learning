@@ -102,3 +102,43 @@ hyper_params_spec_2_5 = {
     'dropout': spec.uniform(0.5, 1.0),
   },
 }
+
+
+hyper_params_spec_2_6 = {
+  'init_stdev': 10**spec.uniform(-1.5, -1),
+
+  'optimizer': {
+    'learning_rate': 10**spec.uniform(-3.2, -2.8),
+    'beta1': 0.9,
+    'beta2': 0.999,
+    'epsilon': 1e-8,
+  },
+
+  'conv': {
+    'layers_num': 3,
+    1: {
+      'filters': random_deep_conv(size=spec.choice(range(3, 10)), num=spec.choice(range(40, 65))),
+      'pools': [2, 2],
+      'activation': spec.choice(activations),
+      'dropout': spec.uniform(0.85, 1.0),
+    },
+    2: {
+      'filters': random_deep_conv(size=spec.choice(range(3, 10)), num=spec.choice(range(100, 161))),
+      'pools': [2, 2],
+      'activation': spec.choice(activations),
+      'dropout': spec.uniform(0.75, 1.0),
+    },
+    3: {
+      'filters': random_deep_conv(size=spec.choice(range(3, 6)),  num=spec.choice(range(200, 401))),
+      'pools': [2, 2],
+      'activation': spec.choice(activations),
+      'dropout': spec.uniform(0.7, 1.0),
+    }
+  },
+
+  'fc': {
+    'size': spec.choice(range(400, 765)),
+    'activation': spec.choice(activations),
+    'dropout': spec.uniform(0.5, 1.0),
+  },
+}
