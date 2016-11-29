@@ -113,6 +113,7 @@ class LinearCurvePredictor(BaseCurvePredictor):
 
     w, error = self._build_model(size)
     value_prediction = self._eval(curve[:size], w)
+    value_prediction = max(value_prediction, max(curve))
     info('Prediction for the curve: %.4f (error=%.4f)' % (value_prediction, error))
     return value_prediction, error
 
