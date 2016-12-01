@@ -142,3 +142,9 @@ hyper_params_spec_2_6 = {
     'dropout': spec.uniform(0.5, 1.0),
   },
 }
+
+
+augment_spec = {
+  'scale': [1.0, spec.uniform(1.0, 1.4)],
+  'crop_size': spec.choice(range(3)),
+}
