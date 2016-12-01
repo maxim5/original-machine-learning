@@ -13,6 +13,10 @@ from nodes import BaseNode, AcceptsInputNode, JointNode
 
 
 class ParsedSpec(object):
+  """
+  Responsible for parsing the spec and constructing a tree.
+  When the spec is parsed, it can transform values from multi-dimensional [0,1] hypercube to domain values.
+  """
   def __init__(self, spec):
     self._spec = spec
     self._input_nodes = {}
