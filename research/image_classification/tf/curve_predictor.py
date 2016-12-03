@@ -3,49 +3,19 @@
 
 __author__ = 'maxim'
 
-import os
-
 import numpy as np
-from image_classification.tf.base_io import BaseIO
-from image_classification.tf.logging import *
-from image_classification.tf.util import dict_to_str, slice_dict
+from base_io import DefaultIO, Serializable
+from logging import *
+from util import slice_dict
 
-class CurvePredictorIO(BaseIO):
-  def __init__(self, predictor, **params):
-    super(CurvePredictorIO, self).__init__(**params)
-    self.predictor = predictor
-
-  def load(self):
-    directory = self.load_dir
-    if not directory is None:
-      destination = os.path.join(directory, 'curve-data.xjson')
-      if os.path.exists(destination):
-        data = CurvePredictorIO._load_dict(destination)
-        debug('Loaded curve data: %s from %s' % (dict_to_str(data), destination))
-        self.predictor.import_from(data)
-        return
-
-    self.predictor.import_from({})
-
-  def save(self):
-    directory = self.save_dir
-    if not CurvePredictorIO._prepare(directory):
-      return
-
-    destination = os.path.join(directory, 'curve-data.xjson')
-    with open(destination, 'w') as file_:
-      file_.write(dict_to_str(self.predictor.export_to()))
-      debug('Curve data saved to %s' % destination)
-
-
-class BaseCurvePredictor(object):
+class BaseCurvePredictor(Serializable):
   def __init__(self, **params):
     self._x = np.array([])
     self._y = np.array([])
     self._burn_in = params.get('burn_in', 10)
     self._min_input_size = params.get('min_input_size', 3)
 
-    self._curve_io = CurvePredictorIO(self, **slice_dict(params, 'io_'))
+    self._curve_io = DefaultIO(self, filename='curve-data.xjson', **slice_dict(params, 'io_'))
     self._curve_io.load()
 
   @property
@@ -84,14 +54,10 @@ class BaseCurvePredictor(object):
     raise NotImplementedError()
 
   def import_from(self, data):
-    self._x = np.array(data.get('x', []))
-    self._y = np.array(data.get('y', []))
+    self._import_from_keys(data, keys=('x', 'y'), default_value=[])
 
   def export_to(self):
-    return {
-      'x': self._x.tolist(),
-      'y': self._y.tolist(),
-    }
+    return self._export_keys_to(keys=('x', 'y'))
 
 
 class LinearCurvePredictor(BaseCurvePredictor):

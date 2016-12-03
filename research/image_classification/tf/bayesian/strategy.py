@@ -8,9 +8,9 @@ import numpy as np
 
 from kernel import RadialBasisFunction
 from maximizer import MonteCarloUtilityMaximizer
-from strategy_io import StrategyIO
 from utility import ProbabilityOfImprovement, ExpectedImprovement, UpperConfidenceBound, RandomPoint
 
+from image_classification.tf.base_io import DefaultIO, Serializable
 from image_classification.tf.logging import log
 from image_classification.tf.util import as_function, as_numeric_function, slice_dict
 
@@ -39,7 +39,7 @@ maximizers = {
 }
 
 
-class BaseStrategy(object):
+class BaseStrategy(Serializable):
   def __init__(self, sampler, **params):
     self._sampler = sampler
     self._params = params
@@ -47,7 +47,7 @@ class BaseStrategy(object):
     self._points = []
     self._values = []
 
-    self._strategy_io = StrategyIO(self, **slice_dict(params, 'io_'))
+    self._strategy_io = DefaultIO(self, filename='strategy-session.xjson', **slice_dict(params, 'io_'))
     self._strategy_io.load()
 
   @property
@@ -76,8 +76,8 @@ class BaseStrategy(object):
 
   def export_to(self):
     return {
-      'points': [list(point) for point in self._points],
-      'values': list(self._values),
+      'points': [point.tolist() for point in self._points],
+      'values': self._values,
     }
 
 
@@ -153,9 +153,9 @@ class BayesianPortfolioStrategy(BaseBayesianStrategy):
 
   def export_to(self):
     return {
-      'points': [list(point) for point in self._points],
-      'values': list(self._values),
-      'scores': list(self._scores),
+      'points': [point.tolist() for point in self._points],
+      'values': self._values,
+      'scores': self._scores.tolist(),
     }
 
 
