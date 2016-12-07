@@ -5,7 +5,7 @@ __author__ = 'maxim'
 
 
 import numpy as np
-from image_classification.tf.logging import log
+from image_classification.tf.logging import *
 
 
 class BaseUtilityMaximizer(object):
@@ -29,7 +29,7 @@ class MonteCarloUtilityMaximizer(BaseUtilityMaximizer):
     batch = self.sampler.sample(size=self.batch_size)
     values = self.utility.compute_values(batch)
     i = np.argmax(values)
-    log('Max prediction_value: %.6f' % values[i])
+    debug('Max prediction_value: %.6f' % values[i])
     return self._tweak_randomly(batch[i], batch[0])
 
   def _tweak_randomly(self, optimal, point):

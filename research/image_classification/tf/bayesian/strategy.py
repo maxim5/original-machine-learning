@@ -10,8 +10,8 @@ from kernel import RadialBasisFunction
 from maximizer import MonteCarloUtilityMaximizer
 from utility import ProbabilityOfImprovement, ExpectedImprovement, UpperConfidenceBound, RandomPoint
 
+from image_classification.tf.logging import *
 from image_classification.tf.base_io import DefaultIO, Serializable
-from image_classification.tf.logging import log
 from image_classification.tf.util import as_function, as_numeric_function, slice_dict
 
 
@@ -95,11 +95,12 @@ class BaseBayesianStrategy(BaseStrategy):
 
   def _instantiate(self, method_gen):
     mu_prior = self._mu_prior_gen(self._values)
-    log('mu_prior=%.6f' % mu_prior)
+    debug('Select the prior: mu_prior=%.6f' % mu_prior)
 
     self._kernel = self._kernel_gen(self._params)
     self._method = method_gen(self._points, self._values, self._kernel, mu_prior, self._params)
     self._maximizer = self._maximizer_gen(self._method, self._sampler, self._params)
+    info('Use utility method: %s' % self._method.__class__.__name__)
 
     return self._maximizer
 
