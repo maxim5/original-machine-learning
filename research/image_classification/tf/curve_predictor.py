@@ -103,7 +103,7 @@ class LinearCurvePredictor(BaseCurvePredictor):
       curve = np.array(curve)
       if curve.shape[0] < self.curve_length:
         expected, _ = self.predict(curve)
-        log('Expected value for the curve is %.4f' % expected)
+        info('Expected value for the curve is %.4f' % expected)
         return expected
       value = max(curve)
       self.add_curve(curve, value)
