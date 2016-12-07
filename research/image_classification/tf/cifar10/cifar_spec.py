@@ -144,6 +144,92 @@ hyper_params_spec_2_6 = {
 }
 
 
+hyper_params_spec_3_0 = {
+  'init_stdev': 10**spec.uniform(-1.5, -1),
+
+  'optimizer': {
+    'learning_rate': 10**spec.uniform(-3.2, -2.8),
+    'beta1': 0.9,
+    'beta2': 0.999,
+    'epsilon': 1e-8,
+  },
+
+  'conv': {
+    'layers_num': 3,
+    1: {
+      'filters': [[spec.choice([3, 5, 7]), 1, spec.choice(range(40, 65))],
+                  [1, spec.choice([3, 5, 7]), spec.choice(range(40, 65))]],
+      'pools': [2, 2],
+      'activation': spec.choice(activations),
+      'dropout': spec.uniform(0.85, 1.0),
+    },
+    2: {
+      'filters': [[spec.choice([3, 5, 7]), 1, spec.choice(range(80, 125))],
+                  [1, spec.choice([3, 5, 7]), spec.choice(range(80, 125))]],
+      'pools': [2, 2],
+      'activation': spec.choice(activations),
+      'dropout': spec.uniform(0.75, 1.0),
+    },
+    3: {
+      'filters': [[spec.choice([3, 5, 7]), 1, spec.choice(range(160, 257))],
+                  [1, spec.choice([3, 5, 7]), spec.choice(range(160, 257))]],
+      'pools': [2, 2],
+      'activation': spec.choice(activations),
+      'dropout': spec.uniform(0.7, 1.0),
+    }
+  },
+
+  'fc': {
+    'size': spec.choice(range(400, 641)),
+    'activation': spec.choice(activations),
+    'dropout': spec.uniform(0.45, 1.0),
+  },
+}
+
+
+hyper_params_spec_4_0 = {
+  'init_stdev': 10**spec.uniform(-1.5, -1),
+
+  'optimizer': {
+    'learning_rate': 10**spec.uniform(-3.2, -2.8),
+    'beta1': 0.9,
+    'beta2': 0.999,
+    'epsilon': 1e-8,
+  },
+
+  'conv': {
+    'layers_num': 3,
+    1: {
+      'filters': [[3, 1, spec.choice(range(60, 70))],
+                  [1, 3, spec.choice(range(60, 70))]],
+      'pools': [2, 2],
+      'activation': spec.choice(activations),
+      'dropout': spec.uniform(0.85, 1.0),
+    },
+    2: {
+      'filters': [[3, 1, spec.choice(range(120, 180))],
+                  [1, 3, spec.choice(range(120, 180))]],
+      'pools': [2, 2],
+      'activation': spec.choice(activations),
+      'dropout': spec.uniform(0.75, 1.0),
+    },
+    3: {
+      'filters': [[3, 1, spec.choice(range(180, 257))],
+                  [1, 3, spec.choice(range(180, 257))]],
+      'pools': [2, 2],
+      'activation': spec.choice(activations),
+      'dropout': spec.uniform(0.7, 1.0),
+    }
+  },
+
+  'fc': {
+    'size': spec.choice(range(400, 641)),
+    'activation': spec.choice(activations),
+    'dropout': spec.uniform(0.45, 1.0),
+  },
+}
+
+
 augment_spec = {
   'scale': [1.0, spec.uniform(1.0, 1.4)],
   'crop_size': spec.choice(range(3)),
