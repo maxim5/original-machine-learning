@@ -32,11 +32,19 @@ class ImageAugmentationPlus(ImageAugmentation):
     self.methods.append(self._random_swirl)
     self.args.append([strength_limit, radius_limit])
 
-  def add_random_brightness(self, min_delta, max_delta):
+  def add_random_brightness(self, min_delta=1.0, max_delta=1.0):
     min_delta = min(min_delta, 1.0)
     max_delta = max(max_delta, 1.0)
-    self.methods.append(self._random_brightness)
-    self.args.append([min_delta, max_delta])
+    if min_delta < 1.0 or max_delta > 1.0:
+      self.methods.append(self._random_brightness)
+      self.args.append([min_delta, max_delta])
+
+  def add_random_contrast(self, downscale_limit=1.0, upscale_limit=1.0):
+    downscale_limit = min(downscale_limit, 1.0)
+    upscale_limit = max(upscale_limit, 1.0)
+    if downscale_limit < 1.0 or upscale_limit > 1.0:
+      self.methods.append(self._random_contrast)
+      self.args.append([downscale_limit, upscale_limit])
 
   def _random_scale(self, batch, downscale_limit, upscale_limit, fix_aspect_ratio):
     for i in range(len(batch)):
@@ -69,12 +77,21 @@ class ImageAugmentationPlus(ImageAugmentation):
     for i in range(len(batch)):
       if bool(random.getrandbits(1)):
         image = batch[i]
-        delta = np.random.uniform(min_delta, max_delta)
-        if delta != 1:
-          image = image * delta
-          image = np.minimum(image, 1.0)
-          image = np.maximum(image, 0.0)
-          batch[i] = image
+        brightness_factor = np.random.uniform(min_delta, max_delta)
+        image = image * brightness_factor
+        image = np.clip(image, 0.0, 1.0)
+        batch[i] = image
+    return batch
+
+  def _random_contrast(self, batch, downscale_limit, upscale_limit):
+    for i in range(len(batch)):
+      if bool(random.getrandbits(1)):
+        image = batch[i]
+        contrast_factor = np.random.uniform(downscale_limit, upscale_limit)
+        channel_means = np.mean(image, axis=(0, 1))
+        image = (image - channel_means) * contrast_factor + channel_means
+        image = np.clip(image, 0.0, 1.0)
+        batch[i] = image
     return batch
 
 def _tuple_min(lhs, rhs):
