@@ -231,6 +231,8 @@ hyper_params_spec_4_0 = {
 
 
 augment_spec = {
-  'scale': [1.0, spec.uniform(1.0, 1.4)],
-  'crop_size': spec.choice(range(3)),
+  'scale': [1.0, spec.uniform(0.9, 1.3)],
+  'crop_size': spec.choice(range(2)),
+  'brightness': [spec.uniform(0.6, 1.0), spec.uniform(1.0, 1.4)],
+  'contrast': [spec.uniform(0.5, 1.0), spec.uniform(1.0, 2.0)],
 }
