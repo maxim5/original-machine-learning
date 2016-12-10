@@ -44,15 +44,15 @@ class BaseStrategy(Serializable):
     self._sampler = sampler
     self._params = params
 
-    self._points = []
-    self._values = []
+    self._points = np.array([])
+    self._values = np.array([])
 
     self._strategy_io = DefaultIO(self, filename='strategy-session.xjson', **slice_dict(params, 'io_'))
     self._strategy_io.load()
 
   @property
   def iteration(self):
-    return len(self._points)
+    return self._points.shape[0]
 
   @property
   def points(self):
@@ -66,19 +66,15 @@ class BaseStrategy(Serializable):
     raise NotImplementedError()
 
   def add_point(self, point, value):
-    self._points.append(point)
-    self._values.append(value)
+    self._points = np.append(self._points, point).reshape([-1] + list(point.shape))
+    self._values = np.append(self._values, value)
     self._strategy_io.save()
 
   def import_from(self, data):
-    self._points = data.get('points', [])
-    self._values = data.get('values', [])
+    self._import_from_keys(data, keys=('points', 'values'), default_value=[])
 
   def export_to(self):
-    return {
-      'points': [point.tolist() for point in self._points],
-      'values': self._values,
-    }
+    return self._export_keys_to(keys=('points', 'values'))
 
 
 class BaseBayesianStrategy(BaseStrategy):
@@ -148,16 +144,11 @@ class BayesianPortfolioStrategy(BaseBayesianStrategy):
     super(BayesianPortfolioStrategy, self).add_point(point, value)
 
   def import_from(self, data):
-    self._points = data.get('points', [])
-    self._values = data.get('values', [])
-    self._scores = data.get('scores', np.zeros(shape=len(self._methods)))
+    self._import_from_keys(data, keys=('points', 'values'), default_value=[])
+    self._scores = np.array(data.get('scores', np.zeros(shape=len(self._methods))))
 
   def export_to(self):
-    return {
-      'points': [point.tolist() for point in self._points],
-      'values': self._values,
-      'scores': self._scores.tolist(),
-    }
+    return self._export_keys_to(keys=('points', 'values', 'scores'))
 
 
 def softmax(scores):
