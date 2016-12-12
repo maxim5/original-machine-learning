@@ -176,7 +176,7 @@ def stage4(path='_models/cifar10/model-zoo/2016-12-07-7OG78H'):
     hyper_params['augment'] = augment_params
     model = ConvModel(input_shape=(32, 32, 3), num_classes=10, **hyper_params)
     runner = TensorflowRunner(model=model)
-    augmentation = init_augmentation(**augment_params)
+    augmentation = init_augmentation(**hyper_params['augment'])
     solver = TensorflowSolver(data=data, runner=runner, augmentation=augmentation, result_metric='avg', **solver_params)
     return solver
 
