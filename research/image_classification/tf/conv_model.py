@@ -8,11 +8,10 @@ import copy
 import tensorflow as tf
 import tflearn
 
-# See https://github.com/tflearn/tflearn/issues/367
-tf.python.control_flow_ops = tf
-
 class ConvModel:
   def __init__(self, input_shape, num_classes, **hyper_params):
+    assert hyper_params, 'Conv model hyper parameters are empty'
+
     self.input_shape = input_shape
     self.num_classes = num_classes
     self.hyper_params = hyper_params
@@ -24,11 +23,22 @@ class ConvModel:
   def train_or_test(self, train_func, test_func):
     return tf.cond(tf.equal(self.mode, 'train'), train_func, test_func)
 
-  def _get_activation_function(self, name):
-    return getattr(tflearn.activations, name, None)
+  def _apply_activation(self, layer, name):
+    counter = self.cache.setdefault('activations_counter', 0)
+    counter += 1
+    self.cache['activations_counter'] = counter
+
+    func = getattr(tflearn.activations, name, None)
+    assert func is not None
+
+    import inspect
+    args_spec = inspect.getargspec(func)
+    if args_spec and 'name' in args_spec.args:
+      return func(layer, name='%s-%d' % (func.__name__, counter))
+    else:
+      return func(layer)
 
   def conv2d_activation(self, image, W, b, strides, params, cache):
-    activation_func = self._get_activation_function(params.get('activation', 'relu'))
     layer = tf.nn.conv2d(image, W, strides=[1, strides, strides, 1], padding='SAME')
     layer = tf.nn.bias_add(layer, b)
 
@@ -43,7 +53,7 @@ class ConvModel:
       return normalized
     layer = self.train_or_test(train_batchnorm, test_batchnorm)
 
-    layer = activation_func(layer)
+    layer = self._apply_activation(layer, params.get('activation', 'relu'))
     return layer
 
   def conv_layer(self, image, params, cache):
@@ -68,10 +78,9 @@ class ConvModel:
     W = tf.Variable(self.init(fc_shape))
     b = tf.Variable(self.init(fc_shape[-1:]))
 
-    activation_func = self._get_activation_function(params.get('activation', 'relu'))
     layer = tf.reshape(input, [-1, W.get_shape().as_list()[0]])
     layer = tf.add(tf.matmul(layer, W), b)
-    layer = activation_func(layer)
+    layer = self._apply_activation(layer, params.get('activation', 'relu'))
     layer = self.train_or_test(lambda: tf.nn.dropout(layer, keep_prob=params['dropout']), lambda: layer)
     return layer
 
