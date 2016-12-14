@@ -8,7 +8,7 @@ import datetime
 from tflearn.datasets import cifar10
 
 from image_classification.tf.augmentor import ImageAugmentationPlus
-from image_classification.tf.conv_model import ConvModel
+from image_classification.tf.conv.conv_model import ConvModel
 from image_classification.tf.hyper_tuner import HyperTuner, tf_reset_all
 from image_classification.tf.tensorflow_impl import TensorflowRunner, TensorflowSolver
 from image_classification.tf.data_set import Data, DataSet
