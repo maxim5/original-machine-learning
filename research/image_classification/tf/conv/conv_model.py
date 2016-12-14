@@ -121,7 +121,7 @@ class ConvModel:
                                        beta2=optimizer_params.get('beta2', 0.999),
                                        epsilon=optimizer_params.get('epsilon', 1e-8)).minimize(cost)
 
-    init = tf.initialize_all_variables()
+    init = tf.global_variables_initializer()
 
     correct_prediction = tf.equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
