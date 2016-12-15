@@ -8,6 +8,8 @@ from tensorflow.python.training import moving_averages
 
 import variable
 
+# Activations
+
 def leaky_relu(x, alpha=0.1):
   x = tf.nn.relu(x)
   m_x = tf.nn.relu(-x)
@@ -23,8 +25,26 @@ def prelu(x):
 
 ACTIVATIONS = {'leaky_relu': leaky_relu, 'prelu': prelu}
 ACTIVATIONS.update({name: getattr(tf, name) for name in ['tanh']})
-ACTIVATIONS.update({name: getattr(tf.nn, name) for name in ['relu', 'relu6', 'elu', 'sigmoid']})
+ACTIVATIONS.update({name: getattr(tf.nn, name) for name in ['relu', 'relu6', 'elu', 'sigmoid']})  # 'crelu'
 
+# Down-sampling
+
+def ada_pool(x, ksize, strides, padding):
+  max_ = tf.nn.max_pool(x, ksize, strides, padding)
+  avg_ = tf.nn.avg_pool(x, ksize, strides, padding)
+
+  with variable.scope('ada_pool'):
+    shape = max_.get_shape().as_list()
+    alpha = variable.new(value=0, shape=shape[1:3], name='alpha')
+    alpha = tf.reshape(alpha, shape=(1, shape[1], shape[2], 1))
+
+  return tf.mul(max_, 1 - alpha) + tf.mul(avg_, alpha)
+
+DOWN_SAMPLES = {'ada_pool': ada_pool}
+DOWN_SAMPLES.update({name: getattr(tf.nn, name) for name in ['max_pool', 'avg_pool']})
+# 'fractional_max_pool', 'fractional_avg_pool'
+
+# Layers
 
 def batch_normalization(incoming, is_training, beta=0.0, gamma=1.0, epsilon=1e-5, decay=0.9):
   shape = incoming.get_shape()
