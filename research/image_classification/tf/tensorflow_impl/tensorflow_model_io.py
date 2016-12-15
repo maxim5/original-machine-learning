@@ -3,14 +3,12 @@
 
 __author__ = 'maxim'
 
-
 import os
 
 import tensorflow as tf
 
 from image_classification.tf.model_io import ModelIO
 from image_classification.tf.logging import *
-
 
 class TensorflowModelIO(ModelIO):
   def __init__(self, **params):
@@ -33,7 +31,7 @@ class TensorflowModelIO(ModelIO):
 
     directory = os.path.abspath(directory)
     session_file = os.path.join(directory, 'session.data')
-    if os.path.exists(session_file):
+    if os.path.exists(session_file) or os.path.exists(session_file + '.meta'):
       self.saver.build()
       self.saver.restore(session, session_file)
       log_at_level(log_level, 'Loaded session from %s' % session_file)
