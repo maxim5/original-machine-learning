@@ -10,8 +10,8 @@ from util import *
 
 
 metrics = {
-  'max': lambda curve: max(curve),
-  'avg': lambda curve: sum(curve) / len(curve)
+  'max': lambda curve: max(curve) if curve else 0,
+  'avg': lambda curve: sum(curve) / len(curve) if curve else 0,
 }
 
 class BaseSolver(object):
