@@ -54,19 +54,18 @@ class ConvModel:
 
   def _reduce_layer(self, input):
     with variable.scope('reduce'):
-      input_shape = input.get_shape()
-      layer = tf.nn.avg_pool(input, ksize=[1, input_shape[1].value, input_shape[2].value, 1],
-                             strides=[1, 1, 1, 1], padding='VALID')
+      input_shape = input.get_shape().as_list()
+      layer = tf.nn.avg_pool(input, ksize=[1, input_shape[1], input_shape[2], 1], strides=[1, 1, 1, 1], padding='VALID')
     return layer
 
   def _fully_connected_layer(self, input, size, params):
     with variable.scope('fc'):
-      input_shape = input.get_shape()
-      fc_shape = [input_shape[1].value * input_shape[2].value * input_shape[3].value, size]
+      input_shape = input.get_shape().as_list()
+      fc_shape = [input_shape[1] * input_shape[2] * input_shape[3], size]
       W = variable.new(self._init(fc_shape), name='W')
       b = variable.new(self._init(fc_shape[-1:]), name='b')
 
-      layer = tf.reshape(input, [-1, W.get_shape().as_list()[0]])
+      layer = tf.reshape(input, [-1, fc_shape[0]])
       layer = tf.add(tf.matmul(layer, W), b)
       layer = self._apply_activation(layer, params.get('activation', 'relu'))
       layer = operations.dropout(layer, self._is_training(), keep_prob=params['dropout'])
@@ -128,7 +127,8 @@ class ConvModel:
                                        beta2=optimizer_params.get('beta2', 0.999),
                                        epsilon=optimizer_params.get('epsilon', 1e-8)).minimize(cost)
 
-    init = tf.global_variables_initializer()
+    init = tf.initialize_all_variables()
+    # init = tf.global_variables_initializer()
 
     correct_prediction = tf.equal(tf.argmax(prediction, 1), tf.argmax(self.y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
