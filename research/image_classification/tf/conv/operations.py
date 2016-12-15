@@ -6,12 +6,7 @@ __author__ = 'maxim'
 import tensorflow as tf
 from tensorflow.python.training import moving_averages
 
-def _variable(value, shape, trainable=True):
-  if value == 0:
-    initial_value = tf.zeros(shape=shape)
-  else:
-    initial_value = tf.ones(shape=shape) * value
-  return tf.Variable(initial_value=initial_value, trainable=trainable)
+import variable
 
 def leaky_relu(x, alpha=0.1):
   x = tf.nn.relu(x)
@@ -21,7 +16,8 @@ def leaky_relu(x, alpha=0.1):
 
 def prelu(x):
   shape = x.get_shape()
-  alpha = _variable(value=0, shape=shape[1:])
+  with variable.scope('prelu'):
+    alpha = variable.new(value=0, shape=shape[1:], name='alpha')
   x = tf.nn.relu(x) + tf.mul(alpha, (x - tf.abs(x))) * 0.5
   return x
 
@@ -35,11 +31,12 @@ def batch_normalization(incoming, is_training, beta=0.0, gamma=1.0, epsilon=1e-5
   dimensions_num = len(shape)
   axis = list(range(dimensions_num - 1))
 
-  beta = _variable(value=beta, shape=[shape[-1]])
-  gamma = _variable(value=gamma, shape=[shape[-1]])
+  with variable.scope('batchnorm'):
+    beta = variable.new(value=beta, shape=[shape[-1]], name='beta')
+    gamma = variable.new(value=gamma, shape=[shape[-1]], name='gamma')
 
-  moving_mean = _variable(value=0, shape=shape[-1:], trainable=False)
-  moving_variance = _variable(value=0, shape=shape[-1:], trainable=False)
+    moving_mean = variable.new(value=0, shape=shape[-1:], trainable=False, name='moving_mean')
+    moving_variance = variable.new(value=0, shape=shape[-1:], trainable=False, name='moving_variance')
 
   def update_mean_var():
     mean, variance = tf.nn.moments(incoming, axis)

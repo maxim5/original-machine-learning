@@ -6,6 +6,7 @@ __author__ = 'maxim'
 import copy
 
 import operations
+import variable
 
 import tensorflow as tf
 
@@ -38,38 +39,44 @@ class ConvModel:
     layer = self._apply_activation(layer, params.get('activation', 'relu'))
     return layer
 
-  def _conv_layer(self, image, params):
+  def _conv_layer(self, image, params, index):
     conv = image
-    for filter in params['filters_adapted']:
-      W = tf.Variable(self._init(filter))
-      b = tf.Variable(self._init(filter[-1:]))
-      conv = self._conv2d_activation(conv, W, b, strides=1, params=params)
+    with variable.scope('conv.%d' % index):
+      for i, filter in enumerate(params['filters_adapted']):
+        with variable.scope(i):
+          W = variable.new(self._init(filter), name='W')
+          b = variable.new(self._init(filter[-1:]), name='b')
+          conv = self._conv2d_activation(conv, W, b, strides=1, params=params)
 
-    layer = tf.nn.max_pool(conv, ksize=params['pools_adapted'], strides=params['pools_adapted'], padding='SAME')
-    layer = operations.dropout(layer, self._is_training(), keep_prob=params['dropout'])
+      layer = tf.nn.max_pool(conv, ksize=params['pools_adapted'], strides=params['pools_adapted'], padding='SAME')
+      layer = operations.dropout(layer, self._is_training(), keep_prob=params['dropout'])
     return layer
 
   def _reduce_layer(self, input):
-    input_shape = input.get_shape()
-    layer = tf.nn.avg_pool(input, ksize=[1, input_shape[1].value, input_shape[2].value, 1], strides=[1, 1, 1, 1], padding='VALID')
+    with variable.scope('reduce'):
+      input_shape = input.get_shape()
+      layer = tf.nn.avg_pool(input, ksize=[1, input_shape[1].value, input_shape[2].value, 1],
+                             strides=[1, 1, 1, 1], padding='VALID')
     return layer
 
   def _fully_connected_layer(self, input, size, params):
-    input_shape = input.get_shape()
-    fc_shape = [input_shape[1].value * input_shape[2].value * input_shape[3].value, size]
-    W = tf.Variable(self._init(fc_shape))
-    b = tf.Variable(self._init(fc_shape[-1:]))
+    with variable.scope('fc'):
+      input_shape = input.get_shape()
+      fc_shape = [input_shape[1].value * input_shape[2].value * input_shape[3].value, size]
+      W = variable.new(self._init(fc_shape), name='W')
+      b = variable.new(self._init(fc_shape[-1:]), name='b')
 
-    layer = tf.reshape(input, [-1, W.get_shape().as_list()[0]])
-    layer = tf.add(tf.matmul(layer, W), b)
-    layer = self._apply_activation(layer, params.get('activation', 'relu'))
-    layer = operations.dropout(layer, self._is_training(), keep_prob=params['dropout'])
+      layer = tf.reshape(input, [-1, W.get_shape().as_list()[0]])
+      layer = tf.add(tf.matmul(layer, W), b)
+      layer = self._apply_activation(layer, params.get('activation', 'relu'))
+      layer = operations.dropout(layer, self._is_training(), keep_prob=params['dropout'])
     return layer
 
   def _output_layer(self, input, shape):
-    W_out = tf.Variable(self._init(shape))
-    b_out = tf.Variable(self._init(shape[-1:]))
-    layer = tf.add(tf.matmul(input, W_out), b_out)
+    with variable.scope('out'):
+      W_out = variable.new(self._init(shape), name='W')
+      b_out = variable.new(self._init(shape[-1:]), name='b')
+      layer = tf.add(tf.matmul(input, W_out), b_out)
     return layer
 
   def _adapt_conv_shapes(self, conv_params, conv_layers_num):
@@ -97,7 +104,7 @@ class ConvModel:
     self._adapt_conv_shapes(conv_params, conv_layers_num)
     layer_conv = layer_input
     for i in xrange(1, conv_layers_num + 1):
-      layer_conv = self._conv_layer(layer_conv, params=conv_params[i])
+      layer_conv = self._conv_layer(layer_conv, params=conv_params[i], index=i)
 
     # Reduced + fully-connected + output layers
     fc_params = self.hyper_params['fc']
@@ -108,9 +115,9 @@ class ConvModel:
     return layer_out
 
   def build_graph(self):
-    self.mode = tf.placeholder(tf.string)
-    self.x = tf.placeholder(tf.float32, [None, self.input_shape[0], self.input_shape[1], self.input_shape[2]])
-    self.y = tf.placeholder(tf.float32, [None, self.num_classes])
+    self.mode = tf.placeholder(tf.string, name='mode')
+    self.x = tf.placeholder(tf.float32, [None, self.input_shape[0], self.input_shape[1], self.input_shape[2]], name='x')
+    self.y = tf.placeholder(tf.float32, [None, self.num_classes], name='y')
 
     prediction = self._build_conv_net()
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction, self.y))
