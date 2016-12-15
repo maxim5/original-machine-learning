@@ -39,14 +39,23 @@ class ConvModel:
     layer = self._apply_activation(layer, params.get('activation', 'relu'))
     return layer
 
-  def _conv_layer(self, image, params, index):
-    conv = image
+  def _conv_layer(self, input, params, index):
+    conv = input
     with variable.scope('conv.%d' % index):
       for i, filter in enumerate(params['filters_adapted']):
         with variable.scope(i):
           W = variable.new(self._init(filter), name='W')
           b = variable.new(self._init(filter[-1:]), name='b')
           conv = self._conv2d_activation(conv, W, b, strides=1, params=params)
+
+      if params.get('residual'):
+        input_shape = input.get_shape().as_list()
+        conv_shape = conv.get_shape().as_list()
+        if input_shape[-1] != conv_shape[-1]:
+          diff = conv_shape[-1] - input_shape[-1]
+          pad = diff / 2
+          input = tf.pad(input, [[0, 0], [0, 0], [0, 0], [pad, diff - pad]])
+        conv = conv + input
 
       layer = tf.nn.max_pool(conv, ksize=params['pools_adapted'], strides=params['pools_adapted'], padding='SAME')
       layer = operations.dropout(layer, self._is_training(), keep_prob=params['dropout'])
