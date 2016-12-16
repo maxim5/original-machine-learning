@@ -22,27 +22,23 @@ class ConvModel:
     self.hyper_params = hyper_params
 
   def _init(self, shape):
-    return tf.random_normal(shape) * self.hyper_params['init_stdev']
+    return tf.random_normal(shape) * self.hyper_params['init_sigma']
 
   def _is_training(self):
     return tf.equal(self.mode, 'train')
 
-  def _apply_activation(self, layer, name):
-    func = operations.ACTIVATIONS.get(name, None)
-    assert func is not None
-    return func(layer)
-
   def _conv2d_activation(self, image, W, b, strides, params):
+    activation = operations.ACTIVATIONS.get(params.get('activation', 'relu'))
     layer = tf.nn.conv2d(image, W, strides=[1, strides, strides, 1], padding='SAME')
     layer = tf.nn.bias_add(layer, b)
     layer = operations.batch_normalization(layer, self._is_training())
-    layer = self._apply_activation(layer, params.get('activation', 'relu'))
+    layer = activation(layer)
     return layer
 
   def _conv_layer(self, input, params, index):
     conv = input
     with variable.scope('conv.%d' % index):
-      for i, filter in enumerate(params['filters_adapted']):
+      for i, filter in enumerate(params['filters']):
         with variable.scope(i):
           W = variable.new(self._init(filter), name='W')
           b = variable.new(self._init(filter[-1:]), name='b')
@@ -57,14 +53,18 @@ class ConvModel:
           input = tf.pad(input, [[0, 0], [0, 0], [0, 0], [pad, diff - pad]])
         conv = conv + input
 
-      layer = tf.nn.max_pool(conv, ksize=params['pools_adapted'], strides=params['pools_adapted'], padding='SAME')
+      down_sample = operations.DOWN_SAMPLES.get(params['down_sample']['pooling'])
+      size = params['down_sample']['size']
+      layer = down_sample(conv, ksize=size, strides=size, padding='SAME')
       layer = operations.dropout(layer, self._is_training(), keep_prob=params['dropout'])
     return layer
 
-  def _reduce_layer(self, input):
+  def _reduce_layer(self, input, params):
+    down_sample = operations.DOWN_SAMPLES.get(params['down_sample']['pooling'])
+
     with variable.scope('reduce'):
       input_shape = input.get_shape().as_list()
-      layer = tf.nn.avg_pool(input, ksize=[1, input_shape[1], input_shape[2], 1], strides=[1, 1, 1, 1], padding='VALID')
+      layer = down_sample(input, ksize=[1, input_shape[1], input_shape[2], 1], strides=[1, 1, 1, 1], padding='VALID')
     return layer
 
   def _fully_connected_layer(self, input, size, params):
@@ -74,9 +74,10 @@ class ConvModel:
       W = variable.new(self._init(fc_shape), name='W')
       b = variable.new(self._init(fc_shape[-1:]), name='b')
 
+      activation = operations.ACTIVATIONS.get(params.get('activation', 'relu'))
       layer = tf.reshape(input, [-1, fc_shape[0]])
       layer = tf.add(tf.matmul(layer, W), b)
-      layer = self._apply_activation(layer, params.get('activation', 'relu'))
+      layer = activation(layer)
       layer = operations.dropout(layer, self._is_training(), keep_prob=params['dropout'])
     return layer
 
@@ -96,10 +97,11 @@ class ConvModel:
       for filter in layer_params['filters']:
         adapted.append([filter[0], filter[1], channels, filter[2]])
         channels = filter[2]
-      layer_params['filters_adapted'] = adapted
+      layer_params['filters'] = adapted
 
-      pools = layer_params['pools']
-      layer_params['pools_adapted'] = [1, pools[0], pools[1], 1]
+      down_sample = layer_params['down_sample']
+      size = down_sample['size']
+      down_sample['size'] = [1, size[0], size[1], 1]
 
   def _build_conv_net(self):
     # Input
@@ -116,7 +118,7 @@ class ConvModel:
 
     # Reduced + fully-connected + output layers
     fc_params = self.hyper_params['fc']
-    layer_pool = self._reduce_layer(layer_conv)
+    layer_pool = self._reduce_layer(layer_conv, self.hyper_params['reduce'])
     layer_fc = self._fully_connected_layer(layer_pool, size=fc_params['size'], params=fc_params)
     layer_out = self._output_layer(layer_fc, shape=[fc_params['size'], self.num_classes])
 
