@@ -69,7 +69,7 @@ def stage1():
   curve_params = {
     'burn_in': 20,
     'min_input_size': 4,
-    'value_limit': 0.75,
+    'value_limit': 0.82,
     'io_load_dir': directory,
     'io_save_dir': directory,
   }
@@ -78,14 +78,14 @@ def stage1():
   def solver_generator(hyper_params):
     solver_params = {
       'batch_size': 250,
-      'eval_batch_size': 2500,
+      'eval_batch_size': 2000,
       'epochs': 15,
       'stop_condition': curve_predictor.stop_condition(),
       'result_metric': curve_predictor.result_metric(),
       'evaluate_test': True,
       'eval_flexible': False,
       'save_dir': '_models/cifar10/model-zoo/%s-%s' % (datetime.datetime.now().strftime('%Y-%m-%d'), random_id()),
-      'save_accuracy_limit': 0.8,
+      'save_accuracy_limit': 0.83,
     }
 
     model = ConvModel(input_shape=(32, 32, 3), num_classes=10, **hyper_params)
@@ -107,15 +107,15 @@ def stage1():
 
 def stage2(path=None, random_fork=True, batch_size=250, epochs=25):
   if not path:
-    path = read_model('_models/cifar10/model-zoo')
+    path = read_model('_models/cifar10/model-zoo-3')
 
-  model_path = '_models/cifar10/model-zoo/%s' % path
+  model_path = '_models/cifar10/model-zoo-3/%s' % path
 
   data = get_cifar10_data()
 
   solver_params = {
     'batch_size': batch_size,
-    'eval_batch_size': 2500,
+    'eval_batch_size': 2000,
     'epochs': epochs,
     'evaluate_test': True,
     'eval_flexible': True,
@@ -128,8 +128,7 @@ def stage2(path=None, random_fork=True, batch_size=250, epochs=25):
 
   augmentation = None
   if random_fork:
-    # instance = spec.get_instance(augment_spec)
-    instance = {'crop_size': 2, 'scale': [0.9, 1.2]}
+    instance = spec.get_instance(augment_spec)
     hyper_params.update({'augment': instance})
     augmentation = init_augmentation(**instance)
 
@@ -139,21 +138,22 @@ def stage2(path=None, random_fork=True, batch_size=250, epochs=25):
   solver.train()
 
 
-def stage3(models=('',)):
+def stage3():
+  models = os.listdir('_models/cifar10/model-zoo-3')
   while True:
     for path in models:
       tf_reset_all()
-      stage2(path, batch_size=500, epochs=10)
+      stage2(path, batch_size=500, epochs=8)
       import time
       time.sleep(20)
 
 
-def stage4(path='_models/cifar10/model-zoo/2016-12-07-7OG78H'):
+def stage4(path='_models/cifar10/model-zoo-3/2016-12-17-UQY3ES'):
   solver_params = {
-    'batch_size': 500,
+    'batch_size': 600,
     'eval_batch_size': 2500,
     'epochs': 3,
-    'evaluate_test': False,
+    'evaluate_test': True,
     'eval_flexible': False,
     'eval_train_every': 2,
     'eval_validation_every': 2,
@@ -184,7 +184,7 @@ def stage4(path='_models/cifar10/model-zoo/2016-12-07-7OG78H'):
   tuner.tune()
 
 
-def list_all(path='_models/cifar10/model-zoo'):
+def list_all(path='_models/cifar10/model-zoo-3'):
   list_models(path)
 
 
