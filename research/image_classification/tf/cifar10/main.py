@@ -64,7 +64,8 @@ def init_augmentation(**params):
 
 def stage1():
   data = get_cifar10_data()
-  directory = '_models/cifar10/hyper/stage1-5.0'
+  directory = '_models/cifar10/hyper/stage1-6.0'
+  hyper_spec = hyper_params_spec_6_0
 
   curve_params = {
     'burn_in': 20,
@@ -101,7 +102,7 @@ def stage1():
     'io_save_dir': directory,
   }
 
-  tuner = HyperTuner(hyper_params_spec_5_0, solver_generator, **strategy_params)
+  tuner = HyperTuner(hyper_spec, solver_generator, **strategy_params)
   tuner.tune()
 
 

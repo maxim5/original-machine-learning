@@ -293,6 +293,66 @@ hyper_params_spec_5_0 = {
 }
 
 
+hyper_params_spec_6_0 = {
+  'init_sigma': 10**spec.uniform(-1.5, -1),
+
+  'optimizer': {
+    'learning_rate': 10**spec.uniform(-3.2, -2.8),
+    'beta1': 0.9,
+    'beta2': 0.999,
+    'epsilon': 1e-8,
+  },
+
+  'conv': {
+    'layers_num': 4,
+    1: {
+      'filters': [[3, 1, spec.choice(range(60, 70))],
+                  [1, 3, spec.choice(range(60, 70))]],
+      'activation': spec.choice(activations),
+      'down_sample': {'size': [2, 2],'pooling': 'ada_pool'},
+      'residual': 1,
+      'dropout': spec.uniform(0.9, 1.0),
+    },
+    2: {
+      'filters': [[3, 1, spec.choice(range(120, 180))],
+                  [1, 3, spec.choice(range(120, 180))]],
+      'activation': spec.choice(activations),
+      'down_sample': {'size': [2, 2],'pooling': 'ada_pool'},
+      'residual': 1,
+      'dropout': spec.uniform(0.8, 1.0),
+    },
+    3: {
+      'filters': [[3, 1, spec.choice(range(180, 257))],
+                  [1, 3, spec.choice(range(180, 257))]],
+      'activation': spec.choice(activations),
+      'down_sample': {'size': [2, 2],'pooling': 'ada_pool'},
+      'residual': 1,
+      'dropout': spec.uniform(0.7, 1.0),
+    },
+    4: {
+      'filters': [[3, 1, spec.choice(range(180, 257))],
+                  [1, 3, spec.choice(range(180, 257))]],
+      'activation': spec.choice(activations),
+      'down_sample': {'size': [2, 2],'pooling': 'ada_pool'},
+      'residual': 1,
+      'dropout': spec.uniform(0.5, 1.0),
+    },
+  },
+
+  'reduce': {
+    'down_sample': {
+      'pooling': 'ada_pool',
+    }
+  },
+
+  'fc': {
+    'size': spec.choice(range(256, 400)),
+    'activation': spec.choice(activations),
+    'dropout': spec.uniform(0.45, 1.0),
+  },
+}
+
+
 augment_spec = {
   'scale': [1.0, spec.uniform(0.9, 1.3)],
   'crop_size': spec.choice(range(2)),
