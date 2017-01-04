@@ -330,8 +330,8 @@ hyper_params_spec_6_0 = {
       'dropout': spec.uniform(0.7, 1.0),
     },
     4: {
-      'filters': [[3, 1, spec.choice(range(180, 257))],
-                  [1, 3, spec.choice(range(180, 257))]],
+      'filters': [[2, 1, spec.choice(range(257, 300))],
+                  [1, 2, spec.choice(range(257, 300))]],
       'activation': spec.choice(activations),
       'down_sample': {'size': [2, 2],'pooling': 'ada_pool'},
       'residual': 1,
