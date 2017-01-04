@@ -108,9 +108,9 @@ def stage1():
 
 def stage2(path=None, random_fork=True, batch_size=250, epochs=25):
   if not path:
-    path = read_model('_models/cifar10/model-zoo-3')
+    path = read_model('_models/cifar10/model-zoo-4')
 
-  model_path = '_models/cifar10/model-zoo-3/%s' % path
+  model_path = '_models/cifar10/model-zoo-4/%s' % path
 
   data = get_cifar10_data()
 
@@ -140,11 +140,11 @@ def stage2(path=None, random_fork=True, batch_size=250, epochs=25):
 
 
 def stage3():
-  models = os.listdir('_models/cifar10/model-zoo-3')
+  models = os.listdir('_models/cifar10/model-zoo-4')
   while True:
     for path in models:
       tf_reset_all()
-      stage2(path, batch_size=500, epochs=8)
+      stage2(path, batch_size=500, epochs=4)
       import time
       time.sleep(20)
 
@@ -185,7 +185,7 @@ def stage4(path='_models/cifar10/model-zoo-3/2016-12-17-UQY3ES'):
   tuner.tune()
 
 
-def list_all(path='_models/cifar10/model-zoo-3'):
+def list_all(path='_models/cifar10/model-zoo-4'):
   list_models(path)
 
 
