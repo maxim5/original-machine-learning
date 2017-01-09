@@ -37,7 +37,7 @@ hyper_params = {
       'dropout': 0.9,
     },
     3: {
-      'filters': [[1, 1, 120],
+      'filters': [[1, 1, 128],
                   [3, 3, 256]],
       'activation': 'elu',
       'down_sample': {'size': [2, 2], 'pooling': 'ada_pool'},
@@ -73,7 +73,14 @@ def main():
   data = get_cifar10_data()
   model = ConvModel(input_shape=(32, 32, 3), num_classes=10, **hyper_params)
   runner = TensorflowRunner(model=model)
-  solver = TensorflowSolver(data=data, runner=runner, **hyper_params)
+  solver_params = {
+    'batch_size': 1000,
+    'eval_batch_size': 2500,
+    'epochs': 50,
+    'evaluate_test': True,
+    'eval_flexible': False,
+  }
+  solver = TensorflowSolver(data=data, runner=runner, **solver_params)
   solver.train()
 
 
