@@ -34,7 +34,7 @@ hyper_params = {
       'activation': 'elu',
       'down_sample': {'size': [2, 2], 'pooling': 'ada_pool'},
       'residual': 1,
-      'dropout': 0.9,
+      'dropout': 0.8,
     },
     3: {
       'filters': [[1, 1, 128],
@@ -42,23 +42,24 @@ hyper_params = {
       'activation': 'elu',
       'down_sample': {'size': [2, 2], 'pooling': 'ada_pool'},
       'residual': 1,
-      'dropout': 0.8,
+      'dropout': 0.7,
     },
     4: {
-      'filters': [[1, 1, 180],
-                  [2, 2, 256]],
+      'filters': [[1, 1, 200],
+                  [2, 2, 360]],
       'activation': 'elu',
       'down_sample': {'size': [2, 2], 'pooling': 'ada_pool'},
       'residual': 1,
       'dropout': 0.7,
     },
     5: {
-      'filters': [[2, 2, 512]],
+      'filters': [[2, 2, 640]],
       'padding': 'VALID',
       'activation': 'relu',
+      'dropout': 0.7,
     },
     6: {
-      'filters': [[1, 1, 512]],
+      'filters': [[1, 1, 1024]],
       'activation': 'relu',
     },
     7: {
