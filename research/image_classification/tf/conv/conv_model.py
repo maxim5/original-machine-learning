@@ -29,7 +29,7 @@ class ConvModel:
 
   def _conv2d_activation(self, image, W, b, strides, params):
     activation = operations.ACTIVATIONS.get(params.get('activation', 'relu'))
-    layer = tf.nn.conv2d(image, W, strides=[1, strides, strides, 1], padding='SAME')
+    layer = tf.nn.conv2d(image, W, strides=[1, strides, strides, 1], padding=params.get('padding', 'SAME'))
     layer = tf.nn.bias_add(layer, b)
     layer = operations.batch_normalization(layer, self._is_training())
     layer = activation(layer)
@@ -53,39 +53,18 @@ class ConvModel:
           input = tf.pad(input, [[0, 0], [0, 0], [0, 0], [pad, diff - pad]])
         conv = conv + input
 
-      down_sample = operations.DOWN_SAMPLES.get(params['down_sample']['pooling'])
-      size = params['down_sample']['size']
-      layer = down_sample(conv, ksize=size, strides=size, padding='SAME')
-      layer = operations.dropout(layer, self._is_training(), keep_prob=params['dropout'])
-    return layer
+      down_sample_params = params.get('down_sample')
+      if down_sample_params:
+        down_sample = operations.DOWN_SAMPLES.get(down_sample_params['pooling'])
+        size = down_sample_params['size']
+        size = [1, size[0], size[1], 1]
+        layer = down_sample(conv, ksize=size, strides=size, padding='SAME')
+      else:
+        layer = conv
 
-  def _reduce_layer(self, input, params):
-    down_sample = operations.DOWN_SAMPLES.get(params['down_sample']['pooling'])
-
-    with variable.scope('reduce'):
-      input_shape = input.get_shape().as_list()
-      layer = down_sample(input, ksize=[1, input_shape[1], input_shape[2], 1], strides=[1, 1, 1, 1], padding='VALID')
-    return layer
-
-  def _fully_connected_layer(self, input, size, params):
-    with variable.scope('fc'):
-      input_shape = input.get_shape().as_list()
-      fc_shape = [input_shape[1] * input_shape[2] * input_shape[3], size]
-      W = variable.new(self._init(fc_shape), name='W')
-      b = variable.new(self._init(fc_shape[-1:]), name='b')
-
-      activation = operations.ACTIVATIONS.get(params.get('activation', 'relu'))
-      layer = tf.reshape(input, [-1, fc_shape[0]])
-      layer = tf.add(tf.matmul(layer, W), b)
-      layer = activation(layer)
-      layer = operations.dropout(layer, self._is_training(), keep_prob=params['dropout'])
-    return layer
-
-  def _output_layer(self, input, shape):
-    with variable.scope('out'):
-      W_out = variable.new(self._init(shape), name='W')
-      b_out = variable.new(self._init(shape[-1:]), name='b')
-      layer = tf.add(tf.matmul(input, W_out), b_out)
+      dropout = params.get('dropout')
+      if dropout:
+        layer = operations.dropout(layer, self._is_training(), keep_prob=dropout)
     return layer
 
   def _adapt_conv_shapes(self, conv_params, conv_layers_num):
@@ -99,16 +78,10 @@ class ConvModel:
         channels = filter[2]
       layer_params['filters'] = adapted
 
-      down_sample = layer_params['down_sample']
-      size = down_sample['size']
-      down_sample['size'] = [1, size[0], size[1], 1]
-
   def _build_conv_net(self):
-    # Input
     image_shape = (-1,) + tuple(self.input_shape)
     layer_input = tf.reshape(self.x, shape=image_shape)
 
-    # Conv layers
     conv_params = copy.deepcopy(self.hyper_params['conv'])  # copy because it's patched
     conv_layers_num = conv_params['layers_num']
     self._adapt_conv_shapes(conv_params, conv_layers_num)
@@ -116,13 +89,8 @@ class ConvModel:
     for i in xrange(1, conv_layers_num + 1):
       layer_conv = self._conv_layer(layer_conv, params=conv_params[i], index=i)
 
-    # Reduced + fully-connected + output layers
-    fc_params = self.hyper_params['fc']
-    layer_pool = self._reduce_layer(layer_conv, self.hyper_params['reduce'])
-    layer_fc = self._fully_connected_layer(layer_pool, size=fc_params['size'], params=fc_params)
-    layer_out = self._output_layer(layer_fc, shape=[fc_params['size'], self.num_classes])
-
-    return layer_out
+    layer_output = tf.reshape(layer_conv, shape=[-1, self.num_classes])
+    return layer_output
 
   def build_graph(self):
     self.mode = tf.placeholder(tf.string, name='mode')
